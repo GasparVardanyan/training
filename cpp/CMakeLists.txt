@@ -1,0 +1,17 @@
+cmake_minimum_required (VERSION 4.1)
+project (cpptut)
+include (/desktop/nvim/cmake/config.cmake)
+add_compile_options (-Wall -Wextra -Werror)
+
+
+add_executable (1_hello_world 1_hello_world.cpp)
+add_executable (2_function 2_function.cpp)
+add_executable (3_literals 3_literals.cpp)
+add_executable (4_operator_precedence 4_operator_precedence.cpp)
+add_executable (5_unary_operators 5_unary_operators.cpp)
+add_executable (6_floating_point_arithmetic 6_floating_point_arithmetic.cpp)
+add_executable (7_bit_operators 7_bit_operators.cpp)
+add_executable (8_bit_manipulation 8_bit_manipulation.cpp)
+add_executable (9_popcount 9_popcount.cpp)
+add_executable (10_bit_fields 10_bit_fields.cpp)
+add_executable (11_arrays 11_arrays.cpp)
