@@ -1,0 +1,2 @@
+cpp: https://goalkicker.com/CPlusPlusBook/
+dsa: Data Structures and Algorithm Analysis in C++ (4th ed.) - Mark Allen Weiss
