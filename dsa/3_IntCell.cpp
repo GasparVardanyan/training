@@ -1,7 +1,7 @@
-# include "2_IntCell.h"
+# include "3_IntCell.h"
 
 IntCell::IntCell (int initialValue)
-	: m_storedValue (initialValue) {}
+	: m_storedValue {initialValue} {}
 
 int IntCell::read () const {
 	return m_storedValue;

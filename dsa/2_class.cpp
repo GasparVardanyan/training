@@ -1,33 +1,66 @@
 # include <iostream>
 
-# include "2_IntCell.h"
-
-class A {
+class IntCell
+{
 public:
-	A (int x) : m_x (x) { (void) m_x; }
+	IntCell () {
+		m_storedValue = 0;
+		std::cout << "IntCell ()" << std::endl;
+	}
+
+	IntCell (int initialValue) {
+		m_storedValue = initialValue;
+		std::cout << "IntCell (int)" << std::endl;
+	}
+
+	IntCell & operator= (const IntCell & other) {
+		m_storedValue = other.m_storedValue;
+		std::cout << "IntCell & operator=" << std::endl;
+		return * this;
+	}
+
+	int read () const {
+		return m_storedValue;
+	}
+
+	void write (int x) {
+		m_storedValue = x;
+	}
+
 private:
-	int m_x;
+	int m_storedValue;
 };
 
-class B {
+class IntCell1
+{
 public:
-	explicit B (int x) : m_x (x) { (void) m_x; }
+	explicit IntCell1 (int initialValue = 0)
+		: m_storedValue {initialValue} {}
+
+	int read () const {
+		return m_storedValue;
+	}
+
+	void write (int x) {
+		m_storedValue = x;
+	}
+
 private:
-	int m_x;
+	int m_storedValue;
 };
 
 int main ()
 {
-	IntCell ic;
-	ic.write (5);
-	std::cout << ic.read () << std::endl;
+	IntCell x = 10;
+	std::cout << "====================" << std::endl;
+	x = 20;
+	std::cout << "====================" << std::endl;
 
-	{ A a = 10; }
-	// { B b = 20; }
 
-	{ A a (10); }
-	{ B b (20); }
 
-	{ A a { 10 }; }
-	{ B b { 20 }; }
+	IntCell1 y = (IntCell1) 20;
+	IntCell1 z (20);
+	IntCell1 w { 20 };
+	std::cout << "Hello, World!" << std::endl;
+	if (y.read()) {}
 }

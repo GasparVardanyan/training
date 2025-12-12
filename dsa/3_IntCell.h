@@ -1,5 +1,5 @@
-# ifndef IntCell_H_2
-# define IntCell_H_2
+# ifndef IntCell_H_3
+# define IntCell_H_3
 
 class IntCell {
 public:
@@ -11,4 +11,4 @@ private:
 	int m_storedValue;
 };
 
-# endif // IntCell_H_2
+# endif // IntCell_H_3

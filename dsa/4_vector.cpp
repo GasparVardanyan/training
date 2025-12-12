@@ -1,7 +1,27 @@
 # include <cstddef>
 
+#include <initializer_list>
 # include <iostream>
 # include <vector>
+
+class MyClass {
+public:
+	explicit MyClass (int) {
+		std::cout << "MyClass (int)" << std::endl;
+	}
+
+	MyClass (std::initializer_list<int> l) {
+		if (1 == l.size ()) {
+			std::cout << "MyClass {int}" << std::endl;
+		}
+	}
+
+	explicit MyClass (std::initializer_list<double> l) {
+		if (1 == l.size ()) {
+			std::cout << "MyClass {double}" << std::endl;
+		}
+	}
+};
 
 int main ()
 {
@@ -35,4 +55,12 @@ int main ()
 	}
 
 	std::cout << "sum: " << sum << std::endl;
+
+	std::cout << "====================" << std::endl;
+
+	MyClass c1 (5);
+	MyClass c2 {5};
+	MyClass c3 = {5};
+	MyClass c4 {5.0};
+	// MyClass c5 = {5.0}; // error, the constructor is explicit
 }

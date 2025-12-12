@@ -19,7 +19,7 @@ private:
 
 int main ()
 {
-	IntCell * m;
+	IntCell * m = nullptr;
 	m = new IntCell {0};
 	m->write (10);
 	std::cout << "Cell contents: " << m->read () << std::endl;
