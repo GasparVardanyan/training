@@ -4,7 +4,11 @@
 class IntCell {
 public:
 	explicit IntCell (int initialValue = 0);
-	int read () const;
+	IntCell(const IntCell &) = default;
+	IntCell(IntCell &&) = default;
+	IntCell &operator=(const IntCell &) = default;
+	IntCell &operator=(IntCell &&) = default;
+	int read() const;
 	void write (int x);
 
 private:

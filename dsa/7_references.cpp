@@ -3,58 +3,12 @@
 
 # include <algorithm>
 # include <iostream>
-#include <stdexcept>
+# include <stdexcept>
 # include <string>
+# include <utility>
 # include <vector>
 
-class C {
-public:
-	C () {
-		std::cout << "called " << makeLabel (this) << " C () " << std::endl;
-	}
-
-	C (int x) {
-		if (x) {}
-		std::cout << "called " << makeLabel (this) << " C (int) " << std::endl;
-	}
-
-	C (const C & o) {
-		std::cout << "called C (const C &) " << makeLabel (this)  << " (" << makeLabel (& o) << ')' << std::endl;
-	}
-
-	C (C && o) {
-		std::cout << "called C (C &&) " << makeLabel (this)  << " (" << makeLabel (& o) << ')' << std::endl;
-	}
-
-	C & operator= (const C & o) {
-		std::cout << "called C & operator=(const C &) " << makeLabel (this)  << " (" << makeLabel (& o) << ')' << std::endl;
-		return *this;
-	}
-
-	C & operator= (C && o) {
-		std::cout << "called C & operator=(C &&) " << makeLabel (this)  << " (" << makeLabel (& o) << ')' << std::endl;
-		return *this;
-	}
-
-	virtual ~C () {
-		std::cout << "called ~C () [" << makeLabel (this)  << ']' << std::endl;
-	}
-
-public:
-	static int maxIndex () {
-		return (int) s_ptrs.size () - 1;
-	}
-
-private:
-	static inline std::vector <const C *> s_ptrs;
-	static std::string makeLabel (const C * c) {
-		if (s_ptrs.end () == std::find(s_ptrs.begin (), s_ptrs.end (), c)) {
-			s_ptrs.push_back(c);
-		}
-
-		return "ID" + std::to_string (std::find (s_ptrs.begin (), s_ptrs.end (), c) - s_ptrs.begin ());
-	}
-};
+# include "verbose_class.h"
 
 C x () {
 	return {};
@@ -196,6 +150,11 @@ int main () noexcept (false)
 		if (v1.size () != 5 || v2.size () != 3) {
 			throw std::runtime_error ("error");
 		}
+		std::cout << "std::swap (v1, v2); [" << C::maxIndex() << ']' << std::endl;
+		std::swap (v1, v2);
+		if (v1.size () != 3 || v2.size () != 5) {
+			throw std::runtime_error ("error");
+		}
 		std::cout << ">>>" << std::endl;
 	}
 
@@ -204,7 +163,10 @@ int main () noexcept (false)
 	{
 		std::cout << "<<<" << std::endl;
 		std::vector <C> x = {1, 2, 3, 4}; // This uses already used and free-ed stack, so ids repeat
+		std::vector <C> * xptr = & x;
 		std::vector <C> y = (std::vector <C> &&) x;
+		std::vector <C> * yptr = & y;
+		std::cout << "P: " << xptr << ", " << yptr << std::endl;
 		std::cout << "ys: " << y.size () << std::endl;
 		std::cout << "xs: " << x.size () << std::endl;
 		x.push_back(10);
