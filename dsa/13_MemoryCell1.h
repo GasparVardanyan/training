@@ -1,5 +1,5 @@
-# ifndef MemoryCell1_H_13
-# define MemoryCell1_H_13
+# ifndef MEMORYCELL1_H_13
+# define MEMORYCELL1_H_13
 
 template <typename Object>
 class MemoryCell1
@@ -15,4 +15,4 @@ private:
 
 # include "13_MemoryCell1.cpp"
 
-# endif // MemoryCell1_H_13
+# endif // MEMORYCELL1_H_13

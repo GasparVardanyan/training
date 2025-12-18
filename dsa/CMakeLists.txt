@@ -17,12 +17,15 @@ add_executable (9_function_templates 9_function_templates.cpp)
 add_executable (10_class_templates 10_class_templates.cpp)
 add_executable (11_object_and_comparable 11_object_and_comparable.cpp)
 add_executable (12_function_object 12_function_object.cpp)
-add_executable ( 13_separate_compilation_of_class_templates
+add_executable (13_separate_compilation_of_class_templates
 	13_separate_compilation_of_class_templates.cpp
 	13_MemoryCell1.h
 	13_MemoryCell2.h
 	13_MemoryCell2.cpp
 )
+add_executable (14_matrix_example 14_matrix_example.cpp 14_matrix.h)
+
+add_executable (ex_1_1_selection_problem ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
 
 
 
@@ -38,5 +41,11 @@ target_link_libraries(
   GTest::gtest_main
 )
 
+target_link_libraries(
+  ex_1_1_selection_problem
+  GTest::gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(hello_test)
+gtest_discover_tests(ex_1_1_selection_problem)

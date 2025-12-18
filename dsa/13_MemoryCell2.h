@@ -1,5 +1,5 @@
-# ifndef MemoryCell2_H_13
-# define MemoryCell2_H_13
+# ifndef MEMORYCELL2_H_13
+# define MEMORYCELL2_H_13
 
 template <typename Object>
 class MemoryCell2
@@ -13,4 +13,4 @@ private:
 	Object m_storedValue;
 };
 
-# endif // MemoryCell2_H_13
+# endif // MEMORYCELL2_H_13
