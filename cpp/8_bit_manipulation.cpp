@@ -105,9 +105,11 @@ void setNthBit (T & val, std::size_t index, bool state) noexcept (false)
 		throw std::invalid_argument ("index is out of range");
 	}
 
-	if (state || val){}
+	// val = (val & (T) (index - 1)) | ((T) state << index) | ((val >> index) << index);
 
-	static_assert (1, "do this later");
+	// val ^= ((T) 1 << index) & (val ^ ((T) state << index));
+
+	val ^= ((T) 1 << index) & (- (T) state ^ val);
 }
 
 int main () noexcept (false)
@@ -142,7 +144,7 @@ int main () noexcept (false)
 	decltype (i) j = 0;
 
 	for (std::size_t index = 0; index < 8 * sizeof (i); index++) {
-		j |= getNthBit (i, index) << index;
+		j |= ((decltype (j)) getNthBit (i, index)) << index;
 	}
 
 	if (j != i) {

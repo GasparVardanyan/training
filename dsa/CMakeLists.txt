@@ -3,6 +3,9 @@ project (cpptut)
 include (/desktop/nvim/cmake/config.cmake)
 add_compile_options (-Wall -Wextra -Werror)
 
+find_package(GTest REQUIRED)
+enable_testing ()
+
 add_executable (1_recursion 1_recursion.cpp)
 add_executable (2_class 2_class.cpp)
 add_executable (3_class 3_class.cpp 3_IntCell.cpp 3_IntCell.h)
@@ -26,26 +29,10 @@ add_executable (13_separate_compilation_of_class_templates
 add_executable (14_matrix_example 14_matrix_example.cpp 14_matrix.h)
 
 add_executable (ex_1_1_selection_problem ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
+target_link_libraries (ex_1_1_selection_problem GTest::gtest_main)
 
+add_executable (ex_1_5_popcount_with_recursion ex_1_5_popcount_with_recursion_test.cpp ex_1_5_popcount_with_recursion.h)
+target_link_libraries (ex_1_5_popcount_with_recursion GTest::gtest_main)
 
-
-
-find_package(GTest REQUIRED)
-
-enable_testing ()
-
-add_executable (hello_test hello_test.cpp)
-
-target_link_libraries(
-  hello_test
-  GTest::gtest_main
-)
-
-target_link_libraries(
-  ex_1_1_selection_problem
-  GTest::gtest_main
-)
-
-include(GoogleTest)
-gtest_discover_tests(hello_test)
-gtest_discover_tests(ex_1_1_selection_problem)
+include (GoogleTest)
+gtest_discover_tests (ex_1_1_selection_problem ex_1_5_popcount_with_recursion)

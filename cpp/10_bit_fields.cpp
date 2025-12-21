@@ -25,6 +25,6 @@ int main ()
 	d.Month = 2;
 	d.Day = 20;
 
-	std::printf ("%2d - %02d - %d\n", d.Day, d.Month, d.Year);
+	std::printf ("%2u - %02u - %u\n", d.Day, d.Month, d.Year);
 	std::fflush (stdout);
 }

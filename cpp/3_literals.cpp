@@ -41,8 +41,7 @@ int main ()
 	int * x = nullptr;
 	std::nullptr_t np;
 
-	if (l1 || l2 || l3 || x || np != nullptr) {
-	}
+	if (l1 || l2 || l3 || x || np != nullptr) {}
 
 	f (nullptr);
 	g <std::nullptr_t> (nullptr);
