@@ -20,7 +20,7 @@ TEST(FindNthMax, RandomizedComparisonWithSort)
 	std::srand (std::time (NULL));
 
 	for (int iter = 0; iter < 100; iter++) {
-		int n = std::rand () % 500;
+		int n = std::rand () % 500 + 1;
 		int k = 2 * n;
 
 		std::vector <int> myVec (k);

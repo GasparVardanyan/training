@@ -134,11 +134,6 @@ void array2d ()
 	a.push_back (Array2D <int> (10, 10));
 }
 
-template <typename T, std::size_t n>
-constexpr std::size_t nItems (T (&) [n]) noexcept { // std::size
-	return n;
-}
-
 template <typename T>
 class Matrix {
 private:
@@ -184,6 +179,21 @@ public:
 	}
 };
 
+template <typename T, std::size_t n>
+constexpr std::size_t nItems (T (&) [n]) noexcept { // std::size
+	return n;
+}
+
+template <typename T, std::size_t n>
+void getArr (const T (&) [n]) {
+	std::cout << "array passed" << std::endl;
+}
+
+template <typename T>
+void getArr (const T *) {
+	std::cout << "pointer passed" << std::endl;
+}
+
 void matrix () {
 	Matrix m {
 		{1, 2, 3},
@@ -223,4 +233,14 @@ int main ()
 	std::cout << std::extent <decltype (arr4)>::value << std::endl;
 	std::cout << std::extent <decltype (arr4), 1>::value << std::endl;
 	std::cout << std::extent <decltype (arr4), 2>::value << std::endl;
+
+	{
+		int * arr1 = new int [10] ;
+		int arr2 [10];
+
+		getArr (arr1);
+		getArr (arr2);
+
+		delete [] arr1;
+	}
 }

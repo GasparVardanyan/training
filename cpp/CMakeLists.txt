@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 4.1)
 project (cpptut)
 include (/desktop/nvim/cmake/config.cmake)
-add_compile_options (-Wall -Wextra -Werror)
+add_compile_options (-Wall -Wextra -Werror -Wno-unused-parameter)
 
 
 add_executable (1_hello_world 1_hello_world.cpp)
@@ -15,3 +15,7 @@ add_executable (8_bit_manipulation 8_bit_manipulation.cpp)
 add_executable (9_popcount 9_popcount.cpp)
 add_executable (10_bit_fields 10_bit_fields.cpp)
 add_executable (11_arrays 11_arrays.cpp)
+add_executable (12_iterators 12_iterators.cpp)
+add_executable (13_iterators 13_iterators.cpp)
+add_executable (14_loops 14_loops.cpp)
+add_executable (15_loops 15_loops.cpp)
