@@ -27,6 +27,21 @@ add_executable (13_separate_compilation_of_class_templates
 	13_MemoryCell2.cpp
 )
 add_executable (14_matrix_example 14_matrix_example.cpp 14_matrix.h)
+add_executable (15_max_subseq_sum
+	15_max_subseq_sum.h
+	15_max_subseq_sum.cpp
+	15_max_subseq_sum_main.cpp
+)
+target_compile_options (15_max_subseq_sum PRIVATE -Wno-unused-but-set-variable)
+target_link_libraries (15_max_subseq_sum GTest::gtest_main)
+
+add_executable (15_max_subseq_sum_test
+	15_max_subseq_sum.h
+	15_max_subseq_sum.cpp
+	15_max_subseq_sum_test.cpp
+)
+target_compile_options (15_max_subseq_sum_test PRIVATE -Wno-unused-but-set-variable)
+target_link_libraries (15_max_subseq_sum_test GTest::gtest_main)
 
 add_executable (ex_1_1_selection_problem ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
 target_link_libraries (ex_1_1_selection_problem GTest::gtest_main)
