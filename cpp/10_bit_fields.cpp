@@ -1,5 +1,4 @@
 # include <cstdio>
-# include <iomanip>
 # include <iostream>
 
 struct FileAttributes

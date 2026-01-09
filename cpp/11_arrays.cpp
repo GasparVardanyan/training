@@ -180,7 +180,7 @@ public:
 };
 
 template <typename T, std::size_t n>
-constexpr std::size_t nItems (T (&) [n]) noexcept { // std::size
+constexpr std::size_t nItems (const T (& x) [n]) noexcept { // std::size
 	return n;
 }
 
@@ -226,6 +226,8 @@ int main ()
 		std::cout << arr.get () [i] << std::endl;
 	}
 
+	std::cout << "====================" << std::endl;
+
 	int arr4 [5][6][7];
 	std::cout << nItems (arr4) << std::endl;
 
@@ -235,11 +237,13 @@ int main ()
 	std::cout << std::extent <decltype (arr4), 2>::value << std::endl;
 
 	{
-		int * arr1 = new int [10] ;
+		int * arr1 = new int [10];
 		int arr2 [10];
 
 		getArr (arr1);
 		getArr (arr2);
+
+		std::cout << std::distance (std::begin (arr2), std::end (arr2)) << std::endl;
 
 		delete [] arr1;
 	}

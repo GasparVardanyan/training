@@ -21,7 +21,7 @@ public:
 		std::cout << "called C (const C &) " << makeLabel (this)  << " (" << makeLabel (& o) << ')' << std::endl;
 	}
 
-	C (C && o) {
+	C (C && o) noexcept {
 		std::cout << "called C (C &&) " << makeLabel (this)  << " (" << makeLabel (& o) << ')' << std::endl;
 	}
 
@@ -30,7 +30,7 @@ public:
 		return *this;
 	}
 
-	C & operator= (C && o) {
+	C & operator= (C && o) noexcept {
 		std::cout << "called C & operator=(C &&) " << makeLabel (this)  << " (" << makeLabel (& o) << ')' << std::endl;
 		return *this;
 	}

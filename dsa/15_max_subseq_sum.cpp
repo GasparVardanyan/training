@@ -155,31 +155,6 @@ int maxSubSeqSum3 (const std::vector <int>::const_iterator & beg, const std::vec
 int maxSubSeqSum3 (const std::vector <int> & v) noexcept (false) {
 	maxSubSeqSum_check_arg (v);
 
-	auto it = v.cbegin ();
-
-	std::vector <int> v2 {* it};
-	v2.reserve (v.size ());
-
-	bool nonNeg = v2.front () >= 0;
-
-	// NOTE: minimize the recursion depth
-	while (++it != v.cend ()) {
-		const int val = * it;
-		const bool _nonNeg = val >= 0;
-
-		// // if (_nonNeg == nonNeg) {	// NOTE: if the result is nonnegative, then
-		// 							// this is ok, otherwise this fails
-		// if (true == _nonNeg && true == nonNeg) { // NOTE: at least join the nonnegative values
-		// 	v2.back () += val;
-		if (_nonNeg == nonNeg) {
-			v2.back () = MAX (v2.back () + val, MAX (v2.back (), val));
-		}
-		else {
-			v2.push_back (val);
-			nonNeg = _nonNeg;
-		}
-	}
-
 	return maxSubSeqSum3 (v.cbegin (), v.cend ());
 }
 

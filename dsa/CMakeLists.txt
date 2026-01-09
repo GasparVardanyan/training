@@ -43,6 +43,13 @@ add_executable (15_max_subseq_sum_test
 target_compile_options (15_max_subseq_sum_test PRIVATE -Wno-unused-but-set-variable)
 target_link_libraries (15_max_subseq_sum_test GTest::gtest_main)
 
+add_executable (16_bin_search 16_bin_search.cpp)
+add_executable (17_gcd 17_gcd.cpp)
+add_executable (18_pow 18_pow.cpp)
+add_executable (19_stl_vector_list 19_stl_vector_list.cpp 19_iterType.h)
+
+add_executable (20_vector 20_vector.cpp 20_vector.h 20_vector_main.cpp)
+
 add_executable (ex_1_1_selection_problem ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
 target_link_libraries (ex_1_1_selection_problem GTest::gtest_main)
 
@@ -50,4 +57,4 @@ add_executable (ex_1_5_popcount_with_recursion ex_1_5_popcount_with_recursion_te
 target_link_libraries (ex_1_5_popcount_with_recursion GTest::gtest_main)
 
 include (GoogleTest)
-gtest_discover_tests (ex_1_1_selection_problem ex_1_5_popcount_with_recursion)
+# gtest_discover_tests (ex_1_1_selection_problem ex_1_5_popcount_with_recursion)
