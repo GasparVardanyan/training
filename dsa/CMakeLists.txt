@@ -50,6 +50,13 @@ add_executable (19_stl_vector_list 19_stl_vector_list.cpp 19_iterType.h)
 
 add_executable (20_vector 20_vector.cpp 20_vector.h 20_vector_main.cpp)
 
+add_executable (20_vector_test
+	20_vector.h
+	20_vector_test.cpp
+)
+target_compile_options (20_vector_test PRIVATE -Wno-self-assign-overloaded)
+target_link_libraries (20_vector_test GTest::gtest_main)
+
 add_executable (ex_1_1_selection_problem ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
 target_link_libraries (ex_1_1_selection_problem GTest::gtest_main)
 
@@ -57,4 +64,4 @@ add_executable (ex_1_5_popcount_with_recursion ex_1_5_popcount_with_recursion_te
 target_link_libraries (ex_1_5_popcount_with_recursion GTest::gtest_main)
 
 include (GoogleTest)
-# gtest_discover_tests (ex_1_1_selection_problem ex_1_5_popcount_with_recursion)
+gtest_discover_tests (ex_1_1_selection_problem ex_1_5_popcount_with_recursion 15_max_subseq_sum_test 20_vector_test)
