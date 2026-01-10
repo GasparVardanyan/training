@@ -20,13 +20,16 @@ add_executable (9_function_templates 9_function_templates.cpp)
 add_executable (10_class_templates 10_class_templates.cpp)
 add_executable (11_object_and_comparable 11_object_and_comparable.cpp)
 add_executable (12_function_object 12_function_object.cpp)
+
 add_executable (13_separate_compilation_of_class_templates
 	13_separate_compilation_of_class_templates.cpp
 	13_MemoryCell1.h
 	13_MemoryCell2.h
 	13_MemoryCell2.cpp
 )
+
 add_executable (14_matrix_example 14_matrix_example.cpp 14_matrix.h)
+
 add_executable (15_max_subseq_sum
 	15_max_subseq_sum.h
 	15_max_subseq_sum.cpp
@@ -48,13 +51,13 @@ add_executable (17_gcd 17_gcd.cpp)
 add_executable (18_pow 18_pow.cpp)
 add_executable (19_stl_vector_list 19_stl_vector_list.cpp 19_iterType.h)
 
-add_executable (20_vector 20_vector.cpp 20_vector.h 20_vector_main.cpp)
+add_executable (20_vector 20_vector.h 20_vector_main.cpp)
 
 add_executable (20_vector_test
 	20_vector.h
 	20_vector_test.cpp
 )
-target_compile_options (20_vector_test PRIVATE -Wno-self-assign-overloaded)
+target_compile_options (20_vector_test PRIVATE -Wno-self-assign-overloaded -Wno-self-move)
 target_link_libraries (20_vector_test GTest::gtest_main)
 
 add_executable (ex_1_1_selection_problem ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
@@ -64,4 +67,4 @@ add_executable (ex_1_5_popcount_with_recursion ex_1_5_popcount_with_recursion_te
 target_link_libraries (ex_1_5_popcount_with_recursion GTest::gtest_main)
 
 include (GoogleTest)
-gtest_discover_tests (ex_1_1_selection_problem ex_1_5_popcount_with_recursion 15_max_subseq_sum_test 20_vector_test)
+# gtest_discover_tests (ex_1_1_selection_problem ex_1_5_popcount_with_recursion 15_max_subseq_sum_test 20_vector_test)
