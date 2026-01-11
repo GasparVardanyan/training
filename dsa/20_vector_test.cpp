@@ -10,6 +10,12 @@
 # include <string>
 # include <vector> // for comparison
 # include <numeric>
+# include <cassert>
+# include <vector>
+# include <iostream>
+# include <type_traits>
+
+
 
 // --- Construction Tests ---
 
@@ -254,4 +260,237 @@ TEST(VectorTest, InputIteratorConstructor) {
 	EXPECT_EQ(v[0], 10);
 	EXPECT_EQ(v[1], 20);
 	EXPECT_EQ(v[2], 30);
+}
+
+/* ============================================================
+   Verbose helper type
+   ============================================================ */
+struct Verbose {
+	static int ctor;
+	static int dtor;
+	static int copy;
+	static int move;
+
+	int value;
+
+	explicit Verbose(int v = 0) : value(v) { ++ctor; }
+	Verbose(const Verbose& o) : value(o.value) { ++copy; }
+	Verbose(Verbose&& o) noexcept : value(o.value) { ++move; }
+	~Verbose() { ++dtor; }
+
+	Verbose& operator=(const Verbose&) = default;
+	Verbose& operator=(Verbose&&) = default;
+
+	static void reset() {
+		ctor = dtor = copy = move = 0;
+	}
+};
+
+int Verbose::ctor = 0;
+int Verbose::dtor = 0;
+int Verbose::copy = 0;
+int Verbose::move = 0;
+
+/* ============================================================
+   Construction
+   ============================================================ */
+TEST(VectorConstruction, Default) {
+	vector<int> v;
+	EXPECT_EQ(v.size(), 0u);
+	EXPECT_GE(v.capacity(), 1u);
+	EXPECT_TRUE(v.empty());
+}
+
+TEST(VectorConstruction, Sized) {
+	vector<int> v(10);
+	EXPECT_EQ(v.size(), 10u);
+
+	for (std::size_t i = 0; i < v.size(); ++i)
+		EXPECT_EQ(v[i], 0);
+}
+
+TEST(VectorConstruction, InitializerList) {
+	vector<int> v{1,2,3,4,5};
+	ASSERT_EQ(v.size(), 5u);
+
+	for (int i = 0; i < 5; ++i)
+		EXPECT_EQ(v[i], i + 1);
+}
+
+/* ============================================================
+   Iterator range constructor
+   ============================================================ */
+TEST(VectorConstruction, IteratorRange) {
+	std::vector<int> src(100);
+	std::iota(src.begin(), src.end(), 0);
+
+	vector<int> v(src.begin(), src.end());
+	ASSERT_EQ(v.size(), src.size());
+
+	for (std::size_t i = 0; i < src.size(); ++i)
+		EXPECT_EQ(v[i], src[i]);
+}
+
+/* ============================================================
+   Copy / move semantics
+   ============================================================ */
+TEST(VectorSemantics, CopyConstructor) {
+	vector<int> a{1,2,3,4};
+	vector<int> b(a);
+
+	ASSERT_EQ(a.size(), b.size());
+	for (std::size_t i = 0; i < a.size(); ++i)
+		EXPECT_EQ(a[i], b[i]);
+}
+
+TEST(VectorSemantics, MoveConstructor) {
+	vector<int> a{1,2,3};
+	vector<int> b(std::move(a));
+
+	EXPECT_EQ(b.size(), 3u);
+	EXPECT_EQ(a.size(), 0u);
+}
+
+TEST(VectorSemantics, CopyAssignment) {
+	vector<int> a{1,2,3};
+	vector<int> b;
+	b = a;
+
+	ASSERT_EQ(b.size(), a.size());
+	for (std::size_t i = 0; i < a.size(); ++i)
+		EXPECT_EQ(a[i], b[i]);
+}
+
+TEST(VectorSemantics, MoveAssignment) {
+	vector<int> a{1,2,3};
+	vector<int> b;
+	b = std::move(a);
+
+	EXPECT_EQ(b.size(), 3u);
+	EXPECT_EQ(a.size(), 0u);
+}
+
+/* ============================================================
+   push_back / pop_back
+   ============================================================ */
+TEST(VectorModifiers, PushBackPopBack) {
+	vector<int> v;
+
+	for (int i = 0; i < 1000; ++i)
+		v.push_back(i);
+
+	EXPECT_EQ(v.size(), 1000u);
+
+	for (int i = 0; i < 1000; ++i)
+		EXPECT_EQ(v[i], i);
+
+	for (int i = 0; i < 500; ++i)
+		v.pop_back();
+
+	EXPECT_EQ(v.size(), 500u);
+}
+
+/* ============================================================
+   Capacity behavior
+   ============================================================ */
+TEST(VectorCapacity, GrowthInvariant) {
+	vector<int> v;
+	std::size_t prev_cap = v.capacity();
+
+	for (int i = 0; i < 300; ++i) {
+		v.push_back(i);
+		EXPECT_GE(v.capacity(), v.size());
+		EXPECT_GE(v.capacity(), prev_cap);
+		prev_cap = v.capacity();
+	}
+}
+
+TEST(VectorCapacity, Reserve) {
+	vector<int> v;
+	v.reserve(1000);
+
+	EXPECT_GE(v.capacity(), 1000u);
+	EXPECT_EQ(v.size(), 0u);
+}
+
+/* ============================================================
+   resize / clear
+   ============================================================ */
+TEST(VectorModifiers, ResizeGrowShrink) {
+	vector<int> v{1,2,3,4,5};
+
+	v.resize(10);
+	EXPECT_EQ(v.size(), 10u);
+
+	for (int i = 0; i < 5; ++i)
+		EXPECT_EQ(v[i], i + 1);
+
+	v.resize(3);
+	EXPECT_EQ(v.size(), 3u);
+	EXPECT_EQ(v[2], 3);
+}
+
+TEST(VectorModifiers, Clear) {
+	vector<int> v{1,2,3};
+	v.clear();
+
+	EXPECT_EQ(v.size(), 0u);
+	EXPECT_GE(v.capacity(), 1u);
+}
+
+/* ============================================================
+   Iterators
+   ============================================================ */
+TEST(VectorIterators, MutableIteration) {
+	vector<int> v{1,2,3,4};
+
+	int sum = 0;
+	for (auto it = v.begin(); it != v.end(); ++it)
+		sum += *it;
+
+	EXPECT_EQ(sum, 10);
+}
+
+TEST(VectorIterators, ConstIteration) {
+	const vector<int> v{1,2,3,4};
+
+	int sum = 0;
+	for (auto it = v.begin(); it != v.end(); ++it)
+		sum += *it;
+
+	EXPECT_EQ(sum, 10);
+}
+
+/* ============================================================
+   Verbose type behavior
+   ============================================================ */
+TEST(VectorLifetime, VerboseType) {
+	Verbose::reset();
+
+	{
+		vector<Verbose> v;
+		for (int i = 0; i < 100; ++i)
+			v.push_back(Verbose{i});
+	}
+
+	EXPECT_GE(Verbose::ctor, 100);
+	EXPECT_GE(Verbose::dtor, 100);
+}
+
+/* ============================================================
+   Parity with std::vector
+   ============================================================ */
+TEST(VectorComparison, MatchesStdVector) {
+	std::vector<int> stdv;
+	vector<int> myv;
+
+	for (int i = 0; i < 1000; ++i) {
+		stdv.push_back(i);
+		myv.push_back(i);
+	}
+
+	ASSERT_EQ(myv.size(), stdv.size());
+
+	for (std::size_t i = 0; i < stdv.size(); ++i)
+		EXPECT_EQ(myv[i], stdv[i]);
 }

@@ -50,7 +50,7 @@ public:
 	> vector (input_it begin, input_it end) {
 		if (
 			std::is_same_v <
-				typename std::iterator_traits<input_it>::iterator_category,
+				typename std::iterator_traits <input_it>::iterator_category,
 				std::input_iterator_tag
 			>
 		) {
@@ -70,8 +70,6 @@ public:
 			std::copy (begin, end, m_data);
 		}
 	}
-
-public:
 
 	vector (const vector & other) {
 		m_size = other.m_size;

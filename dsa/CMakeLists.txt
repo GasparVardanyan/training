@@ -60,6 +60,15 @@ add_executable (20_vector_test
 target_compile_options (20_vector_test PRIVATE -Wno-self-assign-overloaded -Wno-self-move)
 target_link_libraries (20_vector_test GTest::gtest_main)
 
+add_executable (21_list 21_list.h 21_list_main.cpp)
+
+add_executable (21_list_test
+	21_list.h
+	21_list_test.cpp
+)
+target_compile_options (21_list_test PRIVATE -Wno-self-assign-overloaded -Wno-self-move)
+target_link_libraries (21_list_test GTest::gtest_main)
+
 add_executable (ex_1_1_selection_problem ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
 target_link_libraries (ex_1_1_selection_problem GTest::gtest_main)
 
