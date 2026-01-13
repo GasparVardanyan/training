@@ -69,6 +69,9 @@ add_executable (21_list_test
 target_compile_options (21_list_test PRIVATE -Wno-self-assign-overloaded -Wno-self-move)
 target_link_libraries (21_list_test GTest::gtest_main)
 
+add_executable (22_stack_queue 22_stack.h 22_queue.h 21_list.h 20_vector.h 22_stack_queue.cpp)
+target_compile_options (22_stack_queue PRIVATE -Wno-c99-designator)
+
 add_executable (ex_1_1_selection_problem ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
 target_link_libraries (ex_1_1_selection_problem GTest::gtest_main)
 
