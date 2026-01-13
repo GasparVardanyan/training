@@ -23,14 +23,20 @@ add_executable (17_file_io 17_file_io.cpp)
 add_executable (18_streams 18_streams.cpp)
 add_executable (19_stream_manipulators 19_stream_manipulators.cpp)
 add_executable (20_flow_control 20_flow_control.cpp)
-add_executable (21_metaprogramming_factorial 21_metaprogramming_factorial.cpp)
 
 add_executable (
-	22_metaprogramming_parameter_pack
-	22_metaprogramming_parameter_pack.cpp
+	21_metaprogramming_parameter_pack
+	21_metaprogramming_parameter_pack.cpp
 )
 target_compile_options (
-	22_metaprogramming_parameter_pack
+	21_metaprogramming_parameter_pack
 	PRIVATE
 	-Wno-c99-extensions
+)
+
+add_executable (22_metaprogramming_recursion 22_metaprogramming_recursion.cpp)
+
+add_executable (
+	23_metaprogramming_template_specialization
+	23_metaprogramming_template_specialization.cpp
 )
