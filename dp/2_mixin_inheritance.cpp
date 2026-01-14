@@ -1,4 +1,3 @@
-# include <concepts>
 # include <iostream>
 # include <iterator>
 
@@ -12,26 +11,17 @@ concept IterableInterface = requires (T t, const T tc) {
 	tc.cend ();
 };
 
-template <typename Inheritor>
-class Base {
+template <IterableInterface DataCarrier>
+class Printer : public DataCarrier {
 public:
-	Base () {
-		static_assert (IterableInterface <Inheritor> && std::derived_from <Inheritor, Base>);
-	}
-
 	void print () {
-		for (const auto & item : inheritor ()) {
+		for (const auto & item : * this) {
 			std::cout << item << std::endl;
 		}
 	}
-
-private:
-	Inheritor & inheritor () {
-		return * static_cast <Inheritor *> (this);
-	}
 };
 
-class Derived : public Base <Derived> {
+class DataCarrier {
 public:
 	auto begin () { return std::begin (m_data); };
 	auto end () { return std::end (m_data); };
@@ -45,6 +35,6 @@ private:
 };
 
 int main () {
-	Derived d;
+	Printer <DataCarrier> d;
 	d.print ();
 }

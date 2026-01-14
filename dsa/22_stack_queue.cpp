@@ -5,6 +5,8 @@
 # include <string>
 # include <vector>
 
+# include "20_vector.h"
+# include "21_list.h"
 # include "22_stack.h"
 # include "22_queue.h"
 
@@ -97,7 +99,7 @@ public:
 
 public:
 	BalanceChecker () {
-		clear ();
+		reset ();
 	}
 
 	bool setString (std::string s) {
@@ -127,31 +129,32 @@ public:
 
 private:
 	bool processString () {
-		clear ();
-
-		std::size_t currentLevels [(std::size_t) SymbolType::SymbolTypeCount] = {0};
+		reset ();
 
 		for (std::size_t i = 0; i < m_string.size (); i++) {
 			unsigned char symbol = m_string [i];
 			SymbolRole role = s_symbolRoles [symbol];
-			std::size_t type = static_cast <std::size_t> (s_symbolTypes [symbol]);
-			// std::size_t level = m_pairInfos [static_cast <std::size_t> (type)].size ();
+			SymbolType type = s_symbolTypes [symbol];
 
 			if (true == m_openerCloser) {
 				if (SymbolRole::OpenerCloser == role) { // closer
 					if (m_stack.top ().symbol == symbol) {
 						m_stack.pop ();
+						regCloser (type, i);
+
 						m_openerCloser = false;
 					}
 				}
 			}
 			else {
-				if (SymbolRole::OpenerCloser == role) { // closer
+				if (SymbolRole::OpenerCloser == role) { // opener
 					m_stack.push (Data {
 						.symbol = symbol,
 						.position = i,
 					});
 					m_openerCloser = true;
+
+					regOpener (type, i);
 				}
 				else if (SymbolRole::Opener == role) { // opener
 					m_stack.push (Data {
@@ -159,23 +162,12 @@ private:
 						.position = i
 					});
 
-					if (m_pairInfos [type].size () < 1 + currentLevels [type]) {
-						m_pairInfos [type].push_back (MyVector <PairInfo> {});
-					}
-
-					m_pairInfos [type] [currentLevels [type]].push_back ({
-						.opener_pos = i,
-						.closer_pos = i,
-					});
-
-					currentLevels [type]++;
+					regOpener (type, i);
 				}
 				else if (SymbolRole::Closer == role) { // closer
 					if (false == m_stack.empty () && m_stack.top ().symbol == s_openerSymbols [symbol]) {
 						m_stack.pop ();
-						currentLevels [type]--;
-						// std::cout << "SIZE: " << m_pairInfos [type].size () << ", ACCESS: " << currentLevels [type] << std::endl;
-						m_pairInfos [type] [currentLevels [type]].back ().closer_pos = i;
+						regCloser (type, i);
 					}
 					else {
 						m_status.success = false;
@@ -196,13 +188,38 @@ private:
 		return m_status.success;
 	}
 
-	void clear () {
+	void regOpener (SymbolType type, std::size_t position) {
+		std::size_t _type = static_cast <std::size_t> (type);
+		if (m_pairInfos [_type].size () < 1 + m_currentLevels [_type]) {
+			m_pairInfos [_type].push_back (MyVector <PairInfo> {});
+		}
+
+		m_pairInfos [_type] [m_currentLevels [_type]].push_back ({
+			.opener_pos = position,
+			.closer_pos = position,
+		});
+
+		m_currentLevels [_type]++;
+	}
+
+	void regCloser (SymbolType type, std::size_t position) {
+		std::size_t _type = static_cast <std::size_t> (type);
+		m_currentLevels [_type]--;
+		m_pairInfos [_type] [m_currentLevels [_type]].back ().closer_pos = position;
+	}
+
+	void reset () {
 		m_openerCloser = false;
 		m_stack.clear ();
 		std::fill (
 			std::begin (m_pairInfos),
 			std::end (m_pairInfos),
 			MyVector <MyVector <PairInfo>> {}
+		);
+		std::fill (
+			std::begin (m_currentLevels),
+			std::end (m_currentLevels),
+			0
 		);
 		m_status = {
 			.success = true,
@@ -217,8 +234,12 @@ private:
 	Status m_status;
 	// symbol -> level -> info
 	MyVector <MyVector <PairInfo>> m_pairInfos [(std::size_t) SymbolType::SymbolTypeCount];
+	std::size_t m_currentLevels [(std::size_t) SymbolType::SymbolTypeCount];
 };
 
+
+
+// NOTE: no negative numbers, no parenthesis, integer division only
 struct PostfixNotationConverter {
 private:
 	enum class TokenType : int {

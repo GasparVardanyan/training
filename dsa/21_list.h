@@ -47,11 +47,12 @@ private:
 		{}
 
 		template <
-			typename = std::enable_if <
-				true == std::is_const_v <std::remove_pointer_t <NPT>>
+			typename NPT2,
+			typename = std::enable_if_t <
+				std::is_same_v <NPT2, NPT> || std::is_same_v <std::remove_const_t <std::remove_pointer_t <NPT>> *, NPT2>
 			>
 		>
-		iterator_base (const iterator_base <std::decay_t <std::remove_pointer_t <NPT>> *> & other)
+		iterator_base (const iterator_base <NPT2> & other)
 			: m_node (other.m_node)
 		{}
 
@@ -60,20 +61,22 @@ private:
 		// iterator_base & operator= (const iterator_base &) = delete;
 		// iterator_base & operator= (iterator_base &&) = delete;
 
-		_reference_t operator* () {
+
+		_reference_t & operator* () {
+			return static_cast <_node_ptr_t> (m_node)->value;
+		}
+
+		const _reference_t & operator* () const {
 			return static_cast <_node_ptr_t> (m_node)->value;
 		}
 
 		template <
-			typename = std::enable_if <
-				false == std::is_const_v <std::remove_pointer_t <NPT>>
+			typename NPT2,
+			typename = std::enable_if_t <
+				std::is_same_v <std::remove_const_t <std::remove_pointer_t <NPT>>, std::remove_const_t <std::remove_pointer_t <NPT2>>>
 			>
 		>
-		const _reference_t operator* () const {
-			return static_cast <_node_ptr_t> (m_node)->value;
-		}
-
-		bool operator== (const iterator_base & other) const {
+		bool operator== (const iterator_base <NPT2> & other) const {
 			return m_node == other.m_node;
 		}
 
@@ -178,8 +181,8 @@ public:
 
 	template <
 		typename input_it,
-		typename = std::enable_if <
-			std::is_convertible_v <
+		typename = std::enable_if_t <
+			true == std::is_convertible_v <
 				typename std::iterator_traits <input_it>::iterator_category,
 				std::input_iterator_tag
 			>
