@@ -43,7 +43,7 @@ struct fib2 <0> {
 
 
 
-constexpr unsigned factorial (unsigned n) {
+static constexpr unsigned factorial (unsigned n) {
 	if (0 == n) {
 		return 1;
 	}
@@ -151,22 +151,19 @@ struct MyDigitCount : MyIntegralConstant <T, [] () {
 	}
 } ()> {};
 
-template <MyIntegralType T, T first, T ... rest>
-struct MyMaxValue : MyIntegralConstant <T, first> {};
+template <MyIntegralType T, T first, T second, T ... rest>
+struct MyMaxValue : MyMaxValue <T, (first > second ? first : second), rest ...> {};
 
 template <MyIntegralType T, T first, T second>
 struct MyMaxValue <T, first, second> : MyIntegralConstant <T, (first > second ? first : second)> {};
 
-template <MyIntegralType T, T first, T second, T ... rest>
-struct MyMaxValue <T, first, second, rest ...> : MyMaxValue <T, (first > second ? first : second), rest ...> {};
-
 template <MyUnsignedType T, std::size_t W, T ... VS>
-void print () {
+static void print () {
 	((std::cout << std::setw (W) << VS), ...) << std::endl;
 }
 
 template <MyUnsignedType T, T ... VS>
-void printFactorials () {
+static void printFactorials () {
 	constexpr std::size_t w = 1 + MyDigitCount <T, MyMaxValue <T, factorial1 <VS>::value ...>::value>::value;
 	(
 		(print <T, w,

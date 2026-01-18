@@ -5,68 +5,111 @@
 
 
 
-void print_all (std::ostream & os) {
-	os << std::endl;
+template <typename>
+static void print1 () {
+	std::cout << std::endl;
 }
 
-template <typename T, typename... Ts>
-void print_all (std::ostream & os, const T & first, const Ts & ... rest) {
-	os << first << ' ';
-	print_all (os, rest ...);
+template <typename T, T first, T ... rest>
+static void print1 () {
+	std::cout << first << ", ";
+	print1 <T, rest ...> ();
 }
 
-
-
-template <typename... Ts>
-void print_all2 (std::ostream & os, const Ts & ... args) {
-	(void) (int []) { 0, ((void) (os << args << ", "), 0) ...};
-	os << std::endl;
+static void print2 () {
+	std::cout << std::endl;
 }
 
-
-
-template <typename... Ts>
-void print_all3 (std::ostream & os, const Ts & ... args) {
-	((os << args << ", "), ...) << std::endl;
+template <typename T, typename ... TS>
+static void print2 (T first, TS ... rest) {
+	std::cout << first << ", ";
+	print2 (rest ...);
 }
 
+template <typename T, T ... VS>
+static void print3 () {
+	(void) (int []) {0, ((void) (std::cout << VS << ", "), 0) ...};
+	std::cout << std::endl;
+}
 
+template <typename ... TS>
+static void print4 (TS ... vs) {
+	(void) (int []) {0, ((void) (std::cout << vs << ", "), 0) ...};
+	std::cout << std::endl;
+}
 
-template <typename T, typename... Ts>
-void print_all4 (std::ostream & os, const T & first, const Ts & ... rest) {
-	os << first << ", ";
+template <typename T, T ... VS>
+static void print5 () {
+	((std::cout << VS << ", "), ...) << std::endl;
+}
 
-	if constexpr (sizeof ... (rest) > 0) {
-		print_all4 (os, rest ...);
+template <typename ... TS>
+static void print6 (TS ... vs) {
+	((std::cout << vs << ", "), ...) << std::endl;
+}
+
+template <typename>
+static void print7 () {}
+
+template <typename T, T first, T ... rest>
+static void print7 () {
+	std::cout << first << ", ";
+
+	if (0 < sizeof ... (rest)) {
+		print7 <T, rest ...> ();
 	}
 	else {
-		os << std::endl;
+		std::cout << std::endl;
 	}
 }
 
+static void print8 () {}
 
+template <typename T, typename ... TS>
+static void print8 (T first, TS ... rest) {
+	std::cout << first << ", ";
 
-template <typename T, T... Ns>
-void print_all5_single_type (std::ostream & os) {
-	((os << Ns << ", "), ...) << std::endl;
+	if (0 < sizeof ... (rest)) {
+		print8 (rest ...);
+	}
+	else {
+		std::cout << std::endl;
+	}
+}
+
+template <typename T, T first, T ... rest>
+static void print9 () {
+	std::cout << first << ", ";
+
+	if constexpr (0 < sizeof ... (rest)) {
+		print9 <T, rest ...> ();
+	}
+	else {
+		std::cout << std::endl;
+	}
+}
+
+template <typename T, typename ... TS>
+static void print10 (T first, TS ... rest) {
+	std::cout << first << ", ";
+
+	if constexpr (0 < sizeof ... (rest)) {
+		print10 (rest ...);
+	}
+	else {
+		std::cout << std::endl;
+	}
 }
 
 int main () {
-	std::stringstream ss;
-
-	print_all (ss, 1, 2, 3, "4 5 6", 7, 8, 9);
-
-	std::copy (
-		std::istream_iterator <int> (ss),
-		std::istream_iterator <int> (),
-		std::ostream_iterator <int> (std::cout, ", ")
-	);
-	std::cout << std::endl;
-
-	print_all2 (std::cout, 1, "2", 3, 4, 5);
-	print_all3 (std::cout, 1, "2", 3, 4, 5);
-	print_all4 (std::cout, 1, "2", 3, 4, 5);
-	print_all5_single_type <int, 1, 2, 3, 4, 5> (std::cout);
-
-	// print_all5_single_type <int, 1, "2", 3, 4, 5> (std::cout); // error
+	print1 <int, 1, 2, 3, 4> ();
+	print2 (1, 2, 3, 4, "hello");
+	print3 <int, 1, 2, 3, 4> ();
+	print4 (1, 2, 3, 4, "hello");
+	print5 <int, 1, 2, 3, 4> ();
+	print6 (1, 2, 3, 4, "hello");
+	print7 <int, 1, 2, 3, 4> ();
+	print8 (1, 2, 3, 4, "hello");
+	print9 <int, 1, 2, 3, 4> ();
+	print10 (1, 2, 3, 4, "hello");
 }

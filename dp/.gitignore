@@ -1,0 +1,6 @@
+.*
+!.nvim.lua
+!.gitignore
+*.out
+out/**
+compile_commands.json
