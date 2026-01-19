@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 4.1)
 project (training)
 include (/desktop/nvim/cmake/config.cmake)
-add_compile_options (-Wall -Wextra -Werror -Wno-unused-parameter)
+add_compile_options (-Wall -Wextra -Werror)
 
 add_executable (1_hello_world 1_hello_world.cpp)
 add_executable (2_function 2_function.cpp)

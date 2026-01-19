@@ -31,6 +31,7 @@ std::string iterType (std::input_iterator_tag) {
 
 template <typename Iter>
 std::string iterType (const Iter & it = {}) {
+	(void) it;
 	return iterType (typename std::iterator_traits <Iter>::iterator_category ());
 }
 

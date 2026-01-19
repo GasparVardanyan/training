@@ -3,6 +3,7 @@
 
 # include <algorithm>
 # include <concepts>
+# include <utility>
 
 # include "21_list.h"
 
@@ -27,25 +28,36 @@ requires QueueContainer <C, T>
 class queue
 {
 public:
-	void push (T object) { m_list.push_back (std::move (object)); }
-	void pop () { m_list.pop_front (); }
+	using reference = C <T>::reference;
+	using const_reference = C <T>::const_reference;
+	using size_type = C <T>::size_type;
+	using value_type = C <T>::value_type;
 
-	T & front () { return m_list.front (); }
-	const T & front () const { return m_list.front (); }
-	T & back () { return m_list.back (); }
-	const T & back () const { return m_list.back (); }
+public:
+	template <typename U>
+	requires std::convertible_to <U, T>
+	void push (U && object) {
+		m_container.push_back (std::forward <U> (object));
+	}
+
+	void pop () { m_container.pop_front (); }
+
+	T & front () { return m_container.front (); }
+	const T & front () const { return m_container.front (); }
+	T & back () { return m_container.back (); }
+	const T & back () const { return m_container.back (); }
 
 	std::size_t size () const {
-		return m_list.size ();
+		return m_container.size ();
 	}
 	bool empty () const {
-		return m_list.empty ();
+		return m_container.empty ();
 	}
 	void clear () {
-		m_list.clear ();
+		m_container.clear ();
 	}
 private:
-	C <T> m_list;
+	C <T> m_container;
 };
 
 # endif // QUEUE_H_22

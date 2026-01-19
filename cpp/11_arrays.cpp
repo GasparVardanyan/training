@@ -181,6 +181,7 @@ public:
 
 template <typename T, std::size_t n>
 constexpr std::size_t nItems (const T (& x) [n]) noexcept { // std::size
+	(void) x;
 	return n;
 }
 

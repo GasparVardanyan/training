@@ -2,6 +2,7 @@
 # define LIST_H_21
 
 # include <algorithm>
+# include <concepts>
 # include <initializer_list>
 # include <type_traits>
 # include <utility>
@@ -52,6 +53,8 @@ private:
 				std::is_same_v <NPT2, NPT> || std::is_same_v <std::remove_const_t <std::remove_pointer_t <NPT>> *, NPT2>
 			>
 		>
+		// template <typename NPT2>
+		// requires (std::same_as <NPT2, NPT> || std::same_as <std::remove_const_t <std::remove_pointer_t <NPT>> *, NPT2>)
 		iterator_base (const iterator_base <NPT2> & other)
 			: m_node (other.m_node)
 		{}
@@ -111,6 +114,10 @@ private:
 public:
 	using iterator = iterator_base <node_base *>;
 	using const_iterator = iterator_base <const node_base *>;
+
+	using reference = T &;
+	using const_reference = const T &;
+	using size_type = std::size_t;
 	using value_type = T;
 
 	iterator begin () { return iterator (m_head->next); }

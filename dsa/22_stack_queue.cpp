@@ -2,6 +2,8 @@
 # include <iostream>
 # include <list>
 # include <ostream>
+#include <queue>
+#include <stack>
 # include <string>
 # include <vector>
 
@@ -15,13 +17,15 @@ template <typename T>
 using MyVector = vector <T>;
 
 template <typename T>
-// using MyList = std::list <T>;
-using MyList = list <T>;
+using MyList = std::list <T>;
+// using MyList = list <T>;
 
 template <typename T>
+// using MyStack = std::stack <T, MyVector <T>>;
 using MyStack = stack <T, MyVector>;
 
 template <typename T>
+// using MyQueue = std::queue <T, MyList <T>>;
 using MyQueue = queue <T, MyList>;
 
 class BalanceChecker {
@@ -210,7 +214,8 @@ private:
 
 	void reset () {
 		m_openerCloser = false;
-		m_stack.clear ();
+		// m_stack.clear ();
+		m_stack = {};
 		std::fill (
 			std::begin (m_pairInfos),
 			std::end (m_pairInfos),

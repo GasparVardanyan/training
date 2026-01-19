@@ -14,9 +14,22 @@
 template <typename T>
 class vector {
 public:
-	typedef T * iterator;
-	typedef const T * const_iterator;
+	using iterator = T *;
+	using const_iterator =  const T *;
 
+	using reference = T &;
+	using const_reference = const T &;
+	using size_type = std::size_t;
+	using value_type = T;
+
+	iterator begin () { return m_data; }
+	iterator end  () { return m_data + m_size; }
+	const_iterator cbegin () const { return m_data; }
+	const_iterator cend () const { return m_data + m_size; }
+	const_iterator begin () const { return cbegin (); }
+	const_iterator end () const { return cend (); }
+
+public:
 	explicit vector (const std::size_t size = 0) {
 		m_size = size;
 		m_capacity = make_capacity (m_size);
@@ -71,6 +84,7 @@ public:
 		}
 	}
 
+public:
 	vector (const vector & other) {
 		m_size = other.m_size;
 		m_capacity = other.m_capacity;
@@ -130,13 +144,7 @@ public:
 		m_capacity = 0;
 	}
 
-	iterator begin () { return m_data; }
-	iterator end  () { return m_data + m_size; }
-	const_iterator cbegin () const { return m_data; }
-	const_iterator cend () const { return m_data + m_size; }
-	const_iterator begin () const { return cbegin (); }
-	const_iterator end () const { return cend (); }
-
+public:
 	std::size_t size () const {
 		return m_size;
 	}

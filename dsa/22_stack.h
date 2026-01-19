@@ -25,31 +25,38 @@ requires StackContainer <C, T>
 class stack
 {
 public:
-	void push (T object) {
-		m_vector.push_back (std::move (object));
+	using reference = C <T>::reference;
+	using const_reference = C <T>::const_reference;
+	using size_type = C <T>::size_type;
+	using value_type = C <T>::value_type;
+
+public:
+	template <typename U>
+	requires std::convertible_to <U, T>
+	void push (U && object) {
+		m_container.push_back (std::forward <U> (object));
 	}
-	// void push (const T & object) { m_vector.push_back (object); }
-	// void push (T && object) { m_vector.push_back (std::move (object)); }
+
 	void pop () {
-		m_vector.pop_back ();
+		m_container.pop_back ();
 	}
 	T & top () {
-		return m_vector.back ();
+		return m_container.back ();
 	}
 	const T & top () const {
-		return m_vector.back ();
+		return m_container.back ();
 	}
 	std::size_t size () const {
-		return m_vector.size ();
+		return m_container.size ();
 	}
 	bool empty () const {
-		return m_vector.empty ();
+		return m_container.empty ();
 	}
 	void clear () {
-		m_vector.clear ();
+		m_container.clear ();
 	}
 private:
-	C <T> m_vector;
+	C <T> m_container;
 };
 
 # endif // STACK_H_22
