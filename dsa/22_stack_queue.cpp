@@ -450,7 +450,7 @@ public:
 						}
 					}
 
-					expressions.push (eo2 + ' ' + t.value + ' ' + eo1);
+					expressions.push (eo1 + ' ' + t.value + ' ' + eo2);
 				}
 			}
 		}
