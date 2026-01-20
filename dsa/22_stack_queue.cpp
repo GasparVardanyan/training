@@ -310,7 +310,7 @@ public:
 		MyStack <MyStack <char>> operators;       operators.push (MyStack <char> ());
 		MyStack <std::string> results;            results.push ("");
 
-		auto processLast = [&] (bool put_op = false) -> void {
+		auto processLast = [&] () -> void {
 			MyStack <int> & curr_values = values.top ();
 			MyStack <char> & curr_ops = operators.top ();
 			std::string & curr_res = results.top ();
@@ -322,9 +322,8 @@ public:
 			int v1 = curr_values.top ();
 			curr_values.pop ();
 			curr_values.push (OperatorOperations [(unsigned char) op] (v1, v2));
-			if (true == put_op) {
-				curr_res += op + std::string {' '};
-			}
+
+			curr_res += op + std::string {' '};
 
 			// std::cout << "valueStack: {";
 			// for (auto c : values.container ()) {
@@ -352,10 +351,8 @@ public:
 						newValue = false;
 					}
 
-					processLast (true);
+					processLast ();
 				}
-
-				MyQueue <char> ops;
 
 				if (curr_ops.size () > 1) {
 					unsigned char last_op = curr_ops.top ();
@@ -364,17 +361,11 @@ public:
 					curr_vals.pop ();
 
 					while (false == curr_ops.empty ()) {
-						ops.push (curr_ops.top ());
 						processLast ();
 					}
 
 					curr_ops.push (last_op);
 					curr_vals.push (last_v);
-				}
-
-				while (false == ops.empty ()) {
-					curr_res += ops.back () + std::string {' '};
-					ops.pop ();
 				}
 			}
 
@@ -400,7 +391,7 @@ public:
 			}
 			else if (TokenType::GroupCloser == t.type) {
 				if (false == operators.top ().empty ()) {
-					processLast (true);
+					processLast ();
 				}
 
 				int v = values.top ().top ();
@@ -419,7 +410,7 @@ public:
 		MyStack <char> & curr_ops = operators.top ();
 
 		if (false == curr_ops.empty ()) {
-			processLast (true);
+			processLast ();
 		}
 
 		return results.top () + " = " + std::to_string (curr_values.top ());
