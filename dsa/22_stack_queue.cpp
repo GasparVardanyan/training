@@ -416,6 +416,102 @@ public:
 		return results.top () + " = " + std::to_string (curr_values.top ());
 	}
 
+	static std::string EncodeShuntingYard (const std::string & s) {
+		std::string res = "";
+
+		MyStack <char> opStack;
+
+		static const char opPriority [256] = {
+			['('] = 0,
+			['*'] = 1,
+			['/'] = 1,
+			['+'] = 2,
+			['-'] = 2,
+		};
+
+		static const MyVector <char> opList {'*', '/', '+', '-'};
+
+		MyStack <int> valueStack;
+
+		std::string currOperand;
+
+		auto updateValueStack = [&] (char op) -> void {
+			int v2 = valueStack.top ();
+			valueStack.pop ();
+			int v1 = valueStack.top ();
+			valueStack.pop ();
+
+			valueStack.push (OperatorOperations [(unsigned char) op] (v1, v2));
+		};
+
+		for (char c : s) {
+			if ('0' <= c && c <= '9') {
+				currOperand += c;
+			}
+			else {
+				if (false == currOperand.empty ()) {
+					res += currOperand + ' ';
+					valueStack.push (std::stoi (currOperand));
+					currOperand.clear ();
+				}
+				if ('(' == c) {
+					opStack.push (c);
+				}
+				else if (')' == c) {
+					while (false == opStack.empty ()) {
+						char t = opStack.top ();
+						opStack.pop ();
+
+						if ('(' == t) {
+							break;
+						}
+						else {
+							res += t;
+							res += ' ';
+							updateValueStack (t);
+						}
+					}
+				}
+				else if (opList.cend () != std::find (opList.cbegin (), opList.cend (), c)) {
+					while (false == opStack.empty ()) {
+						char t = opStack.top ();
+
+						int cP = opPriority [(unsigned char) c];
+						int tP = opPriority [(unsigned char) t];
+
+						if ('(' == t || cP < tP) {
+							break;
+						}
+						else {
+							res += t;
+							res += ' ';
+							updateValueStack (t);
+							opStack.pop ();
+						}
+					}
+
+					opStack.push (c);
+				}
+			}
+		}
+
+		if (false == currOperand.empty ()) {
+			res += currOperand + ' ';
+			valueStack.push (std::stoi (currOperand));
+		}
+
+		while (false == opStack.empty ()) {
+			res += opStack.top ();
+			res += ' ';
+			updateValueStack (opStack.top ());
+			opStack.pop ();
+		}
+
+		res += " = " + std::to_string (valueStack.top ());
+
+		return res;
+	}
+
 	static std::string Decode (const std::string & s) {
 		MyQueue <Token> tokens = Tokenize (s);
 		MyStack <int> values;
@@ -545,11 +641,14 @@ int main () {
 	c.setString ("abc'<{[('");
 	std::cout << c << std::endl;
 
-	std::string res = "6 5 2 3 + 8 * + 3 + *";
+	std::string res = "(6 * (5 + 3 + 2)) * 10 / 2 - 42";
 	std::cout << res << std::endl;
 
+	res = PostfixNotationConverter::EncodeShuntingYard (res);
+	std::cout << res << std::endl;
+
+	res.resize (res.find ('='));
 	res = PostfixNotationConverter::Decode (res);
-	// res = "6 + (5 + 3 + 2) / 2 - 4 = 7";
 	std::cout << res << std::endl;
 
 	res.resize (res.find ('='));
