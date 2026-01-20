@@ -1,5 +1,5 @@
 # include <iostream>
-#include <vector>
+# include <vector>
 
 template <typename T>
 concept Comparable = requires (T t1, T t2) {

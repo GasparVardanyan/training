@@ -2,7 +2,7 @@
 # include "verbose_class.h"
 
 # include <iostream>
-#include <iterator>
+# include <iterator>
 
 int main () {
 	{

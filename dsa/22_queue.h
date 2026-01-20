@@ -56,6 +56,11 @@ public:
 	void clear () {
 		m_container.clear ();
 	}
+
+	const C <T> & container () const {
+		return m_container;
+	}
+
 private:
 	C <T> m_container;
 };

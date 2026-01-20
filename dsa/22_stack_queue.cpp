@@ -1,9 +1,10 @@
 # include <algorithm>
 # include <iostream>
+# include <iterator>
 # include <list>
 # include <ostream>
-#include <queue>
-#include <stack>
+# include <queue>
+# include <stack>
 # include <string>
 # include <vector>
 
@@ -12,13 +13,15 @@
 # include "22_stack.h"
 # include "22_queue.h"
 
+
+
 template <typename T>
 // using MyVector = std::vector <T>;
 using MyVector = vector <T>;
 
 template <typename T>
-using MyList = std::list <T>;
-// using MyList = list <T>;
+// using MyList = std::list <T>;
+using MyList = list <T>;
 
 template <typename T>
 // using MyStack = std::stack <T, MyVector <T>>;
@@ -27,6 +30,8 @@ using MyStack = stack <T, MyVector>;
 template <typename T>
 // using MyQueue = std::queue <T, MyList <T>>;
 using MyQueue = queue <T, MyList>;
+
+
 
 class BalanceChecker {
 public:
@@ -194,6 +199,7 @@ private:
 
 	void regOpener (SymbolType type, std::size_t position) {
 		std::size_t _type = static_cast <std::size_t> (type);
+
 		if (m_pairInfos [_type].size () < 1 + m_currentLevels [_type]) {
 			m_pairInfos [_type].push_back (MyVector <PairInfo> {});
 		}
@@ -237,7 +243,7 @@ private:
 	std::string m_string;
 	MyStack <Data> m_stack;
 	Status m_status;
-	// symbol -> level -> info
+	// symbol type -> level -> info
 	MyVector <MyVector <PairInfo>> m_pairInfos [(std::size_t) SymbolType::SymbolTypeCount];
 	std::size_t m_currentLevels [(std::size_t) SymbolType::SymbolTypeCount];
 };
@@ -250,6 +256,8 @@ private:
 	enum class TokenType : int {
 		Operator,
 		Operand,
+		GroupOpener,
+		GroupCloser,
 		Separator,
 	};
 	struct Token {
@@ -273,6 +281,8 @@ private:
 		['7'] = TokenType::Operand,
 		['8'] = TokenType::Operand,
 		['9'] = TokenType::Operand,
+		['('] = TokenType::GroupOpener,
+		[')'] = TokenType::GroupCloser,
 	};
 
 	struct Operations {
@@ -294,8 +304,125 @@ private:
 
 public:
 	static std::string Encode (const std::string & s) {
-		(void) s;
-		throw "NOT IMPLEMENTED";
+		MyQueue <Token> tokens = Tokenize (s);
+
+		MyStack <MyStack <int>> values;           values.push (MyStack <int> ());
+		MyStack <MyStack <char>> operators;       operators.push (MyStack <char> ());
+		MyStack <std::string> results;            results.push ("");
+
+		auto processLast = [&] (bool put_op = false) -> void {
+			MyStack <int> & curr_values = values.top ();
+			MyStack <char> & curr_ops = operators.top ();
+			std::string & curr_res = results.top ();
+
+			char op = curr_ops.top ();
+			curr_ops.pop ();
+			int v2 = curr_values.top ();
+			curr_values.pop ();
+			int v1 = curr_values.top ();
+			curr_values.pop ();
+			curr_values.push (OperatorOperations [(unsigned char) op] (v1, v2));
+			if (true == put_op) {
+				curr_res += op + std::string {' '};
+			}
+
+			// std::cout << "valueStack: {";
+			// for (auto c : values.container ()) {
+			// 	std::cout << '\t';
+			// 	for (int i : c.container ()) {
+			// 		std::cout << i << ", ";
+			// 	}
+			// 	std::cout << std::endl;
+			// }
+			// std::cout << '}' << std::endl;
+		};
+
+		auto processValue = [&] (int value, bool newValue = false) -> void {
+			MyStack <int> & curr_vals = values.top ();
+			MyStack <char> & curr_ops = operators.top ();
+			std::string & curr_res = results.top ();
+			curr_vals.push (value);
+
+			if (false == curr_ops.empty ()) {
+				char op = curr_ops.top ();
+
+				if ('*' == op || '/' == op) {
+					if (true == newValue) {
+						curr_res += std::to_string (value) + ' ';
+						newValue = false;
+					}
+
+					processLast (true);
+				}
+
+				MyQueue <char> ops;
+
+				if (curr_ops.size () > 1) {
+					unsigned char last_op = curr_ops.top ();
+					curr_ops.pop ();
+					int last_v = curr_vals.top ();
+					curr_vals.pop ();
+
+					while (false == curr_ops.empty ()) {
+						ops.push (curr_ops.top ());
+						processLast ();
+					}
+
+					curr_ops.push (last_op);
+					curr_vals.push (last_v);
+				}
+
+				while (false == ops.empty ()) {
+					curr_res += ops.back () + std::string {' '};
+					ops.pop ();
+				}
+			}
+
+			if (true == newValue) {
+				curr_res += std::to_string (value) + ' ';
+			}
+		};
+
+		while (false == tokens.empty ()) {
+			Token t = tokens.front ();
+			tokens.pop ();
+
+			if (TokenType::GroupOpener == t.type) {
+				values.push (MyStack <int> ());
+				operators.push (MyStack <char> ());
+				results.push ("");
+			}
+			else if (TokenType::Operator == t.type) {
+				operators.top ().push (t.value [0]);
+			}
+			else if (TokenType::Operand == t.type) {
+				processValue (std::stoi (t.value), true);
+			}
+			else if (TokenType::GroupCloser == t.type) {
+				if (false == operators.top ().empty ()) {
+					processLast (true);
+				}
+
+				int v = values.top ().top ();
+
+				values.pop ();
+				operators.pop ();
+				std::string last = results.top ();
+				results.pop ();
+				results.top () += last;
+
+				processValue (v);
+			}
+		}
+
+		MyStack <int> & curr_values = values.top ();
+		MyStack <char> & curr_ops = operators.top ();
+
+		if (false == curr_ops.empty ()) {
+			processLast (true);
+		}
+
+		return results.top () + " = " + std::to_string (curr_values.top ());
 	}
 
 	static std::string Decode (const std::string & s) {
@@ -349,6 +476,7 @@ private:
 
 		for (char c : s) {
 			TokenType t = s_symbolType [(unsigned char) c];
+
 			if (TokenType::Operand == t) {
 				if (false == operand) {
 					operand = true;
@@ -367,9 +495,9 @@ private:
 					});
 				}
 
-				if (TokenType::Operator == t) {
+				if (TokenType::Separator != t) {
 					tokens.push (Token {
-						.type = TokenType::Operator,
+						.type = t,
 						.value = std::string {} + c
 					});
 				}
@@ -393,7 +521,6 @@ private:
 		if (false == parenInfo.empty ()) {
 			const auto & firstLevelInfo = parenInfo [0];
 			for (const auto & info : firstLevelInfo) {
-				std::cout << "I: " << info.opener_pos << " - " << info.closer_pos << std::endl;
 				std::fill (str.begin () + info.opener_pos, str.begin () + info.closer_pos, ' ');
 			}
 		}
@@ -410,6 +537,8 @@ private:
 	}
 };
 
+
+
 int main () {
 	BalanceChecker c;
 	c.setString ("abc<def>[");
@@ -425,5 +554,18 @@ int main () {
 	c.setString ("abc'<{[('");
 	std::cout << c << std::endl;
 
-	std::cout << PostfixNotationConverter::Decode ("6 5 2 3 + 8 * + 3 + *") << std::endl;;
+	std::string res = "6 5 2 3 + 8 * + 3 + *";
+	std::cout << res << std::endl;
+
+	res = PostfixNotationConverter::Decode (res);
+	// res = "6 + (5 + 3 + 2) / 2 - 4 = 7";
+	std::cout << res << std::endl;
+
+	res.resize (res.find ('='));
+	res = PostfixNotationConverter::Encode (res);
+	std::cout << res << std::endl;
+
+	res.resize (res.find ('='));
+	res = PostfixNotationConverter::Decode (res);
+	std::cout << res << std::endl;
 }
