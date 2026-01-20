@@ -1,3 +1,4 @@
-cpp: https://goalkicker.com/CPlusPlusBook/
+cpp: C++ Notes for Professionals - https://goalkicker.com/CPlusPlusBook/
 dsa: Data Structures and Algorithm Analysis in C++ (4th ed.) - Mark Allen Weiss
 dp: Design Patterns in Modern C++20 - Reusable Approaches for Object-Oriented Software Design (Second Edition) - Dmitri Nesteruk
+lc: https://leetcode.com/u/GasparVardanyan/

@@ -267,6 +267,8 @@ private:
 
 	static inline const TokenType s_symbolType [256] = {
 		[' '] = TokenType::Separator,
+		['('] = TokenType::GroupOpener,
+		[')'] = TokenType::GroupCloser,
 		['*'] = TokenType::Operator,
 		['+'] = TokenType::Operator,
 		['-'] = TokenType::Operator,
@@ -281,8 +283,6 @@ private:
 		['7'] = TokenType::Operand,
 		['8'] = TokenType::Operand,
 		['9'] = TokenType::Operand,
-		['('] = TokenType::GroupOpener,
-		[')'] = TokenType::GroupCloser,
 	};
 
 	struct Operations {
@@ -326,7 +326,7 @@ public:
 			curr_res += op + std::string {' '};
 
 			// std::cout << "valueStack: {";
-			// for (auto c : values.container ()) {
+			// for (const auto & c : values.container ()) {
 			// 	std::cout << '\t';
 			// 	for (int i : c.container ()) {
 			// 		std::cout << i << ", ";
