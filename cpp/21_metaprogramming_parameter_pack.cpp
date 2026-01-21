@@ -101,6 +101,12 @@ static void print10 (T first, TS ... rest) {
 	}
 }
 
+template <typename ... TS>
+static void printSum (TS ... vs) {
+	auto s = (vs + ...);
+	std::cout << s << std::endl;
+}
+
 int main () {
 	print1 <int, 1, 2, 3, 4> ();
 	print2 (1, 2, 3, 4, "hello");
@@ -112,4 +118,5 @@ int main () {
 	print8 (1, 2, 3, 4, "hello");
 	print9 <int, 1, 2, 3, 4> ();
 	print10 (1, 2, 3, 4, "hello");
+	printSum (1, 2, 3, 4, 5);
 }

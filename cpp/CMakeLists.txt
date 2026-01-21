@@ -40,3 +40,5 @@ add_executable (
 	23_metaprogramming_template_specialization
 	23_metaprogramming_template_specialization.cpp
 )
+
+add_executable (24_requires_clause 24_requires_clause.cpp)
