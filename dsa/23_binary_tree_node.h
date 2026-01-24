@@ -2,12 +2,12 @@
 # define BINARY_TREE_NODE_H_23
 
 # include <concepts>
-# include <map>
 # include <ostream>
 # include <type_traits>
 # include <utility>
 
 # include "22_queue.h"
+# include "22_stack.h"
 
 template <typename T>
 struct binary_tree_node {
@@ -166,27 +166,31 @@ public:
 			{ os << t } -> std::convertible_to <std::ostream &>;
 		}
 	{
-		std::map <const binary_tree_node *, std::size_t> nodeLevels;
+		stack <const binary_tree_node *> path;
 
 		node.preorder_traverse (
-			[&nodeLevels, &os]
+			[&path, &os]
 			(const binary_tree_node * node, const binary_tree_node * parent) -> void {
-				if (false == nodeLevels.contains (parent)) {
-					nodeLevels [parent] = 0;
+				if (nullptr != parent) {
+					while (path.top () != parent) {
+						path.pop ();
+					}
 				}
-				nodeLevels [node] = nodeLevels [parent] + 1;
+				path.push (node);
 
-				for (std::size_t i = 0; i < nodeLevels [node]; i++) {
+				std::size_t depth = path.size ();
+
+				for (std::size_t i = 0; i < depth; i++) {
 					os << "  ";
 				}
 
-				if (0 != nodeLevels [parent]) {
+				if (nullptr != parent) {
 					os << "|- ";
 				}
 
 				os << node->data;
 
-				if (0 != nodeLevels [parent]) {
+				if (nullptr != parent) {
 					if (nullptr == parent->left || nullptr == parent->right) {
 						if (node == parent->left) {
 							os << " (L)";

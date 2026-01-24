@@ -1,5 +1,5 @@
 # include <iostream>
-# include <map>
+# include <sstream>
 
 # include "23_binary_tree_node.h"
 # include "23_expression_tree.h"
@@ -80,9 +80,15 @@ int main () {
 	bst.insert (1);
 	bst.insert (3);
 
-	bst.remove (5); // 10, 20, 25, 15, 5
-	std::cout << "TREE:\n" << bst << std::endl;
-	// std::cout << "TREE:\n" << bst << std::endl;
+	// bst.remove (5); // 10, 20, 25, 15, 5
+	std::stringstream ss;
+	ss << "TREE:\n" << bst << std::endl;
+	std::cout << ss.str () << std::endl;
+	for (int i : (vector <int>) bst) {
+		std::cout << i << std::endl;
+	}
+
+	std::cout << bst.findMin ()->data << " - " << bst.findMax ()->data << std::endl;
 	// const int y = 20;
 	// bst1.insert(y);
 }

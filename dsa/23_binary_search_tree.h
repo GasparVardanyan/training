@@ -2,9 +2,11 @@
 # define BINARY_SEARCH_TREE_23
 
 # include <concepts>
+# include <iterator>
 # include <ostream>
 # include <utility>
 
+# include "20_vector.h"
 # include "23_binary_tree_node.h"
 
 // TODO: learn commenting: https://www.doxygen.nl/manual/docblocks.html
@@ -82,6 +84,7 @@ public:
 	void insert (U && value) {
 		if (nullptr == m_root) {
 			m_root = new node (std::forward <U> (value));
+			m_size++;
 		}
 		else {
 			node * n = m_root;
@@ -115,27 +118,30 @@ public:
 		}
 	}
 
-	bool contains (const T & value) {
-		node * n = m_root;
-		bool found = false;
+	bool contains (const T & value) const {
+		node const * const * link = & m_root;
 
-		while (nullptr != n) {
-			bool lt = false == Comparator (n->data, value);
-			bool gt = false == Comparator (value, n->data);
+		while (nullptr != * link) {
+			bool lt = false == Comparator ((* link)->data, value);
+			bool gt = false == Comparator (value, (* link)->data);
 
 			if (lt && gt) {
-				found = true;
 				break;
 			}
 			else if (lt) {
-				n = n->left;
+				link = & (* link)->left;
 			}
 			else if (gt) {
-				n = n->right;
+				link = & (* link)->right;
 			}
 		}
 
-		return found;
+		if (nullptr != * link) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
 	void remove (const T & value) {
@@ -199,9 +205,56 @@ public:
 		return os;
 	}
 
-	const node * root () {
-		return m_root;
+	operator vector <T> () const {
+		vector <T> v;
+		v.reserve (m_size);
+
+		dump (std::back_inserter (v));
+
+		return v;
 	}
+
+	template <typename It>
+	requires std::output_iterator <It, T>
+	void dump (It it) const {
+		if (nullptr != m_root) {
+			m_root->inorder_traverse (
+				[&it] (const node * n, const node *) -> void {
+					*it++ = n->data;
+				}
+			);
+		}
+	}
+
+	const node * findMin () const {
+		if (nullptr == m_root) {
+			return nullptr;
+		}
+		else {
+			const node * n = m_root;
+			while (nullptr != n->left) {
+				n = n->left;
+			}
+			return n;
+		}
+	}
+
+	const node * findMax () const {
+		if (nullptr == m_root) {
+			return nullptr;
+		}
+		else {
+			const node * n = m_root;
+			while (nullptr != n->right) {
+				n = n->right;
+			}
+			return n;
+		}
+	}
+
+	const node * root () { return m_root; }
+	std::size_t size () const { return m_size; }
+	bool empty () const { return 0 == m_size; }
 
 private:
 	node * m_root;
