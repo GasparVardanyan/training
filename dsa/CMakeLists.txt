@@ -36,7 +36,6 @@ add_executable (15_max_subseq_sum
 	15_max_subseq_sum_main.cpp
 )
 target_compile_options (15_max_subseq_sum PRIVATE -Wno-unused-but-set-variable)
-target_link_libraries (15_max_subseq_sum GTest::gtest_main)
 
 add_executable (15_max_subseq_sum_test
 	15_max_subseq_sum.h
@@ -69,8 +68,26 @@ add_executable (21_list_test
 target_compile_options (21_list_test PRIVATE -Wno-self-assign-overloaded -Wno-self-move)
 target_link_libraries (21_list_test GTest::gtest_main)
 
-add_executable (22_stack_queue 22_stack.h 22_queue.h 21_list.h 20_vector.h 22_stack_queue.cpp)
+add_executable (22_stack_queue
+	20_vector.h
+	21_list.h
+	22_stack.h
+	22_queue.h
+	22_config.h
+	22_balance_checker.h
+	22_notation_converter.h
+	22_stack_queue.cpp
+)
 target_compile_options (22_stack_queue PRIVATE -Wno-c99-designator)
+
+add_executable (23_binary_tree
+	22_queue.h
+	23_binary_node.h
+	23_binary_search_tree.h
+	23_expression_tree.h
+	23_binary_tree_main.cpp
+)
+target_compile_options (23_binary_tree PRIVATE -Wno-c99-designator)
 
 add_executable (ex_1_1_selection_problem ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
 target_link_libraries (ex_1_1_selection_problem GTest::gtest_main)
@@ -79,4 +96,4 @@ add_executable (ex_1_5_popcount_with_recursion ex_1_5_popcount_with_recursion_te
 target_link_libraries (ex_1_5_popcount_with_recursion GTest::gtest_main)
 
 include (GoogleTest)
-# gtest_discover_tests (ex_1_1_selection_problem ex_1_5_popcount_with_recursion 15_max_subseq_sum_test 20_vector_test)
+gtest_discover_tests (ex_1_1_selection_problem ex_1_5_popcount_with_recursion 15_max_subseq_sum_test 20_vector_test 21_list_test)

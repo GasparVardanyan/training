@@ -93,15 +93,6 @@ public:
 		std::copy (other.m_data, other.m_data + other.m_size, m_data);
 	}
 
-	vector (vector && other) noexcept {
-		m_capacity = other.m_capacity;
-		m_size = other.m_size;
-		m_data = other.m_data;
-		other.m_capacity = 0;
-		other.m_size = 0;
-		other.m_data = nullptr;
-	}
-
 	vector & operator= (const vector & other) {
 		if (this != & other) {
 			// if (m_capacity < other.m_capacity) {
@@ -120,6 +111,15 @@ public:
 		}
 
 		return * this;
+	}
+
+	vector (vector && other) noexcept {
+		m_capacity = other.m_capacity;
+		m_size = other.m_size;
+		m_data = other.m_data;
+		other.m_capacity = 0;
+		other.m_size = 0;
+		other.m_data = nullptr;
 	}
 
 	vector & operator= (vector && other) noexcept {

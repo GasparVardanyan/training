@@ -2,7 +2,6 @@
 # define LIST_H_21
 
 # include <algorithm>
-# include <concepts>
 # include <initializer_list>
 # include <type_traits>
 # include <utility>
@@ -120,20 +119,18 @@ public:
 	using size_type = std::size_t;
 	using value_type = T;
 
-	iterator begin () { return iterator (m_head->next); }
-	iterator end () { return iterator (m_tail); }
-	const_iterator cbegin () const { return const_iterator (m_head->next); }
-	const_iterator cend () const { return const_iterator (m_tail); }
-	const_iterator begin () const { return const_iterator (m_head->next); }
-	const_iterator end () const { return const_iterator (m_tail); }
+	iterator begin () { return iterator (m_head.next); }
+	iterator end () { return iterator (& m_tail); }
+	const_iterator cbegin () const { return const_iterator (m_head.next); }
+	const_iterator cend () const { return const_iterator (& m_tail); }
+	const_iterator begin () const { return const_iterator (m_head.next); }
+	const_iterator end () const { return const_iterator (& m_tail); }
 
 public:
 	explicit list (std::size_t size = 0) {
 		m_size = size;
-		m_head = new node_base;
-		m_tail = new node_base;
 
-		node_base * _node = m_head;
+		node_base * _node = & m_head;
 
 		for (std::size_t i = 0; i < m_size; i++) {
 			node * new_node = new node (T {});
@@ -143,16 +140,14 @@ public:
 			_node = new_node;
 		}
 
-		_node->next = m_tail;
-		m_tail->prev = _node;
+		_node->next = & m_tail;
+		m_tail.prev = _node;
 	}
 
 	list (std::initializer_list <T> init) {
 		m_size = init.size ();
-		m_head = new node_base;
-		m_tail = new node_base;
 
-		node_base * _node = m_head;
+		node_base * _node = & m_head;
 
 		for (auto it = init.begin (); it != init.end (); std::advance (it, 1)) {
 			node * new_node = new node (* it);
@@ -162,16 +157,14 @@ public:
 			_node = new_node;
 		}
 
-		_node->next = m_tail;
-		m_tail->prev = _node;
+		_node->next = & m_tail;
+		m_tail.prev = _node;
 	}
 
 	list (const const_iterator & begin, const const_iterator & end) {
 		m_size = 0;
-		m_head = new node_base;
-		m_tail = new node_base;
 
-		node_base * _node = m_head;
+		node_base * _node = & m_head;
 
 		for (auto it = begin; it != end; ++it) {
 			node * new_node = new node (* it);
@@ -182,8 +175,8 @@ public:
 			_node = new_node;
 		}
 
-		_node->next = m_tail;
-		m_tail->prev = _node;
+		_node->next = & m_tail;
+		m_tail.prev = _node;
 	}
 
 	template <
@@ -196,10 +189,8 @@ public:
 		>
 	> list (input_it begin, input_it end) {
 		m_size = 0;
-		m_head = new node_base;
-		m_tail = new node_base;
-		m_head->next = m_tail;
-		m_tail->prev = m_head;
+		m_head.next = & m_tail;
+		m_tail.prev = & m_head;
 
 		std::copy (begin, end, std::back_inserter (* this));
 	}
@@ -207,13 +198,11 @@ public:
 public:
 	list (const list & other) {
 		m_size = other.m_size;
-		m_head = new node_base;
-		m_tail = new node_base;
 
-		node_base * _node = m_head;
+		node_base * _node = & m_head;
 
 		if (0 != other.m_size) {
-			for (node_base * _n = other.m_head->next; _n != other.m_tail; _n = _n->next) {
+			for (node_base * _n = other.m_head.next; _n != & other.m_tail; _n = _n->next) {
 				node * new_node = new node (static_cast <node *> (_n)->value);
 				_node->next = new_node;
 				new_node->prev = _node;
@@ -222,34 +211,37 @@ public:
 			}
 		}
 
-		_node->next = m_tail;
-		m_tail->prev = _node;
+		_node->next = & m_tail;
+		m_tail.prev = _node;
 	}
 
 	list & operator= (const list & other) {
 		if (this != & other) {
 			list copy (other);
 			std::swap (* this, copy);
+			fix_links ();
+			copy.fix_links ();
 		}
 		return * this;
 	}
 
-	list (list && other) {
+	list (list && other) noexcept {
 		m_size = other.m_size;
 		m_head = other.m_head;
 		m_tail = other.m_tail;
-		other.m_head = new node_base;
-		other.m_tail = new node_base;
-		other.m_head->next = other.m_tail;
-		other.m_tail->prev = other.m_head;
+		fix_links ();
+
 		other.m_size = 0;
+		other.fix_links ();
 	}
 
-	list & operator= (list && other) {
+	list & operator= (list && other) noexcept {
 		if (this != & other) {
 			std::swap (m_size, other.m_size);
 			std::swap (m_tail, other.m_tail);
 			std::swap (m_head, other.m_head);
+			fix_links ();
+			other.fix_links ();
 		}
 
 		return * this;
@@ -257,21 +249,31 @@ public:
 
 	~list () {
 		clear ();
-		delete m_head;
-		delete m_tail;
+	}
+
+private:
+	void fix_links () {
+		if (0 == m_size) {
+			m_head.next = & m_tail;
+			m_tail.prev = & m_head;
+		}
+		else {
+			m_head.next->prev = & m_head;
+			m_tail.prev->next = & m_tail;
+		}
 	}
 
 public:
 	void clear () {
 		if (0 != m_size) {
 			for (
-				node_base * n = m_head->next;
-				n != m_tail;
+				node_base * n = m_head.next;
+				n != & m_tail;
 				n = n->next, delete n->prev
 			);
 
-			m_head->next = m_tail;
-			m_tail->prev = m_head;
+			m_head.next = & m_tail;
+			m_tail.prev = & m_head;
 
 			m_size = 0;
 		}
@@ -311,7 +313,7 @@ public:
 		node_base * nb = const_cast <node_base *> (at.base ());
 		node_base * ret_node;
 
-		if (m_tail != nb) {
+		if (& m_tail != nb) {
 			ret_node = nb->next;
 
 			nb->prev->next = nb->next;
@@ -324,7 +326,7 @@ public:
 			m_size--;
 		}
 		else {
-			ret_node = m_tail;
+			ret_node = & m_tail;
 		}
 
 		return iterator (ret_node);
@@ -338,7 +340,7 @@ public:
 		node_base * nb_to = const_cast <node_base *> (to.base ());
 		ret_node = nb_to;
 
-		if (m_tail != nb_from && from != to) {
+		if (& m_tail != nb_from && from != to) {
 			// tail != from < to
 
 			nb_from->prev->next = nb_to;
@@ -365,19 +367,19 @@ public:
 	}
 
 	T & front () {
-		return static_cast <node *> (m_head->next)->value;
+		return static_cast <node *> (m_head.next)->value;
 	}
 
 	const T & front () const {
-		return static_cast <node *> (m_head->next)->value;
+		return static_cast <node *> (m_head.next)->value;
 	}
 
 	T & back () {
-		return static_cast <node *> (m_tail->prev)->value;
+		return static_cast <node *> (m_tail.prev)->value;
 	}
 
 	const T & back () const {
-		return static_cast <node *> (m_tail->prev)->value;
+		return static_cast <node *> (m_tail.prev)->value;
 	}
 
 	void push_front (const T & value) { insert (cbegin (), value); }
@@ -390,8 +392,8 @@ public:
 	void pop_back () { erase (-- cend ()); }
 
 private:
-	node_base * m_head;
-	node_base * m_tail;
+	node_base m_head;
+	node_base m_tail;
 	std::size_t m_size;
 };
 
