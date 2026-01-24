@@ -82,7 +82,7 @@ target_compile_options (22_stack_queue PRIVATE -Wno-c99-designator)
 
 add_executable (23_binary_tree
 	22_queue.h
-	23_binary_node.h
+	23_binary_tree_node.h
 	23_binary_search_tree.h
 	23_expression_tree.h
 	23_binary_tree_main.cpp

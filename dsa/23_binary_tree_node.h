@@ -1,68 +1,70 @@
-# ifndef BINARY_NODE_H_23
-# define BINARY_NODE_H_23
+# ifndef BINARY_TREE_NODE_H_23
+# define BINARY_TREE_NODE_H_23
 
 # include <concepts>
+# include <map>
+# include <ostream>
 # include <type_traits>
 # include <utility>
 
 # include "22_queue.h"
 
 template <typename T>
-struct binary_node {
+struct binary_tree_node {
 public:
 	T data;
-	binary_node * left;
-	binary_node * right;
+	binary_tree_node * left;
+	binary_tree_node * right;
 
-	explicit binary_node (const T & data, binary_node * left = nullptr, binary_node * right = nullptr)
+	explicit binary_tree_node (const T & data, binary_tree_node * left = nullptr, binary_tree_node * right = nullptr)
 		: data (data), left (left), right (right)
 	{}
 
-	explicit binary_node (T && data, binary_node * left = nullptr, binary_node * right = nullptr)
+	explicit binary_tree_node (T && data, binary_tree_node * left = nullptr, binary_tree_node * right = nullptr)
 		: data (std::move (data)), left (left), right (right)
 	{}
 
-	binary_node (const binary_node & other)
+	binary_tree_node (const binary_tree_node & other)
 		: data (other.data)
 		, left (nullptr)
 		, right (nullptr)
 	{
-		queue <binary_node *> our;
+		queue <binary_tree_node *> our;
 		our.push (this);
-		queue <const binary_node *> their;
+		queue <const binary_tree_node *> their;
 		their.push (& other);
 
 		while (false == their.empty ()) {
-			binary_node * o = our.front ();
+			binary_tree_node * o = our.front ();
 			our.pop ();
-			const binary_node * t = their.front ();
+			const binary_tree_node * t = their.front ();
 			their.pop ();
 
 			if (t->left != nullptr) {
-				o->left = new binary_node (t->left->data);
+				o->left = new binary_tree_node (t->left->data);
 				our.push (o->left);
 				their.push (t->left);
 			}
 
 			if (nullptr != t->right) {
-				o->right = new binary_node (t->right->data);
+				o->right = new binary_tree_node (t->right->data);
 				our.push (o->right);
 				their.push (t->right);
 			}
 		}
 	}
 
-	binary_node & operator= (const binary_node & other) {
+	binary_tree_node & operator= (const binary_tree_node & other) {
 		if (this != & other) {
-			binary_node copy (other);
+			binary_tree_node copy (other);
 			std::swap (* this, copy);
 		}
 		return * this;
 	}
 
-	binary_node (binary_node && other) noexcept
+	binary_tree_node (binary_tree_node && other) noexcept
 		: data (
-			(std::move_constructible <T> ? std::move (other.data) : other.data)
+			(std::is_move_constructible_v <T> ? std::move (other.data) : other.data)
 		)
 		, left (other.left)
 		, right (other.right)
@@ -71,7 +73,7 @@ public:
 		other.right = nullptr;
 	}
 
-	binary_node & operator= (binary_node && other) noexcept {
+	binary_tree_node & operator= (binary_tree_node && other) noexcept {
 		if (this != & other) {
 			std::swap (data, other.data);
 			std::swap (left, other.left);
@@ -81,8 +83,8 @@ public:
 		return * this;
 	}
 
-	~binary_node () {
-		queue <binary_node *> to_delete;
+	~binary_tree_node () {
+		queue <binary_tree_node *> to_delete;
 
 		if (nullptr != left) {
 			to_delete.push (left);
@@ -94,7 +96,7 @@ public:
 		}
 
 		while (false == to_delete.empty ()) {
-			binary_node * n = to_delete.front ();
+			binary_tree_node * n = to_delete.front ();
 			to_delete.pop ();
 			if (nullptr != n->left) {
 				to_delete.push (n->left);
@@ -109,57 +111,102 @@ public:
 		}
 	}
 
+public:
 	template <typename F>
-	requires requires (F f, binary_node * n) { f (n, n); }
+	requires requires (F f, binary_tree_node * n) { f (n, n); }
 	void preorder_traverse (F && func) {
 		preorder_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, binary_node * n) { f (n, n); }
+	requires requires (F f, binary_tree_node * n) { f (n, n); }
 	void inorder_traverse (F && func) {
 		inorder_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, binary_node * n) { f (n, n); }
+	requires requires (F f, binary_tree_node * n) { f (n, n); }
 	void postorder_traverse (F && func) {
 		postorder_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, binary_node * n) { f (n, n); }
+	requires requires (F f, binary_tree_node * n) { f (n, n); }
 	void level_order_traverse (F && func) {
 		level_order_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, const binary_node * n) { f (n, n); }
+	requires requires (F f, const binary_tree_node * n) { f (n, n); }
 	void preorder_traverse (F && func) const {
 		preorder_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, const binary_node * n) { f (n, n); }
+	requires requires (F f, const binary_tree_node * n) { f (n, n); }
 	void inorder_traverse (F && func) const {
 		inorder_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, const binary_node * n) { f (n, n); }
+	requires requires (F f, const binary_tree_node * n) { f (n, n); }
 	void postorder_traverse (F && func) const {
 		postorder_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, const binary_node * n) { f (n, n); }
+	requires requires (F f, const binary_tree_node * n) { f (n, n); }
 	void level_order_traverse (F && func) const {
 		level_order_traverse (this, func);
 	}
 
+
+	friend std::ostream & operator<< (std::ostream & os, const binary_tree_node & node)
+		requires requires (std::ostream os, T t) {
+			{ os << t } -> std::convertible_to <std::ostream &>;
+		}
+	{
+		std::map <const binary_tree_node *, std::size_t> nodeLevels;
+
+		node.preorder_traverse (
+			[&nodeLevels, &os]
+			(const binary_tree_node * node, const binary_tree_node * parent) -> void {
+				if (false == nodeLevels.contains (parent)) {
+					nodeLevels [parent] = 0;
+				}
+				nodeLevels [node] = nodeLevels [parent] + 1;
+
+				for (std::size_t i = 0; i < nodeLevels [node]; i++) {
+					os << "  ";
+				}
+
+				if (0 != nodeLevels [parent]) {
+					os << "|- ";
+				}
+
+				os << node->data;
+
+				if (0 != nodeLevels [parent]) {
+					if (nullptr == parent->left || nullptr == parent->right) {
+						if (node == parent->left) {
+							os << " (L)";
+						}
+						else {
+							os << " (R)";
+						}
+					}
+				}
+
+				os << '\n';
+			}
+		);
+
+		return os;
+	}
+
 private:
 	template <typename U, typename F>
-	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_node>
+	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
 	&& requires (F f, U u) {
 		f (u, u);
 	}
@@ -176,7 +223,7 @@ private:
 	}
 
 	template <typename U, typename F>
-	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_node>
+	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
 	&& requires (F f, U u) {
 		f (u, u);
 	}
@@ -193,7 +240,7 @@ private:
 	}
 
 	template <typename U, typename F>
-	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_node>
+	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
 	&& requires (F f, U u) {
 		f (u, u);
 	}
@@ -210,7 +257,7 @@ private:
 	}
 
 	template <typename U, typename F>
-	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_node>
+	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
 	&& requires (F f, U u) {
 		f (u, u);
 	}
@@ -241,4 +288,4 @@ private:
 	}
 };
 
-# endif // BINARY_NODE_H_23
+# endif // BINARY_TREE_NODE_H_23

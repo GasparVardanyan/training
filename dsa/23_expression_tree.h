@@ -5,26 +5,26 @@
 
 # include "22_config.h"
 # include "22_notation_converter.h"
-# include "23_binary_node.h"
+# include "23_binary_tree_node.h"
 
 struct ExpressionTree : protected NotationConverter {
-	static binary_node <std::string> * PostfixToTree (const std::string & s) {
+	static binary_tree_node <std::string> * PostfixToTree (const std::string & s) {
 		MyQueue <Token> tokens = Tokenize (s);
-		MyStack <binary_node <std::string> *> nodes;
+		MyStack <binary_tree_node <std::string> *> nodes;
 
 		while (false == tokens.empty ()) {
 			Token t = tokens.front ();
 			tokens.pop ();
 
 			if (TokenType::Operand == t.type) {
-				nodes.push (new binary_node <std::string> (t.value));
+				nodes.push (new binary_tree_node <std::string> (t.value));
 			}
 			else if (TokenType::Operator == t.type) {
 				auto o2 = nodes.top ();
 				nodes.pop ();
 				auto o1 = nodes.top ();
 				nodes.pop ();
-				nodes.push (new binary_node <std::string> (t.value, o1, o2));
+				nodes.push (new binary_tree_node <std::string> (t.value, o1, o2));
 			}
 		}
 
@@ -41,13 +41,13 @@ struct ExpressionTree : protected NotationConverter {
 		}
 	}
 
-	static std::string TreeToInfix (const binary_node <std::string> * tree) {
-		auto * tree_copy = new binary_node <std::string> (* tree);
+	static std::string TreeToInfix (const binary_tree_node <std::string> * tree) {
+		auto * tree_copy = new binary_tree_node <std::string> (* tree);
 
-		MyStack <binary_node <std::string> *> nodes;
-		MyStack <binary_node <std::string> *> parents;
+		MyStack <binary_tree_node <std::string> *> nodes;
+		MyStack <binary_tree_node <std::string> *> parents;
 
-		tree_copy->level_order_traverse ([&nodes, &parents] (binary_node <std::string> * n, binary_node <std::string> * p) -> void {
+		tree_copy->level_order_traverse ([&nodes, &parents] (binary_tree_node <std::string> * n, binary_tree_node <std::string> * p) -> void {
 			nodes.push (n);
 			parents.push (p);
 		});
