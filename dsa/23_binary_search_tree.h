@@ -2,6 +2,7 @@
 # define BINARY_SEARCH_TREE_23
 
 # include <concepts>
+# include <functional>
 # include <iterator>
 # include <ostream>
 # include <utility>
@@ -14,10 +15,8 @@
 /// @tparam T
 /// @tparam Comparator STRICTLY-LESS-THAN comparator
 /// @warning Comparator must impose a strict weak ordering
-template <typename T, auto Comparator = [] (const T & t1, const T & t2) -> bool { return t1 < t2; }>
-requires requires (T t1, T t2) {
-	{ Comparator (t1, t2) } -> std::convertible_to <bool>;
-}
+template <typename T, typename Comparator = std::less <T>>
+requires std::strict_weak_order <Comparator, T, T>
 class binary_search_tree {
 public:
 	using node = binary_tree_node <T>;
@@ -90,7 +89,7 @@ public:
 			node * n = m_root;
 
 			while (true) {
-				if (Comparator (value, n->data)) {
+				if (m_isLessThan (value, n->data)) {
 					if (nullptr == n->left) {
 						n->left = new node (std::forward <U> (value));
 						m_size++;
@@ -100,7 +99,7 @@ public:
 						n = n->left;
 					}
 				}
-				else if (Comparator (n->data, value)) {
+				else if (m_isLessThan (n->data, value)) {
 					if (nullptr == n->right) {
 						n->right = new node (std::forward <U> (value));
 						m_size++;
@@ -122,8 +121,8 @@ public:
 		node const * const * link = & m_root;
 
 		while (nullptr != * link) {
-			bool lt = false == Comparator ((* link)->data, value);
-			bool gt = false == Comparator (value, (* link)->data);
+			bool lt = false == m_isLessThan ((* link)->data, value);
+			bool gt = false == m_isLessThan (value, (* link)->data);
 
 			if (lt && gt) {
 				break;
@@ -152,8 +151,8 @@ public:
 			node ** link = & m_root;
 
 			while (nullptr != (* link)) {
-				bool lt = false == Comparator ((* link)->data, value);
-				bool gt = false == Comparator (value, (* link)->data);
+				bool lt = false == m_isLessThan ((* link)->data, value);
+				bool gt = false == m_isLessThan (value, (* link)->data);
 
 				if (lt && gt) {
 					break;
@@ -167,27 +166,27 @@ public:
 			}
 
 			if (nullptr != * link) {
-				node * linked_node = * link;
+				node * to_remove = * link;
 
 				if (nullptr == (* link)->right) {
 					* link = (* link)->left;
 				}
 				else {
 					if (nullptr != (* link)->left) {
-						node * dl = (* link)->right;
+						node * leftmost = (* link)->right;
 
-						while (nullptr != dl->left) {
-							dl = dl->left;
+						while (nullptr != leftmost->left) {
+							leftmost = leftmost->left;
 						}
-						dl->left = (* link)->left;
+						leftmost->left = (* link)->left;
 					}
 
 					* link = (* link)->right;
 				}
 
-				linked_node->left = nullptr;
-				linked_node->right = nullptr;
-				delete linked_node;
+				to_remove->left = nullptr;
+				to_remove->right = nullptr;
+				delete to_remove;
 				m_size--;
 			}
 		}
@@ -252,13 +251,30 @@ public:
 		}
 	}
 
-	const node * root () { return m_root; }
+	void makeEmpty () {
+		if (nullptr != m_root) {
+			delete m_root;
+			m_root = nullptr;
+			m_size = 0;
+		}
+	}
+
+	const node * root () const { return m_root; }
 	std::size_t size () const { return m_size; }
 	bool empty () const { return 0 == m_size; }
+
+protected:
+	node * root () { return m_root; }
+	std::size_t & size () { return m_size; }
+	const Comparator & isLessThan () const {
+		return m_isLessThan;
+	}
 
 private:
 	node * m_root;
 	std::size_t m_size;
+
+	Comparator m_isLessThan;
 };
 
 # endif // BINARY_SEARCH_TREE_23
