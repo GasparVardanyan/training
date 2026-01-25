@@ -118,7 +118,18 @@ public:
 	}
 
 	bool contains (const T & value) const {
-		node const * const * link = & m_root;
+		const node * link = at (value);
+
+		if (nullptr != link) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	const node * at (const T & value) const {
+		node * const * link = & m_root;
 
 		while (nullptr != * link) {
 			bool lt = false == m_isLessThan ((* link)->data, value);
@@ -135,12 +146,7 @@ public:
 			}
 		}
 
-		if (nullptr != * link) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return * link;
 	}
 
 	void remove (const T & value) {
@@ -264,13 +270,13 @@ public:
 	bool empty () const { return 0 == m_size; }
 
 protected:
-	node * root () { return m_root; }
-	std::size_t & size () { return m_size; }
-	const Comparator & isLessThan () const {
-		return m_isLessThan;
+	node * _at (const T & value) {
+		return const_cast <node *> (
+			static_cast <binary_search_tree *> (this)->at (value)
+		);
 	}
 
-private:
+protected:
 	node * m_root;
 	std::size_t m_size;
 

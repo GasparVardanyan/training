@@ -137,6 +137,12 @@ public:
 	}
 
 	template <typename F>
+	requires requires (F f, binary_tree_node * n) { f (n, n, std::size_t {}); }
+	void level_order_traverse (F && func) {
+		level_order_traverse (this, func);
+	}
+
+	template <typename F>
 	requires requires (F f, const binary_tree_node * n) { f (n, n); }
 	void preorder_traverse (F && func) const {
 		preorder_traverse (this, func);
@@ -156,6 +162,12 @@ public:
 
 	template <typename F>
 	requires requires (F f, const binary_tree_node * n) { f (n, n); }
+	void level_order_traverse (F && func) const {
+		level_order_traverse (this, func);
+	}
+
+	template <typename F>
+	requires requires (F f, const binary_tree_node * n) { f (n, n, std::size_t {}); }
 	void level_order_traverse (F && func) const {
 		level_order_traverse (this, func);
 	}
@@ -288,6 +300,51 @@ private:
 			}
 
 			func (n, p);
+		}
+	}
+
+	template <typename U, typename F>
+	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
+	&& requires (F f, U u) {
+		f (u, u, std::size_t {});
+	}
+	static void level_order_traverse (U node, F && func, U parent = nullptr) {
+		queue <U> nodes, nodes_next;
+		nodes.push (node);
+		queue <U> parents, parents_next;
+		parents.push (parent);
+
+		std::size_t level = 0;
+
+		while (true) {
+			while (false == nodes.empty ()) {
+				U n = nodes.front ();
+				nodes.pop ();
+				U p = parents.front ();
+				parents.pop ();
+
+				if (nullptr != n->left) {
+					nodes_next.push (n->left);
+					parents_next.push (n);
+				}
+
+				if (nullptr != n->right) {
+					nodes_next.push (n->right);
+					parents_next.push (n);
+				}
+
+				func (n, p, level);
+			}
+			if (false == nodes_next.empty ()) {
+				nodes = nodes_next;
+				parents = parents_next;
+				nodes_next = {};
+				parents_next = {};
+				level++;
+			}
+			else {
+				break;
+			}
 		}
 	}
 };

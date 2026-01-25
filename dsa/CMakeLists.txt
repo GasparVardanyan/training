@@ -89,6 +89,22 @@ add_executable (23_binary_tree
 )
 target_compile_options (23_binary_tree PRIVATE -Wno-c99-designator)
 
+add_executable (23_binary_tree_node_test
+	23_binary_tree_node.h
+	23_binary_tree_node_test.cpp
+)
+target_compile_options (23_binary_tree_node_test PRIVATE -Wno-self-assign-overloaded -Wno-self-move)
+target_link_libraries (23_binary_tree_node_test GTest::gtest_main)
+
+add_executable (23_binary_search_tree_test
+	23_binary_search_tree.h
+	23_binary_search_tree_test.cpp
+)
+target_compile_options (23_binary_search_tree_test PRIVATE -Wno-self-assign-overloaded -Wno-self-move)
+target_link_libraries (23_binary_search_tree_test GTest::gtest_main)
+
+add_executable (24_avl_tree 24_avl_tree.h 24_avl_tree_main.cpp)
+
 add_executable (ex_1_1_selection_problem ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
 target_link_libraries (ex_1_1_selection_problem GTest::gtest_main)
 
@@ -96,4 +112,4 @@ add_executable (ex_1_5_popcount_with_recursion ex_1_5_popcount_with_recursion_te
 target_link_libraries (ex_1_5_popcount_with_recursion GTest::gtest_main)
 
 include (GoogleTest)
-gtest_discover_tests (ex_1_1_selection_problem ex_1_5_popcount_with_recursion 15_max_subseq_sum_test 20_vector_test 21_list_test)
+gtest_discover_tests (ex_1_1_selection_problem ex_1_5_popcount_with_recursion 15_max_subseq_sum_test 20_vector_test 21_list_test 23_binary_tree_node_test)

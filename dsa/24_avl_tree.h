@@ -7,15 +7,22 @@
 # include <iostream>
 # include <iterator>
 # include <ostream>
+# include <variant>
 
 # include "23_binary_search_tree.h"
 
 namespace detail {
-template <typename T, typename C>
+template <typename T, typename C, typename Data = std::monostate>
 struct avl_tree__ {
-	struct node_data {
+	struct node_data : Data {
 		T value;
-		std::ptrdiff_t level;
+		std::size_t height;
+
+		explicit (false) node_data (const T & value, std::size_t height = 0)
+			: value (value), height (height) {}
+
+		explicit (false) node_data (T && value, std::size_t height = 0)
+			: value (std::move (value)), height (height) {}
 
 		friend std::ostream & operator<< (std::ostream & os, const node_data & data) {
 			os << data.value;
@@ -38,76 +45,44 @@ struct avl_tree__ {
 };
 }
 
-template <typename T, typename Comparator = std::less <T>>
+template <typename T, typename Comparator = std::less <T>, typename Data = std::monostate>
 requires std::strict_weak_order <Comparator, T, T>
-class avl_tree : protected detail::avl_tree__ <T, Comparator>::tree {
+class avl_tree : protected detail::avl_tree__ <T, Comparator, Data>::tree {
 public:
-
-public:
-	using tree = detail::avl_tree__ <T, Comparator>::tree;
-	using data = detail::avl_tree__ <T, Comparator>::node_data;
+	using detail = detail::avl_tree__ <T, Comparator>;
+	using tree = detail::tree;
 	using node = tree::node;
+	using node_data = detail::node_data;
 
-public:
-	template <typename U>
-	requires std::convertible_to <U, T>
-	void insert (U && value) {
-		this->tree::insert (data {.value = value, .level = -1});
-	}
-
-	void remove (const T & value) {
-		this->tree::remove (data {.value = value, .level = -1});
-		// custom impl soon
-	}
-
-private:
-	void rebalance (const stack <node> & path) {
-		(void) path;
-		// impl soon
-	}
-
-public:
-	bool contains (const T & value) const {
-		return this->tree::contains ({.value = value, .level=-1});
-	}
+public: // binary_search_tree interface
+	using tree::insert;
+	using tree::remove;
+	using tree::contains;
+	using tree::dump;
+	using tree::findMin;
+	using tree::findMax;
+	using tree::makeEmpty;
+	using tree::root;
+	using tree::size;
+	using tree::empty;
+	using tree::at;
 
 	friend std::ostream & operator<< (std::ostream & os, const avl_tree & tree)
 		requires requires (std::ostream & os, T t) {
 			{ os << t } -> std::convertible_to <std::ostream &>;
 		}
 	{
-		if (nullptr != tree.root () ) {
-			os << * tree.root ();
-		}
-		return os;
+		return os << static_cast <const avl_tree::tree &> (tree);
 	}
 
 	operator vector <T> () const {
-		// vector <data> d = * this;
 		vector <T> v;
-		v.reserve(size ());
+		v.reserve (size ());
 
-		// std::copy (d.cbegin (), d.cend (), v.begin ());
-		dump (std::back_inserter(v));
+		dump (std::back_inserter (v));
 
 		return v;
 	}
-
-	template <typename It>
-	requires std::output_iterator <It, T>
-	void dump (It it) const {
-		this->tree::dump (it);
-	}
-
-	const node * findMin () const { return this->tree::findMin (); }
-	const node * findMax () const { return this->tree::findMax (); }
-	void makeEmpty () { this->tree::makeEmpty (); }
-	const node * root () const { return this->tree::root (); }
-	std::size_t size () const { return this->tree::size (); }
-	bool empty () const { return this->tree::empty (); }
-
-private:
-	Comparator m_isLessThan;
 };
 
 # endif // AVL_TREE_H_24
