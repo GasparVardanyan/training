@@ -119,7 +119,7 @@ public:
 	}
 
 public:
-	bool operator== (const binary_tree_node & other) {
+	bool operator== (const binary_tree_node & other) const {
 		stack <const binary_tree_node *> our;
 		our.push (this);
 		stack <const binary_tree_node *> their;

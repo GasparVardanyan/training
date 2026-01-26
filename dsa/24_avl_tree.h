@@ -29,7 +29,11 @@ struct avl_tree__ {
 			return os;
 		}
 
-		operator T () const {
+		operator const T & () const {
+			return value;
+		}
+
+		operator T & () {
 			return value;
 		}
 	};

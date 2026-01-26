@@ -10,28 +10,31 @@
 # include "20_vector.h"
 # include "23_binary_tree_node.h"
 
-// namespace detail {
-// namespace binary_search_tree__ {
-// 	template <typename T, template <typename ...> typename Comparator>
-// 	requires std::strict_weak_order <Comparator <T>, T, T>
-// 	struct EqualTo {
-// 		static constexpr Comparator <T> comparator;
-//
-// 		bool operator () (const T & first, const T & second) {
-// 			return
-// 				   false == comparator (first, second)
-// 				&& false == comparator (second, first)
-// 			;
-// 		}
-// 	};
-//
-// 	template <typename T>
-// 	struct EqualTo <T, std::less> : std::equal_to <T> {};
-//
-// 	template <typename T>
-// 	struct EqualTo <T, std::greater> : std::equal_to <T> {};
-// }
-// }
+namespace detail {
+namespace binary_search_tree__ {
+	template <typename T, typename Comparator>
+	requires std::strict_weak_order <Comparator, T, T>
+	struct EqualTo {
+		static constexpr Comparator comparator;
+
+		bool operator () (const T & first, const T & second) const {
+			std::cout << "X" << std::endl;
+			return
+				   false == comparator (first, second)
+				&& false == comparator (second, first)
+			;
+		}
+	};
+
+	template <typename T, typename U>
+	requires std::convertible_to <T, U>
+	struct EqualTo <T, std::less <U>> : std::equal_to <U> {};
+
+	template <typename T, typename U>
+	requires std::convertible_to <T, U>
+	struct EqualTo <T, std::greater <U>> : std::equal_to <U> {};
+}
+}
 
 // TODO: learn commenting: https://www.doxygen.nl/manual/docblocks.html
 
@@ -42,8 +45,10 @@ template <typename T, typename Comparator = std::less <T>>
 requires std::strict_weak_order <Comparator, T, T>
 class binary_search_tree {
 public:
-	using node = binary_tree_node <T>;
+	using node = binary_tree_node <T, detail::binary_search_tree__::EqualTo <T, Comparator>>;
+	static constexpr Comparator less_than {};
 
+public:
 	binary_search_tree ()
 		: m_root (nullptr)
 		, m_size (0)
@@ -112,7 +117,7 @@ public:
 			node * n = m_root;
 
 			while (true) {
-				if (m_isLessThan (value, n->data)) {
+				if (less_than (value, n->data)) {
 					if (nullptr == n->left) {
 						n->left = new node (std::forward <U> (value));
 						m_size++;
@@ -122,7 +127,7 @@ public:
 						n = n->left;
 					}
 				}
-				else if (m_isLessThan (n->data, value)) {
+				else if (less_than (n->data, value)) {
 					if (nullptr == n->right) {
 						n->right = new node (std::forward <U> (value));
 						m_size++;
@@ -155,8 +160,8 @@ public:
 		node * const * link = & m_root;
 
 		while (nullptr != * link) {
-			bool lt = false == m_isLessThan ((* link)->data, value);
-			bool gt = false == m_isLessThan (value, (* link)->data);
+			bool lt = false == less_than ((* link)->data, value);
+			bool gt = false == less_than (value, (* link)->data);
 
 			if (lt && gt) {
 				break;
@@ -180,8 +185,8 @@ public:
 			node ** link = & m_root;
 
 			while (nullptr != (* link)) {
-				bool lt = false == m_isLessThan ((* link)->data, value);
-				bool gt = false == m_isLessThan (value, (* link)->data);
+				bool lt = false == less_than ((* link)->data, value);
+				bool gt = false == less_than (value, (* link)->data);
 
 				if (lt && gt) {
 					break;
@@ -302,8 +307,6 @@ protected:
 protected:
 	node * m_root;
 	std::size_t m_size;
-
-	Comparator m_isLessThan;
 };
 
 # endif // BINARY_SEARCH_TREE_23
