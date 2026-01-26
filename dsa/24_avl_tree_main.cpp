@@ -13,10 +13,12 @@ int main () {
 	avlt.insert (30);
 	avlt.insert (100);
 	avlt.insert (27);
+	decltype (avlt) avlt2 = avlt;
 	avlt.insert (28);
 
 	// return 0;
 	std::cout << avlt << std::endl;
+	std::cout << (avlt == avlt2) << std::endl;
 	return 0;
 	stack <const decltype (avlt)::node *> path;
 

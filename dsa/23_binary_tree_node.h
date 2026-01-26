@@ -23,6 +23,7 @@ public:
 	binary_tree_node * left;
 	binary_tree_node * right;
 
+public:
 	explicit binary_tree_node (const T & data, binary_tree_node * left = nullptr, binary_tree_node * right = nullptr)
 		: data (data), left (left), right (right)
 	{}
@@ -31,6 +32,7 @@ public:
 		: data (std::move (data)), left (left), right (right)
 	{}
 
+public:
 	binary_tree_node (const binary_tree_node & other)
 		: data (other.data)
 		, left (nullptr)
@@ -167,6 +169,54 @@ public:
 		return equal;
 	}
 
+	friend std::ostream & operator<< (std::ostream & os, const binary_tree_node & node)
+		requires requires (std::ostream os, T t) {
+			{ os << t } -> std::convertible_to <std::ostream &>;
+		}
+	{
+		stack <const binary_tree_node *> path;
+
+		node.preorder_traverse (
+			[&path, &os]
+			(const binary_tree_node * node, const binary_tree_node * parent) -> void {
+				if (nullptr != parent) {
+					while (path.top () != parent) {
+						path.pop ();
+					}
+				}
+				path.push (node);
+
+				std::size_t depth = path.size ();
+
+				for (std::size_t i = 0; i < depth; i++) {
+					os << "  ";
+				}
+
+				if (nullptr != parent) {
+					os << "|- ";
+				}
+
+				os << node->data;
+
+				if (nullptr != parent) {
+					if (nullptr == parent->left || nullptr == parent->right) {
+						if (node == parent->left) {
+							os << " (L)";
+						}
+						else {
+							os << " (R)";
+						}
+					}
+				}
+
+				os << '\n';
+			}
+		);
+
+		return os;
+	}
+
+public:
 	template <typename F>
 	requires requires (F f, binary_tree_node * n) { f (n, n); }
 	void preorder_traverse (F && func) {
@@ -225,53 +275,6 @@ public:
 	requires requires (F f, const binary_tree_node * n) { f (n, n, std::size_t {}); }
 	void level_order_traverse (F && func) const {
 		level_order_traverse (this, func);
-	}
-
-	friend std::ostream & operator<< (std::ostream & os, const binary_tree_node & node)
-		requires requires (std::ostream os, T t) {
-			{ os << t } -> std::convertible_to <std::ostream &>;
-		}
-	{
-		stack <const binary_tree_node *> path;
-
-		node.preorder_traverse (
-			[&path, &os]
-			(const binary_tree_node * node, const binary_tree_node * parent) -> void {
-				if (nullptr != parent) {
-					while (path.top () != parent) {
-						path.pop ();
-					}
-				}
-				path.push (node);
-
-				std::size_t depth = path.size ();
-
-				for (std::size_t i = 0; i < depth; i++) {
-					os << "  ";
-				}
-
-				if (nullptr != parent) {
-					os << "|- ";
-				}
-
-				os << node->data;
-
-				if (nullptr != parent) {
-					if (nullptr == parent->left || nullptr == parent->right) {
-						if (node == parent->left) {
-							os << " (L)";
-						}
-						else {
-							os << " (R)";
-						}
-					}
-				}
-
-				os << '\n';
-			}
-		);
-
-		return os;
 	}
 
 private:

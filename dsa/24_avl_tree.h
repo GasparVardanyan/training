@@ -52,7 +52,7 @@ public:
 	using node_data = detail::node_data;
 
 public: // binary_search_tree interface
-	// using tree::insert;
+	using tree::insert;
 	using tree::remove;
 	using tree::contains;
 	using tree::dump;
@@ -63,7 +63,6 @@ public: // binary_search_tree interface
 	using tree::size;
 	using tree::empty;
 	using tree::at;
-	using tree::insert;
 
 	friend std::ostream & operator<< (std::ostream & os, const avl_tree & tree)
 		requires requires (std::ostream & os, T t) {
@@ -71,6 +70,13 @@ public: // binary_search_tree interface
 		}
 	{
 		return os << static_cast <const avl_tree::tree &> (tree);
+	}
+
+	bool operator== (const avl_tree & other) const {
+		return
+			   static_cast <const avl_tree::tree &> (* this)
+			== static_cast <const avl_tree::tree &> (other)
+		;
 	}
 
 	operator vector <T> () const {

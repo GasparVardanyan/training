@@ -14,7 +14,7 @@ namespace detail {
 namespace binary_search_tree__ {
 	template <typename T, typename Comparator>
 	requires std::strict_weak_order <Comparator, T, T>
-	struct EqualTo {
+	struct equal_to {
 		static constexpr Comparator comparator;
 
 		bool operator () (const T & first, const T & second) const {
@@ -28,11 +28,11 @@ namespace binary_search_tree__ {
 
 	template <typename T, typename U>
 	requires std::convertible_to <T, U>
-	struct EqualTo <T, std::less <U>> : std::equal_to <U> {};
+	struct equal_to <T, std::less <U>> : std::equal_to <U> {};
 
 	template <typename T, typename U>
 	requires std::convertible_to <T, U>
-	struct EqualTo <T, std::greater <U>> : std::equal_to <U> {};
+	struct equal_to <T, std::greater <U>> : std::equal_to <U> {};
 }
 }
 
@@ -45,7 +45,7 @@ template <typename T, typename Comparator = std::less <T>>
 requires std::strict_weak_order <Comparator, T, T>
 class binary_search_tree {
 public:
-	using node = binary_tree_node <T, detail::binary_search_tree__::EqualTo <T, Comparator>>;
+	using node = binary_tree_node <T, detail::binary_search_tree__::equal_to <T, Comparator>>;
 	static constexpr Comparator less_than {};
 
 public:
@@ -103,6 +103,29 @@ public:
 	~binary_search_tree () {
 		delete m_root;
 		m_size = 0;
+	}
+
+public:
+	bool operator== (const binary_search_tree & other) const {
+		if (m_size != other.m_size) {
+			return false;
+		}
+
+		if (nullptr != m_root && nullptr != other.m_root) {
+			return * m_root == * other.m_root;
+		}
+		else {
+			return m_root == other.m_root;
+		}
+	}
+
+	operator vector <T> () const {
+		vector <T> v;
+		v.reserve (m_size);
+
+		dump (std::back_inserter (v));
+
+		return v;
 	}
 
 public:
@@ -236,15 +259,6 @@ public:
 		}
 
 		return os;
-	}
-
-	operator vector <T> () const {
-		vector <T> v;
-		v.reserve (m_size);
-
-		dump (std::back_inserter (v));
-
-		return v;
 	}
 
 	template <typename It>
