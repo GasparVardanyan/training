@@ -17,45 +17,46 @@ int main () {
 
 	// return 0;
 	std::cout << avlt << std::endl;
+	return 0;
 	stack <const decltype (avlt)::node *> path;
 
-	avlt.root ()->preorder_traverse (
-		[&path]
-		(auto * node, auto * parent) -> void {
-			if (nullptr != parent) {
-				while (path.top () != parent) {
-					path.pop ();
-				}
-			}
-			path.push (node);
-
-			std::size_t depth = path.size ();
-
-			for (std::size_t i = 0; i < depth; i++) {
-				std::cout << "  ";
-			}
-
-			if (nullptr != parent) {
-				std::cout << "|- ";
-			}
-
-			std::cout << node->data;
-			std::cout << " (" << node->data.height << ")";
-
-			if (nullptr != parent) {
-				if (nullptr == parent->left || nullptr == parent->right) {
-					if (node == parent->left) {
-						std::cout << " (L)";
-					}
-					else {
-						std::cout << " (R)";
-					}
-				}
-			}
-
-			std::cout << std::endl;
-		}
-	);
+	// avlt.root ()->preorder_traverse (
+	// 	[&path]
+	// 	(auto * node, auto * parent) -> void {
+	// 		if (nullptr != parent) {
+	// 			while (path.top () != parent) {
+	// 				path.pop ();
+	// 			}
+	// 		}
+	// 		path.push (node);
+	//
+	// 		std::size_t depth = path.size ();
+	//
+	// 		for (std::size_t i = 0; i < depth; i++) {
+	// 			std::cout << "  ";
+	// 		}
+	//
+	// 		if (nullptr != parent) {
+	// 			std::cout << "|- ";
+	// 		}
+	//
+	// 		std::cout << node->data;
+	// 		std::cout << " (" << node->data.height << ")";
+	//
+	// 		if (nullptr != parent) {
+	// 			if (nullptr == parent->left || nullptr == parent->right) {
+	// 				if (node == parent->left) {
+	// 					std::cout << " (L)";
+	// 				}
+	// 				else {
+	// 					std::cout << " (R)";
+	// 				}
+	// 			}
+	// 		}
+	//
+	// 		std::cout << std::endl;
+	// 	}
+	// );
 
 
 	return 0;

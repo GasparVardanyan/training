@@ -10,39 +10,39 @@
 # include "20_vector.h"
 # include "23_binary_tree_node.h"
 
-namespace detail {
-namespace binary_search_tree__ {
-	template <typename T, template <typename ...> typename Comparator>
-	requires std::strict_weak_order <Comparator <T>, T, T>
-	struct EqualTo {
-		static constexpr Comparator <T> comparator;
-
-		bool operator () (const T & first, const T & second) {
-			return
-				   false == comparator (first, second)
-				&& false == comparator (second, first)
-			;
-		}
-	};
-
-	template <typename T>
-	struct EqualTo <T, std::less> : std::equal_to <T> {};
-
-	template <typename T>
-	struct EqualTo <T, std::greater> : std::equal_to <T> {};
-}
-}
+// namespace detail {
+// namespace binary_search_tree__ {
+// 	template <typename T, template <typename ...> typename Comparator>
+// 	requires std::strict_weak_order <Comparator <T>, T, T>
+// 	struct EqualTo {
+// 		static constexpr Comparator <T> comparator;
+//
+// 		bool operator () (const T & first, const T & second) {
+// 			return
+// 				   false == comparator (first, second)
+// 				&& false == comparator (second, first)
+// 			;
+// 		}
+// 	};
+//
+// 	template <typename T>
+// 	struct EqualTo <T, std::less> : std::equal_to <T> {};
+//
+// 	template <typename T>
+// 	struct EqualTo <T, std::greater> : std::equal_to <T> {};
+// }
+// }
 
 // TODO: learn commenting: https://www.doxygen.nl/manual/docblocks.html
 
 /// @tparam T
 /// @tparam Comparator STRICTLY-LESS-THAN comparator
 /// @warning Comparator must impose a strict weak ordering
-template <typename T, template <typename ...> typename Comparator = std::less>
-requires std::strict_weak_order <Comparator <T>, T, T>
+template <typename T, typename Comparator = std::less <T>>
+requires std::strict_weak_order <Comparator, T, T>
 class binary_search_tree {
 public:
-	using node = binary_tree_node <T, detail::binary_search_tree__::EqualTo <T, Comparator>>;
+	using node = binary_tree_node <T>;
 
 	binary_search_tree ()
 		: m_root (nullptr)
@@ -303,7 +303,7 @@ protected:
 	node * m_root;
 	std::size_t m_size;
 
-	Comparator <T> m_isLessThan;
+	Comparator m_isLessThan;
 };
 
 # endif // BINARY_SEARCH_TREE_23

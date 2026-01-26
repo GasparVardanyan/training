@@ -64,7 +64,7 @@ TEST_F(BinarySearchTreeTest, SearchAndExtremes) {
 	EXPECT_EQ(bst.findMin()->data, 20);
 	EXPECT_EQ(bst.findMax()->data, 80);
 
-	const decltype (bst)::node * node = bst.at(30);
+	const decltype (bst)::node * node = bst.at (30);
 	ASSERT_NE(node, nullptr);
 	EXPECT_EQ(node->data, 30);
 }
@@ -131,7 +131,7 @@ TEST_F(BinarySearchTreeTest, CopyAndMove) {
 
 TEST_F(BinarySearchTreeTest, CustomComparatorDescending) {
 	// Testing the strict weak ordering requirement with std::greater
-	binary_search_tree<int, std::greater<int>> desc_bst;
+	binary_search_tree<int, std::greater <int>> desc_bst;
 	desc_bst.insert(10);
 	desc_bst.insert(20);
 	desc_bst.insert(5);
