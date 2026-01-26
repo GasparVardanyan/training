@@ -2,6 +2,8 @@
 # define BINARY_TREE_NODE_H_23
 
 # include <concepts>
+# include <functional>
+# include <iostream>
 # include <ostream>
 # include <type_traits>
 # include <utility>
@@ -9,8 +11,13 @@
 # include "22_queue.h"
 # include "22_stack.h"
 
-template <typename T>
+template <typename T, typename EqualTo = std::equal_to <T>>
+requires std::equivalence_relation <EqualTo, T, T>
 struct binary_tree_node {
+public:
+	using equivalence_relation = EqualTo;
+	static constexpr equivalence_relation equal_to {};
+
 public:
 	T data;
 	binary_tree_node * left;
@@ -112,6 +119,54 @@ public:
 	}
 
 public:
+	bool operator== (const binary_tree_node & other) {
+		stack <const binary_tree_node *> our;
+		our.push (this);
+		stack <const binary_tree_node *> their;
+		their.push (& other);
+
+		bool equal = true;
+
+		while (false == our.empty ()) {
+			const binary_tree_node * o = our.top ();
+			our.pop ();
+			const binary_tree_node * t = their.top ();
+			their.pop ();
+
+			if (false == equal_to (o->data, t->data)) {
+				equal = false;
+				break;
+			}
+
+			const binary_tree_node * oL = o->left;
+			const binary_tree_node * oR = o->right;
+			const binary_tree_node * tL = t->left;
+			const binary_tree_node * tR = t->right;
+
+			const bool oLNull = oL == nullptr;
+			const bool oRNull = oR == nullptr;
+			const bool tLNull = tL == nullptr;
+			const bool tRNull = tR == nullptr;
+
+			if (oLNull != tLNull || oRNull != tRNull) {
+				equal = false;
+				break;
+			}
+
+			if (false == oLNull) {
+				our.push (oL);
+				their.push (tL);
+			}
+
+			if (false == oRNull) {
+				our.push (oR);
+				their.push (tR);
+			}
+		}
+
+		return equal;
+	}
+
 	template <typename F>
 	requires requires (F f, binary_tree_node * n) { f (n, n); }
 	void preorder_traverse (F && func) {
@@ -172,7 +227,6 @@ public:
 		level_order_traverse (this, func);
 	}
 
-
 	friend std::ostream & operator<< (std::ostream & os, const binary_tree_node & node)
 		requires requires (std::ostream os, T t) {
 			{ os << t } -> std::convertible_to <std::ostream &>;
@@ -226,15 +280,28 @@ private:
 	&& requires (F f, U u) {
 		f (u, u);
 	}
-	static void preorder_traverse (U node, F && func, U parent = nullptr) {
-		func (node, parent);
+	static void preorder_traverse (U node, F && func) {
+		stack <U> nodes;
+		stack <U> parents;
+		nodes.push (node);
+		parents.push (nullptr);
 
-		if (nullptr != node->left) {
-			preorder_traverse ((U) node->left, func, node);
-		}
+		while (false == nodes.empty ()) {
+			U n = nodes.top ();
+			nodes.pop ();
+			U p = parents.top ();
+			parents.pop ();
 
-		if (nullptr != node->right) {
-			preorder_traverse ((U) node->right, func, node);
+			func (n, p);
+
+			if (nullptr != n->left) {
+				nodes.push (n->left);
+				parents.push (n);
+			}
+			if (nullptr != n->right) {
+				nodes.push (n->right);
+				parents.push (n);
+			}
 		}
 	}
 

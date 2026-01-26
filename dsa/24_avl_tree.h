@@ -12,7 +12,7 @@
 # include "23_binary_search_tree.h"
 
 namespace detail {
-template <typename T, typename C, typename Data = std::monostate>
+template <typename T, template <typename ...> typename C, typename Data = std::monostate>
 struct avl_tree__ {
 	struct node_data : Data {
 		T value;
@@ -34,19 +34,15 @@ struct avl_tree__ {
 		}
 	};
 
-	struct compare_func {
-		const C value_comparator;
-		constexpr bool operator() (const node_data & a, const node_data & b) const {
-			return value_comparator (a.value, b.value);
-		}
-	};
+	template <typename ... TS>
+	using compare_func = C <TS ...>;
 
 	using tree = binary_search_tree <node_data, compare_func>;
 };
 }
 
-template <typename T, typename Comparator = std::less <T>, typename Data = std::monostate>
-requires std::strict_weak_order <Comparator, T, T>
+template <typename T, template <typename...> typename Comparator = std::less, typename Data = std::monostate>
+requires std::strict_weak_order <Comparator <T>, T, T>
 class avl_tree : protected detail::avl_tree__ <T, Comparator, Data>::tree {
 public:
 	using detail = detail::avl_tree__ <T, Comparator>;
@@ -55,7 +51,7 @@ public:
 	using node_data = detail::node_data;
 
 public: // binary_search_tree interface
-	using tree::insert;
+	// using tree::insert;
 	using tree::remove;
 	using tree::contains;
 	using tree::dump;
@@ -72,6 +68,7 @@ public: // binary_search_tree interface
 			{ os << t } -> std::convertible_to <std::ostream &>;
 		}
 	{
+		std::cout << "XX" << std::endl;
 		return os << static_cast <const avl_tree::tree &> (tree);
 	}
 
@@ -83,6 +80,108 @@ public: // binary_search_tree interface
 
 		return v;
 	}
+
+public:
+	template <typename U>
+	requires std::convertible_to <U, T>
+	void insert (U && value) {
+		this->tree::insert (std::forward <U> (value));
+		return;
+		stack <node **> path; // From one before leaf to root
+		node ** link = & this->m_root;
+
+		while (nullptr != * link) {
+			path.push (link);
+
+			bool lt = false == this->m_isLessThan ((* link)->data.value, value);
+			bool gt = false == this->m_isLessThan (value, (* link)->data.value);
+
+			if (true == lt && true == gt) {
+				break;
+			}
+			else if (true == lt) {
+				link = & (* link)->left;
+			}
+			else if (true == gt) {
+				link = & (* link)->right;
+			}
+		}
+
+		* link = new node (node_data (std::forward <U> (value),  0));
+		rebalance (std::move (path));
+	}
+
+private:
+	std::size_t getNodeHeightPlusOne (node * node) {
+		if (nullptr == node) {
+			return 0;
+		}
+		else {
+			return node->data.height + 1;
+		}
+	}
+
+	void calcNodeHeight (node * node) {
+		std::size_t hl = getNodeHeightPlusOne (node->left);
+		std::size_t hr = getNodeHeightPlusOne (node->right);
+		std::size_t mh = hl > hr ? hl : hr;
+
+		setNodeHeight (node, mh + 1);
+	}
+
+	void setNodeHeight (node * node, std::size_t heightPlusOne) {
+		node->data.height = heightPlusOne - 1;
+	}
+
+	void rotateRight (node ** link) {
+		node * currBefore = * link;
+		node * leftBefore = currBefore->left;
+		node * leftRightBefore = leftBefore->right;
+
+		* link = leftBefore;
+		leftBefore->right = currBefore;
+		currBefore->left = leftRightBefore;
+
+		calcNodeHeight (currBefore);
+		calcNodeHeight (leftBefore);
+		// height (leftRightBefore) = const
+	}
+
+	void rotateLeft (node ** link) {
+		node * currBefore = * link;
+		node * rightBefore = currBefore->right;
+		node * rightLeftBefore = rightBefore->left;
+
+		* link = rightBefore;
+		rightBefore->left = currBefore;
+		currBefore->right = rightLeftBefore;
+
+
+		calcNodeHeight (currBefore);
+		calcNodeHeight (rightBefore);
+		// height (rightLeftBefore) = const
+	}
+
+	/// rebalance the tree
+	/// @param path stack of links from leaf to root
+	void rebalance (stack <node **> && path) {
+		while (false == path.empty ()) {
+			node ** link = path.top ();
+			path.pop ();
+
+			std::size_t lh = getNodeHeightPlusOne ((* link)->left);
+			std::size_t rh = getNodeHeightPlusOne ((* link)->right);
+
+			if (lh > rh && lh - rh > 1) {
+
+			}
+			else if (rh > lh && rh - lh > 1) {
+
+			}
+		}
+	}
+
+public:
 };
 
 # endif // AVL_TREE_H_24
