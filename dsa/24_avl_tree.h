@@ -52,10 +52,11 @@ public:
 	using node_data = detail::node_data;
 
 public: // binary_search_tree interface
-	using tree::insert;
+	// using tree::insert;
 	using tree::remove;
 	using tree::contains;
-	using tree::dump;
+	using tree::dumpInvariant;
+	using tree::dumpSorted;
 	using tree::findMin;
 	using tree::findMax;
 	using tree::makeEmpty;
@@ -63,14 +64,6 @@ public: // binary_search_tree interface
 	using tree::size;
 	using tree::empty;
 	using tree::at;
-
-	friend std::ostream & operator<< (std::ostream & os, const avl_tree & tree)
-		requires requires (std::ostream & os, T t) {
-			{ os << t } -> std::convertible_to <std::ostream &>;
-		}
-	{
-		return os << static_cast <const avl_tree::tree &> (tree);
-	}
 
 	bool operator== (const avl_tree & other) const {
 		return
@@ -83,9 +76,120 @@ public: // binary_search_tree interface
 		vector <T> v;
 		v.reserve (size ());
 
-		dump (std::back_inserter (v));
+		dumpSorted (std::back_inserter (v));
 
 		return v;
+	}
+
+	friend std::ostream & operator<< (std::ostream & os, const avl_tree & tree)
+		requires requires (std::ostream & os, T t) {
+			{ os << t } -> std::convertible_to <std::ostream &>;
+		}
+	{
+		return os << static_cast <const avl_tree::tree &> (tree);
+	}
+
+public:
+	template <typename U>
+	requires std::convertible_to <U, T>
+	void insert (U && value) {
+		stack <node **> path; // From one before leaf to root
+		node ** link = & this->m_root;
+
+		while (nullptr != * link) {
+			path.push (link);
+
+			bool lt = this->less_than (value, (* link)->data.value);
+			bool gt = this->less_than ((* link)->data.value, value);
+
+			if (false == lt && false == gt) {
+				link = nullptr;
+				break;
+			}
+			else if (true == lt) {
+				link = & (* link)->left;
+			}
+			else if (true == gt) {
+				link = & (* link)->right;
+			}
+		}
+
+		if (nullptr != link) {
+			* link = new node (node_data (std::forward <U> (value),  0));
+			this->m_size++;
+			// rebalance (std::move (path));
+		}
+	}
+
+private:
+	/// rebalance the tree
+	/// @param path stack of links from leaf to root
+	void rebalance (stack <node **> && path) {
+		(void) path;
+		// while (false == path.empty ()) {
+		// 	node ** link = path.top ();
+		// 	path.pop ();
+		//
+		// 	std::size_t lh = getNodeHeightPlusOne ((* link)->left);
+		// 	std::size_t rh = getNodeHeightPlusOne ((* link)->right);
+		//
+		// 	if (lh > rh && lh - rh > 1) {
+		//
+		// 	}
+		// 	else if (rh > lh && rh - lh > 1) {
+		//
+		// 	}
+		// }
+	}
+
+	std::size_t getNodeHeightPlusOne (node * node) {
+		if (nullptr == node) {
+			return 0;
+		}
+		else {
+			return node->data.height + 1;
+		}
+	}
+
+	void calcNodeHeight (node * node) {
+		std::size_t hl = getNodeHeightPlusOne (node->left);
+		std::size_t hr = getNodeHeightPlusOne (node->right);
+		std::size_t mh = hl > hr ? hl : hr;
+
+		setNodeHeight (node, mh + 1);
+	}
+
+	void setNodeHeight (node * node, std::size_t heightPlusOne) {
+		node->data.height = heightPlusOne - 1;
+	}
+
+	void rotateRight (node ** link) {
+		node * currBefore = * link;
+		node * leftBefore = currBefore->left;
+		node * leftRightBefore = leftBefore->right;
+
+		* link = leftBefore;
+		leftBefore->right = currBefore;
+		currBefore->left = leftRightBefore;
+
+		calcNodeHeight (currBefore);
+		calcNodeHeight (leftBefore);
+		// height (leftRightBefore) = const
+	}
+
+	void rotateLeft (node ** link) {
+		node * currBefore = * link;
+		node * rightBefore = currBefore->right;
+		node * rightLeftBefore = rightBefore->left;
+
+		* link = rightBefore;
+		rightBefore->left = currBefore;
+		currBefore->right = rightLeftBefore;
+
+
+		calcNodeHeight (currBefore);
+		calcNodeHeight (rightBefore);
+		// height (rightLeftBefore) = const
 	}
 };
 

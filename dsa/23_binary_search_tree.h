@@ -15,10 +15,9 @@ namespace binary_search_tree__ {
 	template <typename T, typename Comparator>
 	requires std::strict_weak_order <Comparator, T, T>
 	struct equal_to {
-		static constexpr Comparator comparator;
+		static constexpr Comparator comparator {};
 
 		bool operator () (const T & first, const T & second) const {
-			std::cout << "X" << std::endl;
 			return
 				   false == comparator (first, second)
 				&& false == comparator (second, first)
@@ -123,9 +122,21 @@ public:
 		vector <T> v;
 		v.reserve (m_size);
 
-		dump (std::back_inserter (v));
+		dumpSorted (std::back_inserter (v));
 
 		return v;
+	}
+
+	friend std::ostream & operator<< (std::ostream & os, const binary_search_tree & tree)
+		requires requires (std::ostream & os, T t) {
+			{ os << t } -> std::convertible_to <std::ostream &>;
+		}
+	{
+		if (nullptr != tree.m_root) {
+			os << * tree.m_root;
+		}
+
+		return os;
 	}
 
 public:
@@ -140,7 +151,7 @@ public:
 			node * n = m_root;
 
 			while (true) {
-				if (less_than (value, n->data)) {
+				if (true == less_than (value, n->data)) {
 					if (nullptr == n->left) {
 						n->left = new node (std::forward <U> (value));
 						m_size++;
@@ -150,7 +161,7 @@ public:
 						n = n->left;
 					}
 				}
-				else if (less_than (n->data, value)) {
+				else if (true == less_than (n->data, value)) {
 					if (nullptr == n->right) {
 						n->right = new node (std::forward <U> (value));
 						m_size++;
@@ -169,9 +180,9 @@ public:
 	}
 
 	bool contains (const T & value) const {
-		const node * link = at (value);
+		const node * n = at (value);
 
-		if (nullptr != link) {
+		if (nullptr != n) {
 			return true;
 		}
 		else {
@@ -183,10 +194,10 @@ public:
 		node * const * link = & m_root;
 
 		while (nullptr != * link) {
-			bool lt = false == less_than ((* link)->data, value);
-			bool gt = false == less_than (value, (* link)->data);
+			bool lt = less_than (value, (* link)->data);
+			bool gt = less_than ((* link)->data, value);
 
-			if (lt && gt) {
+			if (false == lt && false == gt) {
 				break;
 			}
 			else if (lt) {
@@ -208,10 +219,10 @@ public:
 			node ** link = & m_root;
 
 			while (nullptr != (* link)) {
-				bool lt = false == less_than ((* link)->data, value);
-				bool gt = false == less_than (value, (* link)->data);
+				bool lt = less_than (value, (* link)->data);
+				bool gt = less_than ((* link)->data, value);
 
-				if (lt && gt) {
+				if (false == lt && false == gt) {
 					break;
 				}
 				else if (lt) {
@@ -249,23 +260,23 @@ public:
 		}
 	}
 
-	friend std::ostream & operator<< (std::ostream & os, const binary_search_tree & tree)
-		requires requires (std::ostream & os, T t) {
-			{ os << t } -> std::convertible_to <std::ostream &>;
+	template <typename It>
+	requires std::output_iterator <It, T>
+	void dumpSorted (It it) const {
+		if (nullptr != m_root) {
+			m_root->inorder_traverse (
+				[&it] (const node * n, const node *) -> void {
+					*it++ = n->data;
+				}
+			);
 		}
-	{
-		if (nullptr != tree.m_root) {
-			os << * tree.m_root;
-		}
-
-		return os;
 	}
 
 	template <typename It>
 	requires std::output_iterator <It, T>
-	void dump (It it) const {
+	void dumpInvariant (It it) const {
 		if (nullptr != m_root) {
-			m_root->inorder_traverse (
+			m_root->level_order_traverse (
 				[&it] (const node * n, const node *) -> void {
 					*it++ = n->data;
 				}
@@ -313,9 +324,7 @@ public:
 
 protected:
 	node * _at (const T & value) {
-		return const_cast <node *> (
-			static_cast <binary_search_tree *> (this)->at (value)
-		);
+		return const_cast <node *> (at (value));
 	}
 
 protected:

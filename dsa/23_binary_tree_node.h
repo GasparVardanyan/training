@@ -297,12 +297,12 @@ private:
 
 			func (n, p);
 
-			if (nullptr != n->left) {
-				nodes.push (n->left);
-				parents.push (n);
-			}
 			if (nullptr != n->right) {
 				nodes.push (n->right);
+				parents.push (n);
+			}
+			if (nullptr != n->left) {
+				nodes.push (n->left);
 				parents.push (n);
 			}
 		}
@@ -315,13 +315,13 @@ private:
 	}
 	static void inorder_traverse (U node, F && func, U parent = nullptr) {
 		if (nullptr != node->left) {
-			inorder_traverse ((U) node->left, func, node);
+			inorder_traverse (node->left, func, node);
 		}
 
 		func (node, parent);
 
 		if (nullptr != node->right) {
-			inorder_traverse ((U) node->right, func, node);
+			inorder_traverse (node->right, func, node);
 		}
 	}
 
@@ -332,11 +332,11 @@ private:
 	}
 	static void postorder_traverse (U node, F && func, U parent = nullptr) {
 		if (nullptr != node->left) {
-			postorder_traverse ((U) node->left, func, node);
+			postorder_traverse (node->left, func, node);
 		}
 
 		if (nullptr != node->right) {
-			postorder_traverse ((U) node->right, func, node);
+			postorder_traverse (node->right, func, node);
 		}
 
 		func (node, parent);

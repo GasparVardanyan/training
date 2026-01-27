@@ -138,7 +138,7 @@ TEST_F(BinarySearchTreeTest, CustomComparatorDescending) {
 
 	// Inorder should now be descending
 	std::vector<int> v;
-	desc_bst.dump(std::back_inserter(v));
+	desc_bst.dumpSorted(std::back_inserter(v));
 
 	std::vector<int> expected = {20, 10, 5};
 	EXPECT_EQ(v, expected);
