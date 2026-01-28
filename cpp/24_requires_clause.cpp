@@ -154,7 +154,7 @@ void fun2 (T) {
 
 namespace custom_trait {
 template <typename T>
-constexpr bool vt_valid_and_integral = std::is_integral_v <typename T::value_type>;
+inline constexpr bool vt_valid_and_integral = std::is_integral_v <typename T::value_type>;
 
 template <typename T>
 // T::value_type is well formed and is integral
@@ -184,6 +184,73 @@ void fun2 (T) {
 namespace custom_concept {
 template <typename T>
 concept vt_valid_and_integral = std::is_integral_v <typename T::value_type>;
+
+template <typename T>
+// T::value_type is well formed and is integral
+requires vt_valid_and_integral <T>
+void fun1 (T) {
+	std::cout << "fun1 - 1" << std::endl;
+}
+
+template <typename T>
+void fun1 (T) {
+	std::cout << "fun1 - 2" << std::endl;
+}
+
+template <typename T>
+// T::value_type IS NOT well formed or IS NOT integral
+requires (!vt_valid_and_integral <T>)
+void fun2 (T) {
+	std::cout << "fun2 - 1" << std::endl;
+}
+
+template <typename T>
+void fun2 (T) {
+	std::cout << "fun2 - 2" << std::endl;
+}
+}
+
+namespace custom_trait2 {
+template <typename T, typename = void>
+inline constexpr bool vt_valid_and_integral = false;
+
+template <typename T>
+inline constexpr bool vt_valid_and_integral <T, std::void_t <typename T::value_type>>
+	= std::is_integral_v <typename T::value_type>
+;
+
+template <typename T>
+// T::value_type is well formed and is integral
+requires vt_valid_and_integral <T>
+void fun1 (T) {
+	std::cout << "fun1 - 1" << std::endl;
+}
+
+template <typename T>
+void fun1 (T) {
+	std::cout << "fun1 - 2" << std::endl;
+}
+
+template <typename T>
+// T::value_type IS NOT well formed or IS NOT integral
+requires (!vt_valid_and_integral <T>)
+void fun2 (T) {
+	std::cout << "fun2 - 1" << std::endl;
+}
+
+template <typename T>
+void fun2 (T) {
+	std::cout << "fun2 - 2" << std::endl;
+}
+}
+namespace custom_trait3 {
+template <typename T, typename = void>
+inline constexpr bool vt_valid_and_integral = false;
+
+template <typename T>
+inline constexpr bool vt_valid_and_integral <T, typename T::value_type>
+	= std::is_integral_v <typename T::value_type>
+;
 
 template <typename T>
 // T::value_type is well formed and is integral
@@ -443,6 +510,94 @@ void fun3 (T) {
 }
 }
 
+namespace requires_clause::concept_vs_direct_requirement {
+template <typename T>
+// well formed and integral
+concept MyIntegral = std::is_integral_v <typename T::value_type>;
+
+template <typename T>
+// concept returns false = !(well formed and integral) = not well formed or not integral
+requires (false == MyIntegral <T>)
+void fun1 (T) {
+	std::cout << "fun1 - 1" << std::endl;
+}
+
+template <typename T>
+void fun1 (T) {
+	std::cout << "fun1 - 1" << std::endl;
+}
+
+template <typename T>
+// well formed and integral
+requires (false == std::is_integral_v <typename T::value_type>)
+void fun2 (T) {
+	std::cout << "fun2 - 1" << std::endl;
+}
+
+template <typename T>
+void fun2 (T) {
+	std::cout << "fun2 - 2" << std::endl;
+}
+
+template <typename T>
+// well formed and not integral
+concept MyNotIntegral = (false == std::is_integral_v <typename T::value_type>);
+
+template <typename T>
+// well formed and integral
+requires MyNotIntegral <T>
+void fun3 (T) {
+	std::cout << "fun3 - 1" << std::endl;
+}
+
+template <typename T>
+void fun3 (T) {
+	std::cout << "fun3 - 2" << std::endl;
+}
+
+template <typename T, typename = void>
+inline constexpr bool MyIntegralTrait = false;
+
+// well formed and integral
+template <typename T>
+inline constexpr bool MyIntegralTrait <T, std::void_t <typename T::value_type>>
+	= std::is_integral_v <typename T::value_type>
+;
+
+template <typename T>
+// trait returns false = !(well formed and integral) = not well formed or not integral
+requires (false == MyIntegralTrait <T>)
+void fun4 (T) {
+	std::cout << "fun4 - 1" << std::endl;
+}
+
+template <typename T>
+void fun4 (T) {
+	std::cout << "fun4 - 2" << std::endl;
+}
+
+template <typename T, typename = void>
+inline constexpr bool MyNotIntegralTrait = false;
+
+template <typename T>
+inline constexpr bool MyNotIntegralTrait <T, std::void_t <typename T::value_type>>
+	= false == std::is_integral_v <typename T::value_type>
+;
+
+template <typename T>
+// well formed and not integral
+requires MyNotIntegralTrait <T>
+void fun5 (T) {
+	std::cout << "fun5 - 1" << std::endl;
+}
+
+template <typename T>
+void fun5 (T) {
+	std::cout << "fun5 - 2" << std::endl;
+}
+
+}
+
 
 
 int main () {
@@ -517,6 +672,37 @@ int main () {
 
 		std::cout << "====================" << std::endl;
 
+		// NOTE: T::value_type specialization here isn't in the "immediate context", but template partial specialization picks the right template
+		custom_trait2::fun1 (1); // T::value_type isn't well formed
+		custom_trait2::fun1 (std::vector <int> {}); // T::value_type is well formed and is integral
+		custom_trait2::fun1 (std::vector <std::string> {}); // T::value_type is well formed but isn't integral
+
+		// NOTE: T::value_type specialization here isn't in the "immediate context", but template partial specialization picks the right template
+		custom_trait2::fun2 (1); // T::value_type isn't well formed
+		custom_trait2::fun2 (std::vector <int> {}); // T::value_type is well formed and is integral
+		custom_trait2::fun2 (std::vector <std::string> {}); // T::value_type is well formed but isn't integral
+
+		std::cout << "====================" << std::endl;
+
+		// NOTE: T::value_type specialization here isn't in the "immediate context", and even T having value_type
+		// doesn't make the partial specialization more specialized for T than the primary: when T::value_type is
+		// well formed and is integral, it's not void and doesn't match the primary template where the second template
+		// parameter is defaulted to void, and when T::value_type is void, the partial specialization matches but
+		// since void isn't integral, result is false, so custom_trait3::fun1 never satisfies the requirement.
+		// This will match: custom_trait3::vt_valid_and_integral <std::vector <int>, int>, but fun1 uses the
+		// second parameter's default type void and since partial specialziation uses std::vector <int>::value_type which
+		// is int, not void, the partial specialization doesn't match.
+		// In case of custom_trait2::fun1, std::void_t <std::vector <int>, int>> = void, so the partial specialization
+		// is matched and since not all types have value_type type, this is more specialized than the primary
+		custom_trait3::fun1 (1); // T::value_type isn't well formed
+		custom_trait3::fun1 (std::vector <int> {}); // T::value_type is well formed and is integral
+		custom_trait3::fun1 (std::vector <std::string> {}); // T::value_type is well formed but isn't integral
+		custom_trait3::fun2 (1); // T::value_type isn't well formed
+		custom_trait3::fun2 (std::vector <int> {}); // T::value_type is well formed and is integral
+		custom_trait3::fun2 (std::vector <std::string> {}); // T::value_type is well formed but isn't integral
+
+		std::cout << "====================" << std::endl;
+
 		fun2 (1);
 		// since int::value_type isn't well formed, first template matches
 		custom_concept::fun2 (1);
@@ -579,5 +765,16 @@ int main () {
 		fun3 (1u);
 		fun3 (1);
 		fun3 (1.1);
+	}
+
+	{
+		std::cout << "requires_clause::concept_vs_direct_requirement" << std::endl;
+		using namespace requires_clause::concept_vs_direct_requirement;
+
+		fun1 (1); // 1
+		fun2 (1); // 2
+		fun3 (1); // 2
+		fun4 (1); // 1
+		fun5 (1); // 2
 	}
 }
