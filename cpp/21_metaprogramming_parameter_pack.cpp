@@ -1,7 +1,6 @@
-# include <algorithm>
+# include <functional>
 # include <iostream>
-# include <iterator>
-# include <sstream>
+# include <type_traits>
 
 
 
@@ -107,6 +106,39 @@ static void printSum (TS ... vs) {
 	std::cout << s << std::endl;
 }
 
+
+namespace MultiplePackExpansion {
+template <int ... X, typename ... TS>
+int dotProd (TS ... x) {
+	return ((X * x) + ...);
+}
+
+template <typename ... TS>
+requires (std::is_integral_v <TS> && ...)
+int sum (TS ... vs) {
+	return 0 + (vs + ...);
+}
+
+template <typename I, typename ... TS>
+requires std::invocable <I, TS ...>
+decltype (auto) MyInvoke (I && func, TS && ... args)
+	noexcept (std::is_nothrow_invocable_v <I, TS...>)
+{
+	return std::forward <I> (func) (std::forward <TS> (args) ...);
+}
+
+int x = 10;
+decltype (auto) test () {
+	// int x = 10;
+	return (x);
+}
+
+decltype (auto) test1 () {
+	return test ();
+}
+}
+
+
 int main () {
 	print1 <int, 1, 2, 3, 4> ();
 	print2 (1, 2, 3, 4, "hello");
@@ -119,4 +151,22 @@ int main () {
 	print9 <int, 1, 2, 3, 4> ();
 	print10 (1, 2, 3, 4, "hello");
 	printSum (1, 2, 3, 4, 5);
+
+	{
+		std::cout << "====================" << std::endl;
+
+		using namespace MultiplePackExpansion;
+		std::cout << dotProd <1, 10, 100> (2, 4, 6) << std::endl;
+
+		std::cout << std::invoke (sum <int, int, int>, 2, 4, 6) << std::endl;
+		std::cout << MyInvoke (sum <int, int, int>, 2, 4, 6) << std::endl;
+
+		// std::cout << std::invoke (dotProd <1, 10, 100, int, int, int>, 2, 4, 6) << std::endl;
+
+		std::cout << "====================" << std::endl;
+
+		std::cout << test () << std::endl;
+		test1 () = 20;
+		std::cout << test () << std::endl;
+	}
 }

@@ -67,8 +67,8 @@ public: // binary_search_tree interface
 
 	bool operator== (const avl_tree & other) const {
 		return
-			   static_cast <const avl_tree::tree &> (* this)
-			== static_cast <const avl_tree::tree &> (other)
+			   static_cast <const tree &> (* this)
+			== static_cast <const tree &> (other)
 		;
 	}
 
@@ -185,7 +185,6 @@ private:
 		* link = rightBefore;
 		rightBefore->left = currBefore;
 		currBefore->right = rightLeftBefore;
-
 
 		calcNodeHeight (currBefore);
 		calcNodeHeight (rightBefore);

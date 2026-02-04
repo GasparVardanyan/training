@@ -42,3 +42,5 @@ add_executable (
 )
 
 add_executable (24_requires_clause 24_requires_clause.cpp)
+add_executable (25_ordering_by_constraints 25_ordering_by_constraints.cpp)
+add_executable (26_concepts_vs_type_traits 26_concepts_vs_type_traits.cpp)

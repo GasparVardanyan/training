@@ -218,71 +218,70 @@ public:
 
 public:
 	template <typename F>
-	requires requires (F f, binary_tree_node * n) { f (n, n); }
+	requires std::invocable <F &, binary_tree_node *, binary_tree_node *>
 	void preorder_traverse (F && func) {
 		preorder_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, binary_tree_node * n) { f (n, n); }
+	requires std::invocable <F &, binary_tree_node *, binary_tree_node *>
 	void inorder_traverse (F && func) {
 		inorder_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, binary_tree_node * n) { f (n, n); }
+	requires std::invocable <F &, binary_tree_node *, binary_tree_node *>
 	void postorder_traverse (F && func) {
 		postorder_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, binary_tree_node * n) { f (n, n); }
+	requires std::invocable <F &, binary_tree_node *, binary_tree_node *>
 	void level_order_traverse (F && func) {
 		level_order_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, binary_tree_node * n) { f (n, n, std::size_t {}); }
+	requires std::invocable <F &, binary_tree_node *, binary_tree_node *, std::size_t>
 	void level_order_traverse (F && func) {
 		level_order_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, const binary_tree_node * n) { f (n, n); }
+	requires std::invocable <F &, const binary_tree_node *, const binary_tree_node *>
 	void preorder_traverse (F && func) const {
 		preorder_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, const binary_tree_node * n) { f (n, n); }
+	requires std::invocable <F &, const binary_tree_node *, const binary_tree_node *>
 	void inorder_traverse (F && func) const {
 		inorder_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, const binary_tree_node * n) { f (n, n); }
+	requires std::invocable <F &, const binary_tree_node *, const binary_tree_node *>
 	void postorder_traverse (F && func) const {
 		postorder_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, const binary_tree_node * n) { f (n, n); }
+	requires std::invocable <F &, const binary_tree_node *, const binary_tree_node *>
 	void level_order_traverse (F && func) const {
 		level_order_traverse (this, func);
 	}
 
 	template <typename F>
-	requires requires (F f, const binary_tree_node * n) { f (n, n, std::size_t {}); }
+	requires std::invocable <F &, const binary_tree_node *, const binary_tree_node *, std::size_t>
 	void level_order_traverse (F && func) const {
 		level_order_traverse (this, func);
 	}
 
 private:
 	template <typename U, typename F>
-	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
-	&& requires (F f, U u) {
-		f (u, u);
-	}
+	requires
+		   std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
+		&& std::invocable <F &, U, U>
 	static void preorder_traverse (U node, F && func) {
 		stack <U> nodes;
 		stack <U> parents;
@@ -309,44 +308,41 @@ private:
 	}
 
 	template <typename U, typename F>
-	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
-	&& requires (F f, U u) {
-		f (u, u);
-	}
+	requires
+		   std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
+		&& std::invocable <F &, U, U>
 	static void inorder_traverse (U node, F && func, U parent = nullptr) {
 		if (nullptr != node->left) {
-			inorder_traverse (node->left, func, node);
+			inorder_traverse (static_cast <U> (node->left), func, node);
 		}
 
 		func (node, parent);
 
 		if (nullptr != node->right) {
-			inorder_traverse (node->right, func, node);
+			inorder_traverse (static_cast <U> (node->right), func, node);
 		}
 	}
 
 	template <typename U, typename F>
-	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
-	&& requires (F f, U u) {
-		f (u, u);
-	}
+	requires
+		   std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
+		&& std::invocable <F &, U, U>
 	static void postorder_traverse (U node, F && func, U parent = nullptr) {
 		if (nullptr != node->left) {
-			postorder_traverse (node->left, func, node);
+			postorder_traverse (static_cast <U> (node->left), func, node);
 		}
 
 		if (nullptr != node->right) {
-			postorder_traverse (node->right, func, node);
+			postorder_traverse (static_cast <U> (node->right), func, node);
 		}
 
 		func (node, parent);
 	}
 
 	template <typename U, typename F>
-	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
-	&& requires (F f, U u) {
-		f (u, u);
-	}
+	requires
+		   std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
+		&& std::invocable <F &, U, U>
 	static void level_order_traverse (U node, F && func, U parent = nullptr) {
 		queue <U> nodes;
 		nodes.push (node);
@@ -374,10 +370,9 @@ private:
 	}
 
 	template <typename U, typename F>
-	   requires std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
-	&& requires (F f, U u) {
-		f (u, u, std::size_t {});
-	}
+	requires
+		   std::same_as <std::remove_cv_t <std::remove_pointer_t <U>>, binary_tree_node>
+		&& std::invocable <F &, U, U, std::size_t>
 	static void level_order_traverse (U node, F && func, U parent = nullptr) {
 		queue <U> nodes, nodes_next;
 		nodes.push (node);
@@ -406,8 +401,8 @@ private:
 				func (n, p, level);
 			}
 			if (false == nodes_next.empty ()) {
-				nodes = nodes_next;
-				parents = parents_next;
+				nodes = std::move (nodes_next);
+				parents = std::move (parents_next);
 				nodes_next = {};
 				parents_next = {};
 				level++;

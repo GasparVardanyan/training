@@ -434,6 +434,44 @@ template <typename ... TS>
 void fun11 (TS ...) {
 	std::cout << "fun11 - 2" << std::endl;
 }
+
+template <typename T, typename U>
+requires std::integral <T>
+void fun12 (T, U) {
+	std::cout << "fun12 - 1" << std::endl;
+}
+
+template <typename T, typename U>
+requires std::integral <T> && std::same_as <T, U>
+void fun12 (T, U) {
+	std::cout << "fun12 - 2" << std::endl;
+}
+
+template <typename T, typename U>
+requires std::integral <T>
+void fun13 (T, U) {
+	std::cout << "fun13 - 1" << std::endl;
+}
+
+template <typename T, typename U>
+// NOTE: casting a constraint to bool looses concept-ids
+requires (bool (std::integral <T> && std::same_as <T, U>))
+void fun13 (T, U) {
+	std::cout << "fun13 - 2" << std::endl;
+}
+
+template <typename T, typename U>
+requires std::integral <T>
+void fun14 (T, U) {
+	std::cout << "fun14 - 1" << std::endl;
+}
+
+template <typename T, typename U>
+// NOTE: casting a constraint to bool looses concept-ids
+requires (bool (std::integral <T>) && bool (std::same_as <T, U>))
+void fun14 (T, U) {
+	std::cout << "fun14 - 2" << std::endl;
+}
 }
 
 
@@ -748,6 +786,13 @@ int main () {
 		fun10 (std::vector <int> {}, 1); // 2
 		fun11 (std::vector <int> {}, std::vector <float> {}); // 1
 		fun11 (std::vector <int> {}, 1); // 1
+
+		fun12 (1, 1L);
+		fun12 (1, 1);
+		fun13 (1, 1L);
+		// fun13 (1, 1); // ambiguous
+		fun14 (1, 1L);
+		// fun14 (1, 1); // ambiguous
 	}
 
 	{
