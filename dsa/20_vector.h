@@ -61,7 +61,7 @@ public:
 			>
 		>
 	> vector (input_it begin, input_it end) {
-		if (
+		if constexpr (
 			std::is_same_v <
 				typename std::iterator_traits <input_it>::iterator_category,
 				std::input_iterator_tag

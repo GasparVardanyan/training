@@ -75,7 +75,10 @@ private:
 		template <
 			typename NPT2,
 			typename = std::enable_if_t <
-				std::is_same_v <std::remove_const_t <std::remove_pointer_t <NPT>>, std::remove_const_t <std::remove_pointer_t <NPT2>>>
+				true == std::is_same_v <
+					std::remove_const_t <std::remove_pointer_t <NPT>>,
+					std::remove_const_t <std::remove_pointer_t <NPT2>>
+				>
 			>
 		>
 		bool operator== (const iterator_base <NPT2> & other) const {
