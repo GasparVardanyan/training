@@ -64,7 +64,7 @@ int sum (TS ... vs) {
 template <typename I, typename ... TS>
 requires std::invocable <I, TS ...>
 decltype (auto) MyInvoke (I && func, TS && ... args)
-	noexcept (std::is_nothrow_invocable_v <I, TS...>)
+	noexcept (std::is_nothrow_invocable_v <I, TS ...>)
 {
 	return std::forward <I> (func) (std::forward <TS> (args) ...);
 }

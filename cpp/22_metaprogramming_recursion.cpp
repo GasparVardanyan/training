@@ -1,3 +1,4 @@
+# include <functional>
 # include <iomanip>
 # include <iostream>
 # include <type_traits>
@@ -43,35 +44,96 @@ struct fib2 <0> {
 
 
 
-static constexpr unsigned factorial (unsigned n) {
-	if (0 == n) {
-		return 1;
+template <unsigned N>
+struct factorial1 {
+	constexpr static unsigned value = [] () -> unsigned {
+		unsigned r = 1;
+
+		for (unsigned i = 2; i <= N; i++) {
+			r *= i;
+		}
+
+		return r;
+	} ();
+};
+
+
+
+template <typename F>
+struct y_combinator {
+	using func_t = std::decay_t <F>;
+
+	template <typename G>
+	requires std::constructible_from <func_t, G>
+	constexpr explicit y_combinator (G && f)
+		: func_ (std::forward <G> (f)) {}
+
+	template <typename ... Args>
+	requires std::invocable <func_t, const std::type_identity_t <y_combinator> &, Args ...>
+	constexpr auto operator () (Args && ... args) const &
+		noexcept (std::is_nothrow_invocable_v <func_t, const y_combinator &, Args ...>)
+		-> std::invoke_result_t <func_t, const y_combinator &, Args ...>
+	{
+		return std::invoke (func_, * this, std::forward <Args> (args) ...);
 	}
-	else {
-		return n * factorial (n - 1);
+
+	template <typename ... Args>
+	requires std::invocable <func_t, std::type_identity_t <y_combinator> &, Args ...>
+	constexpr auto operator () (Args && ... args) &
+		noexcept (std::is_nothrow_invocable_v <func_t, y_combinator &, Args ...>)
+		-> std::invoke_result_t <func_t, y_combinator &, Args ...>
+	{
+		return std::invoke (func_, * this, std::forward <Args> (args) ...);
 	}
-}
+
+	template <typename ... Args>
+	requires std::invocable <func_t, std::type_identity_t <y_combinator> &&, Args ...>
+	constexpr auto operator () (Args && ... args) &&
+		noexcept (std::is_nothrow_invocable_v <func_t, y_combinator &&, Args ...>)
+		-> std::invoke_result_t <func_t, y_combinator &&, Args ...>
+	{
+		return std::invoke (func_, std::move (* this), std::forward <Args> (args) ...);
+	}
+
+private:
+	func_t func_;
+};
+
+template <typename F>
+y_combinator (F &&) -> y_combinator <std::decay_t <F>>;
+
+template <unsigned N>
+struct factorial2 {
+	constexpr static unsigned value = y_combinator ([] (auto && self, unsigned n) -> unsigned {
+		if (1 >= n) {
+			return 1;
+		}
+		else {
+			return n * self (n - 1);
+		}
+	}) (N);
+};
 
 
 
 template <unsigned N>
-struct factorial1 {
-	static constexpr unsigned value = N * factorial1 <N - 1>::value;
+struct factorial3 {
+	static constexpr unsigned value = N * factorial3 <N - 1>::value;
 };
 
 template <>
-struct factorial1 <0> {
+struct factorial3 <0> {
 	static constexpr unsigned value = 1;
 };
 
 
 
 template <unsigned N>
-struct factorial2 : std::integral_constant <unsigned, N * factorial2 <N - 1>::value>
+struct factorial4 : std::integral_constant <unsigned, N * factorial4 <N - 1>::value>
 {};
 
 template <>
-struct factorial2 <0> : std::integral_constant <unsigned, 1> {};
+struct factorial4 <0> : std::integral_constant <unsigned, 1> {};
 
 
 
@@ -87,18 +149,18 @@ struct MyIntegralConstant {
 };
 
 template <unsigned N>
-struct factorial3 : MyIntegralConstant <unsigned, N * factorial3 <N - 1>::value> {};
+struct factorial5 : MyIntegralConstant <unsigned, N * factorial5 <N - 1>::value> {};
 
 template <>
-struct factorial3 <0> : MyIntegralConstant <unsigned, 1> {};
+struct factorial5 <0> : MyIntegralConstant <unsigned, 1> {};
 
 
 
 template <std::size_t N, MyUnsignedType T = unsigned, typename TS = std::make_integer_sequence <T, N>>
-struct factorial4;
+struct factorial6;
 
 template <std::size_t N, MyUnsignedType T, T ... TS>
-struct factorial4 <N, T, std::integer_sequence <T, TS ...>> {
+struct factorial6 <N, T, std::integer_sequence <T, TS ...>> {
 	static constexpr T value = ((TS + 1) * ... * static_cast <T> (1));
 };
 
@@ -132,10 +194,10 @@ template <MyIntegralType T, std::size_t N>
 using MyMakeIntegralConstantSequence = MyMakeIntegralConstantSequenceImpl <T, N>::type;
 
 template <std::size_t N, MyUnsignedType T = unsigned, typename S = MyMakeIntegralConstantSequence <T, N>>
-struct factorial5;
+struct factorial7;
 
 template <std::size_t N, MyUnsignedType T, MyIntegralConstantType ... S>
-struct factorial5 <N, T, MyIntegralConstantSequence <S ...>> {
+struct factorial7 <N, T, MyIntegralConstantSequence <S ...>> {
 	static constexpr T value = ((1 + S::value) * ... * 1);
 };
 
@@ -164,15 +226,16 @@ static void print () {
 
 template <MyUnsignedType T, T ... VS>
 static void printFactorials () {
-	constexpr std::size_t w = 1 + MyDigitCount <T, MyMaxValue <T, factorial1 <VS>::value ...>::value>::value;
+	constexpr std::size_t w = 1 + MyDigitCount <T, MyMaxValue <T, factorial3 <VS>::value ...>::value>::value;
 	(
 		(print <T, w,
-			factorial (VS),
 			factorial1 <VS>::value,
 			factorial2 <VS>::value,
 			factorial3 <VS>::value,
 			factorial4 <VS>::value,
-			factorial5 <VS>::value
+			factorial5 <VS>::value,
+			factorial6 <VS>::value,
+			factorial7 <VS>::value
 		> ())
 		, ...
 	);

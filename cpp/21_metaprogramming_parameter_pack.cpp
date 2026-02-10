@@ -4,115 +4,116 @@
 
 
 
-template <typename>
+template <std::ostream & os, typename>
 static void print1 () {
-	std::cout << std::endl;
+	os << std::endl;
 }
 
-template <typename T, T first, T ... rest>
+template <std::ostream & os, typename T, T first, T ... rest>
 static void print1 () {
-	std::cout << first << ", ";
-	print1 <T, rest ...> ();
+	os << first << ", ";
+	print1 <os, T, rest ...> ();
 }
 
-static void print2 () {
-	std::cout << std::endl;
+static void print2 (std::ostream & os) {
+	os << std::endl;
 }
 
-template <typename T, typename ... TS>
-static void print2 (T first, TS ... rest) {
-	std::cout << first << ", ";
-	print2 (rest ...);
+template <typename TFirst, typename ... TRest>
+static void print2 (std::ostream & os, const TFirst & first, const TRest & ... rest) {
+	os << first << ", ";
+	print2 (os, rest ...);
 }
 
-template <typename T, T ... VS>
+template <std::ostream & os, typename T, T ... args>
 static void print3 () {
-	(void) (int []) {0, ((void) (std::cout << VS << ", "), 0) ...};
-	std::cout << std::endl;
+	(void) (int []) {0, ((os << args << ", "), 0) ...};
+	os << std::endl;
 }
 
-template <typename ... TS>
-static void print4 (TS ... vs) {
-	(void) (int []) {0, ((void) (std::cout << vs << ", "), 0) ...};
-	std::cout << std::endl;
+template <typename ... Args>
+static void print4 (std::ostream & os, const Args & ... args) {
+	(void) (int []) {0, ((os << args << ", "), 0) ...};
+	os << std::endl;
 }
 
-template <typename T, T ... VS>
+template <std::ostream & os, typename T, T ... args>
 static void print5 () {
-	((std::cout << VS << ", "), ...) << std::endl;
+	((os << args << ", "), ...) << std::endl;
 }
 
-template <typename ... TS>
-static void print6 (TS ... vs) {
-	((std::cout << vs << ", "), ...) << std::endl;
+template <typename ... Args>
+static void print6 (std::ostream & os, const Args & ... args) {
+	((os << args << ", "), ...) << std::endl;
 }
 
-template <typename>
+template <std::ostream & os, typename>
 static void print7 () {}
 
-template <typename T, T first, T ... rest>
+template <std::ostream & os, typename T, T first, T ... rest>
 static void print7 () {
-	std::cout << first << ", ";
+	os << first << ", ";
 
-	if (0 < sizeof ... (rest)) {
-		print7 <T, rest ...> ();
+	if (0 == sizeof ... (rest)) {
+		os << std::endl;
 	}
 	else {
-		std::cout << std::endl;
+		print7 <os, T, rest ...> ();
 	}
 }
 
-static void print8 () {}
+static void print8 (std::ostream &) {}
 
-template <typename T, typename ... TS>
-static void print8 (T first, TS ... rest) {
-	std::cout << first << ", ";
+template <typename TFirst, typename ... TRest>
+static void print8 (std::ostream & os, const TFirst & first, const TRest & ... rest) {
+	os << first << ", ";
 
-	if (0 < sizeof ... (rest)) {
-		print8 (rest ...);
+	if (0 == sizeof ... (rest)) {
+		os << std::endl;
 	}
 	else {
-		std::cout << std::endl;
+		print8 (os, rest ...);
 	}
 }
 
-template <typename T, T first, T ... rest>
+template <std::ostream & os, typename T, T first, T ... rest>
 static void print9 () {
-	std::cout << first << ", ";
+	os << first << ", ";
 
-	if constexpr (0 < sizeof ... (rest)) {
-		print9 <T, rest ...> ();
+	if constexpr (0 == sizeof ... (rest)) {
+		os << std::endl;
 	}
 	else {
-		std::cout << std::endl;
+		print9 <os, T, rest ...> ();
 	}
 }
 
-template <typename T, typename ... TS>
-static void print10 (T first, TS ... rest) {
-	std::cout << first << ", ";
+template <typename TFirst, typename ... TRest>
+static void print10 (std::ostream & os, const TFirst & first, const TRest & ... rest) {
+	os << first << ", ";
 
-	if constexpr (0 < sizeof ... (rest)) {
-		print10 (rest ...);
+	if constexpr (0 == sizeof ... (rest)) {
+		os << std::endl;
 	}
 	else {
-		std::cout << std::endl;
+		print10 (os, rest ...);
 	}
 }
 
-template <typename ... TS>
-static void printSum (TS ... vs) {
-	auto s = (vs + ...);
-	std::cout << s << std::endl;
+template <typename ... Args>
+requires (std::is_arithmetic_v <Args> && ...)
+static void printSum (std::ostream & os, const Args & ... args) {
+	os << (args + ... + 0) << std::endl;
+}
+
+template <double ... coeffs, typename ... Args>
+requires (std::is_arithmetic_v <Args> && ...)
+static void printDotProd (std::ostream & os, const Args & ... args) {
+	os << ((coeffs * args) + ... + 0) << std::endl;
 }
 
 
 namespace MultiplePackExpansion {
-template <int ... X, typename ... TS>
-int dotProd (TS ... x) {
-	return ((X * x) + ...);
-}
-
 template <typename ... TS>
 requires (std::is_integral_v <TS> && ...)
 int sum (TS ... vs) {
@@ -122,7 +123,7 @@ int sum (TS ... vs) {
 template <typename I, typename ... TS>
 requires std::invocable <I, TS ...>
 decltype (auto) MyInvoke (I && func, TS && ... args)
-	noexcept (std::is_nothrow_invocable_v <I, TS...>)
+	noexcept (std::is_nothrow_invocable_v <I, TS ...>)
 {
 	return std::forward <I> (func) (std::forward <TS> (args) ...);
 }
@@ -140,24 +141,31 @@ decltype (auto) test1 () {
 
 
 int main () {
-	print1 <int, 1, 2, 3, 4> ();
-	print2 (1, 2, 3, 4, "hello");
-	print3 <int, 1, 2, 3, 4> ();
-	print4 (1, 2, 3, 4, "hello");
-	print5 <int, 1, 2, 3, 4> ();
-	print6 (1, 2, 3, 4, "hello");
-	print7 <int, 1, 2, 3, 4> ();
-	print8 (1, 2, 3, 4, "hello");
-	print9 <int, 1, 2, 3, 4> ();
-	print10 (1, 2, 3, 4, "hello");
-	printSum (1, 2, 3, 4, 5);
+	print1 <std::cout, int, 1, 2, 3, 4, 5> ();
+	print2 (std::cout, 1, "hello", 3, "world", 5);
+
+	print3 <std::cout, int, 1, 2, 3, 4, 5> ();
+	print4 (std::cout, 1, "hello", 3, "world", 5);
+
+	print5 <std::cout, int, 1, 2, 3, 4, 5> ();
+	print6 (std::cout, 1, "hello", 3, "world", 5);
+
+	print7 <std::cout, int, 1, 2, 3, 4, 5> ();
+	print8 (std::cout, 1, "hello", 3, "world", 5);
+
+	print9 <std::cout, int, 1, 2, 3, 4, 5> ();
+	print10 (std::cout, 1, "hello", 3, "world", 5);
+
+	printSum (std::cout, 1, 2, 3, 4, 5);
+	printSum (std::cout);
+
+	printDotProd <1.1, 1.2, 1.3> (std::cout, 10, 20, 30);
+	printDotProd <> (std::cout);
 
 	{
 		std::cout << "====================" << std::endl;
 
 		using namespace MultiplePackExpansion;
-		std::cout << dotProd <1, 10, 100> (2, 4, 6) << std::endl;
-
 		std::cout << std::invoke (sum <int, int, int>, 2, 4, 6) << std::endl;
 		std::cout << MyInvoke (sum <int, int, int>, 2, 4, 6) << std::endl;
 
