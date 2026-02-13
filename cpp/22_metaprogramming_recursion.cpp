@@ -7,22 +7,26 @@
 
 
 
-template <unsigned int n>
-struct fib {
+typedef unsigned long long ull;
+
+
+
+template <unsigned n>
+struct fib1 {
 	enum {
-		value = int (fib <n - 1>::value) + int (fib <n - 2>::value)
+		value = int (fib1 <n - 1>::value) + int (fib1 <n - 2>::value)
 	};
 };
 
 template <>
-struct fib <0> {
+struct fib1 <0> {
 	enum {
 		value = 0
 	};
 };
 
 template <>
-struct fib <1> {
+struct fib1 <1> {
 	enum {
 		value = 1
 	};
@@ -30,17 +34,17 @@ struct fib <1> {
 
 
 
-template <std::size_t N>
+template <unsigned N>
 struct fib2 {
 	using prev = fib2 <N - 1>;
-	static constexpr std::size_t value = prev::value + prev::prev_value;
-	static constexpr std::size_t prev_value = prev::value;
+	static constexpr ull value = prev::value + prev::prev_value;
+	static constexpr ull prev_value = prev::value;
 };
 
 template <>
 struct fib2 <0> {
-	static constexpr std::size_t value = 0;
-	static constexpr std::size_t prev_value = 1;
+	static constexpr ull value = 0;
+	static constexpr ull prev_value = 1;
 };
 
 
@@ -201,24 +205,24 @@ using MakeIntegralSequence
 
 template <unsigned N>
 struct factorial1 {
-	static constexpr unsigned value = N * factorial1 <N - 1>::value;
+	static constexpr ull value = N * factorial1 <N - 1>::value;
 };
 
 template <>
 struct factorial1 <0> {
-	static constexpr unsigned value = 1;
+	static constexpr ull value = 1;
 };
 
 template <unsigned N>
 struct factorial2
-	: std::integral_constant <unsigned, N * factorial2 <N - 1>::value> {};
+	: std::integral_constant <ull, N * factorial2 <N - 1>::value> {};
 
 template <>
-struct factorial2 <0> : std::integral_constant <unsigned, 1> {};
+struct factorial2 <0> : std::integral_constant <ull, 1> {};
 
 template <unsigned N>
-struct factorial3 : std::integral_constant <unsigned, [] () constexpr -> unsigned {
-	unsigned n = 1;
+struct factorial3 : std::integral_constant <ull, [] () constexpr -> ull {
+	ull n = 1;
 
 	for (unsigned i = 2; i <= N; i++) {
 		n *= i;
@@ -227,15 +231,15 @@ struct factorial3 : std::integral_constant <unsigned, [] () constexpr -> unsigne
 	return n;
 } ()> {};
 
-template <unsigned N, typename = std::make_integer_sequence <unsigned, N>>
+template <unsigned N, typename = std::make_integer_sequence <ull, N>>
 struct factorial4;
 
-template <unsigned N, unsigned ... NS>
-struct factorial4 <N, std::integer_sequence <unsigned, NS ...>>
-	: std::integral_constant <unsigned, ((NS + 1) * ... * 1)> {};
+template <unsigned N, ull ... NS>
+struct factorial4 <N, std::integer_sequence <ull, NS ...>>
+	: std::integral_constant <ull, ((NS + 1) * ... * 1)> {};
 
 template <unsigned N>
-struct factorial5 : std::integral_constant <unsigned, y_combinator ([] <typename Y> (Y && self, unsigned n) -> unsigned {
+struct factorial5 : std::integral_constant <ull, y_combinator ([]  (auto && self, ull n) -> ull {
 	if (1 >= n) {
 		return 1;
 	}
@@ -244,14 +248,31 @@ struct factorial5 : std::integral_constant <unsigned, y_combinator ([] <typename
 	}
 }) (N)> {};
 
-template <unsigned N, typename = MakeIntegralSequence <unsigned, N>>
+template <unsigned N, typename = MakeIntegralSequence <ull, N>>
 struct factorial6;
 
-template <unsigned N, unsigned ... ns>
-struct factorial6 <N, IntegralSequence <unsigned, ns ...>>
-	: IntegralConstant <unsigned, ((1 + ns) * ... * 1)> {};
+template <unsigned N, ull ... ns>
+struct factorial6 <N, IntegralSequence <ull, ns ...>>
+	: IntegralConstant <ull, ((1 + ns) * ... * 1)> {};
 
+constexpr ull factorial7 (const unsigned n) {
+	if (1 >= n) {
+		return 1;
+	}
+	else {
+		return n * factorial7 (n - 1);
+	}
+}
 
+constexpr ull factorial8 (const unsigned n) {
+	ull r = 1;
+
+	for (unsigned i = 2; i <= n; i++) {
+		r *= i;
+	}
+
+	return r;
+}
 
 //             _       _     _          _
 //  _ __  _ __(_)_ __ | |_  | |__   ___| |_ __   ___ _ __ ___
@@ -309,25 +330,33 @@ struct IntegerCharacterCount <T, value, std::enable_if_t <std::is_signed_v <T> &
 
 template <std::ostream & os, std::size_t w, typename T, T ... args>
 static void printw () {
-	((os << std::setw (w) << args << ' '), ...) << std::endl;
+	((os << std::setw (w) << args << ' '), ...);// << std::endl;
 }
 
-template <std::ostream & os, std::unsigned_integral T, T ... ns>
-void printFactorials () {
-	constexpr std::size_t maxNumber = MaxValue <T, ns ...>::value;
-	constexpr std::size_t wFactorials = IntegerCharacterCount <T, factorial1 <maxNumber>::value>::value;
-	constexpr std::size_t wNumbers = IntegerCharacterCount <std::size_t, maxNumber>::value;
+template <std::ostream & os, unsigned ... ns>
+void printValues () {
+	constexpr std::size_t maxNumber = MaxValue <unsigned, ns ...>::value;
+	constexpr std::size_t wFactorials = IntegerCharacterCount <ull, factorial1 <maxNumber>::value>::value;
+	constexpr std::size_t wNumbers = IntegerCharacterCount <unsigned, maxNumber>::value;
+	constexpr std::size_t wFibs = IntegerCharacterCount <unsigned, fib1 <maxNumber>::value>::value;
 
 	((
 		(os << std::setw (wNumbers) << ns << ": "),
-		printw <os, wFactorials, T,
+		printw <os, wFactorials, ull,
 			factorial1 <ns>::value,
 			factorial2 <ns>::value,
 			factorial3 <ns>::value,
 			factorial4 <ns>::value,
 			factorial5 <ns>::value,
-			factorial6 <ns>::value
-		> ()
+			factorial6 <ns>::value,
+			factorial7 (ns),
+			factorial8 (ns)
+		> (),
+		printw <os, wFibs, ull,
+			fib1 <ns>::value,
+			fib2 <ns>::value
+		> (),
+		(void) (std::cout << std::endl)
 	), ...);
 }
 
@@ -335,23 +364,5 @@ void printFactorials () {
 
 int main ()
 {
-	std::cout << fib <0>::value << std::endl;
-	std::cout << fib <1>::value << std::endl;
-	std::cout << fib <2>::value << std::endl;
-	std::cout << fib <3>::value << std::endl;
-	std::cout << fib <4>::value << std::endl;
-	std::cout << fib <5>::value << std::endl;
-
-	std::cout << "====================" << std::endl;
-
-	std::cout << fib2 <0>::value << std::endl;
-	std::cout << fib2 <1>::value << std::endl;
-	std::cout << fib2 <2>::value << std::endl;
-	std::cout << fib2 <3>::value << std::endl;
-	std::cout << fib2 <4>::value << std::endl;
-	std::cout << fib2 <5>::value << std::endl;
-
-	std::cout << "====================" << std::endl;
-
-	printFactorials <std::cout, unsigned, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10> ();
+	printValues <std::cout, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10> ();
 }
