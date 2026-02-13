@@ -49,3 +49,4 @@ add_executable (
 	28_iterating_with_integer_sequence
 	28_iterating_with_integer_sequence.cpp
 )
+add_executable (29_tag_dispatching 29_tag_dispatching.cpp)
