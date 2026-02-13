@@ -105,6 +105,14 @@ struct BooleanConstant {
 struct TrueType : BooleanConstant <true> {};
 struct FalseType : BooleanConstant <false> {};
 
+template <typename T> struct RemoveCV                      { using type = T; };
+template <typename T> struct RemoveCV <const T>            { using type = T; };
+template <typename T> struct RemoveCV <volatile T>         { using type = T; };
+template <typename T> struct RemoveCV <const volatile T>   { using type = T; };
+
+template <typename T>
+using RemoveCVT = RemoveCV <T>::type;
+
 // NOTE: not exactly standard-conforming behaviour
 template <typename T> struct _IsIntegral              : FalseType {};
 
@@ -121,26 +129,27 @@ template <> struct _IsIntegral <unsigned long>        : TrueType {};
 template <> struct _IsIntegral <long signed long>     : TrueType {};
 template <> struct _IsIntegral <unsigned long long>   : TrueType {};
 
-template <typename T> struct _IsUnsignedIntegral              : FalseType {};
-
-template <> struct _IsUnsignedIntegral <unsigned char>        : TrueType {};
-template <> struct _IsUnsignedIntegral <bool>                 : TrueType {};
-template <> struct _IsUnsignedIntegral <unsigned short>       : TrueType {};
-template <> struct _IsUnsignedIntegral <unsigned int>         : TrueType {};
-template <> struct _IsUnsignedIntegral <unsigned long>        : TrueType {};
-template <> struct _IsUnsignedIntegral <unsigned long long>   : TrueType {};
-
 template <typename T>
-struct IsIntegral : _IsIntegral <std::remove_cv_t <T>> {}; // TODO: implement remove_cv_t
-
-template <typename T>
-struct IsUnsignedIntegral : _IsUnsignedIntegral <std::remove_cv_t <T>> {}; // TODO: implement remove_cv_t
+struct IsIntegral : _IsIntegral <RemoveCVT <T>> {};
 
 template <typename T>
 constexpr inline bool IsIntegralV = IsIntegral <T>::value;
 
-template <typename T>
-constexpr inline bool IsUnsignedIntegralV = IsUnsignedIntegral <T>::value;
+
+// template <typename T> struct _IsUnsignedIntegral              : FalseType {};
+//
+// template <> struct _IsUnsignedIntegral <unsigned char>        : TrueType {};
+// template <> struct _IsUnsignedIntegral <bool>                 : TrueType {};
+// template <> struct _IsUnsignedIntegral <unsigned short>       : TrueType {};
+// template <> struct _IsUnsignedIntegral <unsigned int>         : TrueType {};
+// template <> struct _IsUnsignedIntegral <unsigned long>        : TrueType {};
+// template <> struct _IsUnsignedIntegral <unsigned long long>   : TrueType {};
+//
+// template <typename T>
+// struct IsUnsignedIntegral : _IsUnsignedIntegral <RemoveCVT <T>> {};
+//
+// template <typename T>
+// constexpr inline bool IsUnsignedIntegralV = IsUnsignedIntegral <T>::value;
 
 
 template <typename T, T _value, bool _is_integral = IsIntegralV <T>>
