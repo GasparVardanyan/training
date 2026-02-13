@@ -338,7 +338,7 @@ void printValues () {
 	constexpr std::size_t maxNumber = MaxValue <unsigned, ns ...>::value;
 	constexpr std::size_t wFactorials = IntegerCharacterCount <ull, factorial1 <maxNumber>::value>::value;
 	constexpr std::size_t wNumbers = IntegerCharacterCount <unsigned, maxNumber>::value;
-	constexpr std::size_t wFibs = IntegerCharacterCount <unsigned, fib1 <maxNumber>::value>::value;
+	constexpr std::size_t wFibNums = IntegerCharacterCount <unsigned, fib1 <maxNumber>::value>::value;
 
 	((
 		(os << std::setw (wNumbers) << ns << ": "),
@@ -352,7 +352,7 @@ void printValues () {
 			factorial7 (ns),
 			factorial8 (ns)
 		> (),
-		printw <os, wFibs, ull,
+		printw <os, wFibNums, ull,
 			fib1 <ns>::value,
 			fib2 <ns>::value
 		> (),

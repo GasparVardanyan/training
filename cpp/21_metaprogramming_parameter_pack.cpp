@@ -166,6 +166,7 @@ int main () {
 		std::cout << "====================" << std::endl;
 
 		using namespace MultiplePackExpansion;
+
 		std::cout << std::invoke (sum <int, int, int>, 2, 4, 6) << std::endl;
 		std::cout << MyInvoke (sum <int, int, int>, 2, 4, 6) << std::endl;
 

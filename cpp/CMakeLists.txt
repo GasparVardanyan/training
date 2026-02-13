@@ -45,3 +45,7 @@ add_executable (24_requires_clause 24_requires_clause.cpp)
 add_executable (25_ordering_by_constraints 25_ordering_by_constraints.cpp)
 add_executable (26_concepts_vs_type_traits 26_concepts_vs_type_traits.cpp)
 add_executable (27_type_predicates 27_type_predicates.cpp)
+add_executable (
+	28_iterating_with_integer_sequence
+	28_iterating_with_integer_sequence.cpp
+)
