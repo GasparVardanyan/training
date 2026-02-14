@@ -121,12 +121,12 @@ concept Scalar = std::is_scalar_v <T>;
 
 template <typename T>
 struct mathematical_traits {
-	constexpr static bool customized = false;
+	static constexpr bool customized = false;
 };
 
 template <>
 struct mathematical_traits <big_int> {
-	constexpr static bool customized = true;
+	static constexpr bool customized = true;
 };
 
 template <typename T>

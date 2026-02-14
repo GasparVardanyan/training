@@ -35,12 +35,10 @@ target_compile_options (
 )
 
 add_executable (22_metaprogramming_recursion 22_metaprogramming_recursion.cpp)
-
 add_executable (
 	23_metaprogramming_template_specialization
 	23_metaprogramming_template_specialization.cpp
 )
-
 add_executable (24_requires_clause 24_requires_clause.cpp)
 add_executable (25_ordering_by_constraints 25_ordering_by_constraints.cpp)
 add_executable (26_concepts_vs_type_traits 26_concepts_vs_type_traits.cpp)
@@ -50,3 +48,4 @@ add_executable (
 	28_iterating_with_integer_sequence.cpp
 )
 add_executable (29_tag_dispatching 29_tag_dispatching.cpp)
+add_executable (30_expression_validity 30_expression_validity.cpp)

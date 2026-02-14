@@ -137,7 +137,7 @@ template <typename T>
 struct IsIntegral : _IsIntegral <RemoveCVT <T>> {};
 
 template <typename T>
-constexpr inline bool IsIntegralV = IsIntegral <T>::value;
+inline constexpr bool IsIntegralV = IsIntegral <T>::value;
 
 
 // template <typename T> struct _IsUnsignedIntegral              : FalseType {};
@@ -153,7 +153,7 @@ constexpr inline bool IsIntegralV = IsIntegral <T>::value;
 // struct IsUnsignedIntegral : _IsUnsignedIntegral <RemoveCVT <T>> {};
 //
 // template <typename T>
-// constexpr inline bool IsUnsignedIntegralV = IsUnsignedIntegral <T>::value;
+// inline constexpr bool IsUnsignedIntegralV = IsUnsignedIntegral <T>::value;
 
 
 template <typename T, T _value, bool _is_integral = IsIntegralV <T>>

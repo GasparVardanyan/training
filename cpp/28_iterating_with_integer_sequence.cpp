@@ -26,7 +26,10 @@ template <typename ... TS>
 struct GetTupleTypeCount <std::tuple <TS ...>>
 	: GetTypeCount <TS ...> {};
 
-template <typename Tuple, typename = std::make_index_sequence <GetTupleTypeCount <Tuple>::value>>
+template <
+	typename Tuple,
+	typename = std::make_index_sequence <GetTupleTypeCount <std::decay_t <Tuple>>::value>
+>
 struct TupleHelper;
 
 template <typename Tuple, std::size_t ... indices>
@@ -85,9 +88,10 @@ void func (const char * s, double d, int i, char c) {
 }
 
 int main () {
-	auto bar = std::make_tuple ("test", 3.1, 14, 'y');
+	const auto bar = std::make_tuple ("test", 3.1, 14, 'y');
+	std::cout << GetTupleTypeCount <std::decay_t <decltype (bar)>>::value << std::endl;
 	apply (func, bar); // ADL find std::apply
-	std::cout << "TC: " << GetTupleTypeCount <decltype (bar)>::value << std::endl;
+	std::cout << "TC: " << GetTupleTypeCount <std::decay_t <decltype (bar)>>::value << std::endl;
 	std::cout << bar << std::endl;
 	TupleHelper <decltype (bar)>::apply (func, bar);
 	std::cout << "====================" << std::endl;

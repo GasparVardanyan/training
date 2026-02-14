@@ -17,7 +17,7 @@ struct S;
 
 template <>
 struct S <int> {
-	static constexpr const inline int i = 0;
+	static constexpr int i = 0;
 };
 
 

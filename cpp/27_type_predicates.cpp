@@ -8,11 +8,11 @@
 
 
 struct true_type {
-	static inline constexpr bool value = true;
+	static constexpr bool value = true;
 };
 
 struct false_type {
-	static inline constexpr bool value = false;
+	static constexpr bool value = false;
 };
 
 template <typename T, typename U>
@@ -22,7 +22,7 @@ template <typename T>
 struct is_same <T, T> : true_type {};
 
 template <typename T, typename U>
-static constexpr inline bool is_same_v = is_same <T, U>::value;
+inline constexpr bool is_same_v = is_same <T, U>::value;
 
 
 
@@ -86,7 +86,7 @@ struct is_acceptable <
 	: std::true_type {};
 
 template <typename T>
-static constexpr inline bool is_acceptable_v = is_acceptable <T>::value;
+inline constexpr bool is_acceptable_v = is_acceptable <T>::value;
 
 
 
@@ -111,7 +111,7 @@ struct is_acceptable2 <T, void_t <decltype (& is_acceptible_c::require <T>)>>
 	: true_type {};
 
 template <typename T>
-static constexpr inline bool is_acceptable2_v = is_acceptable2 <T>::value;
+inline constexpr bool is_acceptable2_v = is_acceptable2 <T>::value;
 
 struct S1 {
 
