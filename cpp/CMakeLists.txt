@@ -49,3 +49,5 @@ add_executable (
 )
 add_executable (29_tag_dispatching 29_tag_dispatching.cpp)
 add_executable (30_expression_validity 30_expression_validity.cpp)
+add_executable (31_calculating_power 31_calculating_power.cpp)
+add_executable (32_generic_min_max 32_generic_min_max.cpp)

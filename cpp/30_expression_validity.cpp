@@ -57,6 +57,8 @@ inline constexpr bool HasHashV = HasHash <T>::value;
 template <typename T, typename ... TS>
 using InvariantHash = std::conditional_t <HasHashV <T>, std::map <T, TS ...>, std::unordered_map <T, TS ...>>;
 
+
+
 int main () {
 	std::cout << HaveValueTypeV <int> << std::endl;
 	std::cout << HaveValueTypeV <std::vector <int>> << std::endl;
