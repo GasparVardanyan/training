@@ -200,10 +200,10 @@ public:
 			if (false == lt && false == gt) {
 				break;
 			}
-			else if (lt) {
+			else if (true == lt) {
 				link = & (* link)->left;
 			}
-			else if (gt) {
+			else if (true == gt) {
 				link = & (* link)->right;
 			}
 		}
@@ -260,9 +260,7 @@ public:
 		}
 	}
 
-	template <typename It>
-	requires std::output_iterator <It, T>
-	void dumpSorted (It it) const {
+	void dumpSorted (std::output_iterator <T> auto it) const {
 		if (nullptr != m_root) {
 			m_root->inorder_traverse (
 				[&it] (const node * n, const node *) -> void {
@@ -272,9 +270,7 @@ public:
 		}
 	}
 
-	template <typename It>
-	requires std::output_iterator <It, T>
-	void dumpInvariant (It it) const {
+	void dumpInvariant (std::output_iterator <T> auto it) const {
 		if (nullptr != m_root) {
 			m_root->level_order_traverse (
 				[&it] (const node * n, const node *) -> void {

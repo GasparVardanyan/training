@@ -174,11 +174,9 @@ public:
 			{ os << t } -> std::convertible_to <std::ostream &>;
 		}
 	{
-		stack <const binary_tree_node *> path;
-
 		node.preorder_traverse (
-			[&path, &os]
-			(const binary_tree_node * node, const binary_tree_node * parent) -> void {
+			[path = stack <const binary_tree_node *> (), &os]
+			(const binary_tree_node * node, const binary_tree_node * parent) mutable -> void {
 				if (nullptr != parent) {
 					while (path.top () != parent) {
 						path.pop ();
@@ -186,7 +184,7 @@ public:
 				}
 				path.push (node);
 
-				std::size_t depth = path.size ();
+				std::size_t depth = path.size () - 1;
 
 				for (std::size_t i = 0; i < depth; i++) {
 					os << "  ";

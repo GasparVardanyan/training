@@ -15,9 +15,9 @@ int main () {
 
 	auto tree = ExpressionTree::PostfixToTree (res);
 
-	std::string s = ExpressionTree::TreeToInfix (tree);
-
-	std::cout << s << std::endl;
+	std::cout << ExpressionTree::TreeToInfix (tree) << std::endl;
+	std::cout << ExpressionTree::TreeToInfix2 (tree) << std::endl;
+	std::cout << ExpressionTree::TreeToInfix3 (tree) << std::endl;
 
 	delete tree;
 

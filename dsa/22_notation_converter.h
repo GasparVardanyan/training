@@ -361,7 +361,7 @@ protected:
 	static bool NeedParenthesis (std::string str) {
 		BalanceChecker ch;
 		ch.setString (str);
-		const auto & parenInfo = ch.pairInfo(BalanceChecker::SymbolType::Parenthesis);
+		const auto & parenInfo = ch.pairInfo (BalanceChecker::SymbolType::Parenthesis);
 		if (false == parenInfo.empty ()) {
 			const auto & firstLevelInfo = parenInfo [0];
 			for (const auto & info : firstLevelInfo) {

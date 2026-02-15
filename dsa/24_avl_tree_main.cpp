@@ -113,7 +113,7 @@ int main () {
 	avlt.insert (1);
 	avlt.insert (3);
 
-	avlt.remove (5); // 10, 20, 25, 15, 5
+	// avlt.remove (5); // 10, 20, 25, 15, 5
 	std::stringstream ss;
 	ss << "TREE:\n" << avlt << std::endl;
 	std::cout << ss.str () << std::endl;

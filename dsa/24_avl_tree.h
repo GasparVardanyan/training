@@ -53,7 +53,7 @@ public:
 
 public: // binary_search_tree interface
 	// using tree::insert;
-	using tree::remove;
+	// using tree::remove;
 	using tree::contains;
 	using tree::dumpInvariant;
 	using tree::dumpSorted;
