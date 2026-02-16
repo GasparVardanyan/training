@@ -4,7 +4,6 @@
 # include <string>
 # include <utility>
 
-# include "22_balance_checker.h"
 # include "22_config.h"
 # include "22_notation_converter.h"
 # include "23_binary_tree_node.h"
@@ -160,6 +159,18 @@ struct ExpressionTree : protected NotationConverter {
 		});
 
 		return pair_tree.data.second;
+	}
+
+	static std::string TreeToPostfix (const binary_tree_node <std::string> * tree) {
+		binary_tree_node <std::string> copy (* tree);
+
+		copy.postorder_traverse ([] (auto * node, auto *) -> void {
+			if (nullptr != node->left && nullptr != node->right) {
+				node->data = node->left->data + ' ' + node->right->data + ' ' + node->data;
+			}
+		});
+
+		return copy.data;
 	}
 };
 

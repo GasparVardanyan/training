@@ -11,8 +11,7 @@
 # include "22_queue.h"
 # include "22_stack.h"
 
-template <typename T, typename EqualTo = std::equal_to <T>>
-requires std::equivalence_relation <EqualTo, T, T>
+template <typename T, std::equivalence_relation <T, T> EqualTo = std::equal_to <T>>
 struct binary_tree_node {
 public:
 	using equivalence_relation = EqualTo;
@@ -71,10 +70,9 @@ public:
 		return * this;
 	}
 
-	binary_tree_node (binary_tree_node && other) noexcept
-		: data (
-			(std::is_move_constructible_v <T> ? std::move (other.data) : other.data)
-		)
+	binary_tree_node (binary_tree_node && other)
+		noexcept (std::is_nothrow_move_constructible_v <T>)
+		: data (std::move (other.data))
 		, left (other.left)
 		, right (other.right)
 	{
@@ -82,7 +80,9 @@ public:
 		other.right = nullptr;
 	}
 
-	binary_tree_node & operator= (binary_tree_node && other) noexcept {
+	binary_tree_node & operator= (binary_tree_node && other)
+		noexcept (std::is_nothrow_swappable_v <T>)
+	{
 		if (this != & other) {
 			std::swap (data, other.data);
 			std::swap (left, other.left);
