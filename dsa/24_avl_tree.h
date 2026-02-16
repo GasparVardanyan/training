@@ -96,31 +96,13 @@ public:
 	template <typename U>
 	requires std::convertible_to <U, T>
 	void insert (U && value) {
-		stack <node **> path; // From one before leaf to root
-		node ** link = & this->m_root;
+		stack <node **> path = getLinkStack (value);
+		node ** link = path.top ();
 
-		while (nullptr != * link) {
-			path.push (link);
-
-			bool lt = this->less_than (value, (* link)->data.value);
-			bool gt = this->less_than ((* link)->data.value, value);
-
-			if (false == lt && false == gt) {
-				link = nullptr;
-				break;
-			}
-			else if (true == lt) {
-				link = & (* link)->left;
-			}
-			else if (true == gt) {
-				link = & (* link)->right;
-			}
-		}
-
-		if (nullptr != link) {
+		if (nullptr == * link) {
 			* link = new node (node_data (std::forward <U> (value),  0));
 			this->m_size++;
-			// rebalance (std::move (path));
+			rebalance (std::move (path));
 		}
 	}
 
@@ -193,6 +175,9 @@ private:
 		calcNodeHeight (rightBefore);
 		// height (rightLeftBefore) = const
 	}
+
+protected:
+	using tree::getLinkStack;
 };
 
 # endif // AVL_TREE_H_24

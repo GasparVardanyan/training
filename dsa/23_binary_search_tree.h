@@ -143,39 +143,10 @@ public:
 	template <typename U>
 	requires std::convertible_to <U, T>
 	void insert (U && value) {
-		if (nullptr == m_root) {
-			m_root = new node (std::forward <U> (value));
+		node ** link = getLink (value);
+		if (nullptr == * link) {
+			* link = new node (std::forward <U> (value));
 			m_size++;
-		}
-		else {
-			node * n = m_root;
-
-			while (true) {
-				if (true == less_than (value, n->data)) {
-					if (nullptr == n->left) {
-						n->left = new node (std::forward <U> (value));
-						m_size++;
-						break;
-					}
-					else {
-						n = n->left;
-					}
-				}
-				else if (true == less_than (n->data, value)) {
-					if (nullptr == n->right) {
-						n->right = new node (std::forward <U> (value));
-						m_size++;
-						break;
-					}
-					else {
-						n = n->right;
-					}
-				}
-				else {
-					// n == value
-					break;
-				}
-			}
 		}
 	}
 
@@ -191,72 +162,39 @@ public:
 	}
 
 	const node * at (const T & value) const {
-		node * const * link = & m_root;
+		return * getLink (value);
+	}
 
-		while (nullptr != * link) {
-			bool lt = less_than (value, (* link)->data);
-			bool gt = less_than ((* link)->data, value);
-
-			if (false == lt && false == gt) {
-				break;
-			}
-			else if (true == lt) {
-				link = & (* link)->left;
-			}
-			else if (true == gt) {
-				link = & (* link)->right;
-			}
-		}
-
-		return * link;
+	node * at (const T & value) {
+		return * getLink (value);
 	}
 
 	void remove (const T & value) {
-		if (nullptr == m_root) {
-			return;
-		}
-		else {
-			node ** link = & m_root;
+		node ** link = getLink (value);
 
-			while (nullptr != (* link)) {
-				bool lt = less_than (value, (* link)->data);
-				bool gt = less_than ((* link)->data, value);
+		if (nullptr != * link) {
+			node * to_remove = * link;
 
-				if (false == lt && false == gt) {
-					break;
-				}
-				else if (lt) {
-					link = & (* link)->left;
-				}
-				else if (gt) {
-					link = & (* link)->right;
-				}
+			if (nullptr == (* link)->right) {
+				* link = (* link)->left;
 			}
+			else {
+				if (nullptr != (* link)->left) {
+					node * leftmost = (* link)->right;
 
-			if (nullptr != * link) {
-				node * to_remove = * link;
-
-				if (nullptr == (* link)->right) {
-					* link = (* link)->left;
-				}
-				else {
-					if (nullptr != (* link)->left) {
-						node * leftmost = (* link)->right;
-
-						while (nullptr != leftmost->left) {
-							leftmost = leftmost->left;
-						}
-						leftmost->left = (* link)->left;
+					while (nullptr != leftmost->left) {
+						leftmost = leftmost->left;
 					}
-
-					* link = (* link)->right;
+					leftmost->left = (* link)->left;
 				}
 
-				to_remove->left = nullptr;
-				to_remove->right = nullptr;
-				delete to_remove;
-				m_size--;
+				* link = (* link)->right;
 			}
+
+			to_remove->left = nullptr;
+			to_remove->right = nullptr;
+			delete to_remove;
+			m_size--;
 		}
 	}
 
@@ -319,13 +257,71 @@ public:
 	bool empty () const { return 0 == m_size; }
 
 protected:
-	node * _at (const T & value) {
-		return const_cast <node *> (at (value));
+	node * const * getLink (const T & value) const {
+		node * const * link = & m_root;
+
+		while (nullptr != * link) {
+			bool lt = less_than (value, (* link)->data);
+			bool gt = less_than ((* link)->data, value);
+
+			if (true == lt) {
+				link = & (* link)->left;
+			}
+			else if (true == gt) {
+				link = & (* link)->right;
+			}
+			else {
+				break;
+			}
+		}
+
+		return link;
+	}
+
+	node ** getLink (const T & value) {
+		return const_cast <node **> (const_cast <const binary_search_tree *> (this)->getLink (value));
+	}
+
+	stack <node * const *> getLinkStack (const T & value) const {
+		return _getLinkStack <node * const *> (value);
+	}
+
+	stack <node **> getLinkStack (const T & value) {
+		return _getLinkStack <node **> (value);
 	}
 
 protected:
 	node * m_root;
 	std::size_t m_size;
+
+private:
+	template <typename U>
+	requires std::is_same_v <std::remove_cv_t <U>, node **>
+	stack <U> _getLinkStack (const T & value) {
+		stack <U> linkStack;
+
+		U link = & m_root;
+		linkStack.push (link);
+
+		while (nullptr != * link) {
+			bool lt = less_than (value, (* link)->data);
+			bool gt = less_than ((* link)->data, value);
+
+			if (true == lt) {
+				link = & (* link)->left;
+				linkStack.push (link);
+			}
+			else if (true == gt) {
+				link = & (* link)->right;
+				linkStack.push (link);
+			}
+			else {
+				break;
+			}
+		}
+
+		return linkStack;
+	}
 };
 
 # endif // BINARY_SEARCH_TREE_23
