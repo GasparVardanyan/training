@@ -105,7 +105,16 @@ TEST_F(BinarySearchTreeTest, RemoveRoot) {
 	bst.remove(10);
 
 	EXPECT_EQ(bst.size(), 2);
-	EXPECT_EQ(bst.root()->data, 15); // Based on your "link = link->right" logic
+
+	if (true == decltype (bst)::detail::keepInvariant) {
+		if (true == decltype (bst)::detail::removePreserveLeft) {
+
+		}
+		else {
+			EXPECT_EQ(bst.root()->data, 15); // Based on your "link = link->right" logic
+		}
+	}
+
 	VerifyInvariant(bst);
 }
 

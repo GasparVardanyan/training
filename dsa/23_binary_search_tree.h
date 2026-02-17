@@ -33,11 +33,14 @@ template <typename T, typename U>
 requires std::convertible_to <T, U>
 struct equal_to <T, std::greater <U>> : std::equal_to <U> {};
 
-template <typename T, typename Comparator>
+template <typename T, typename Comparator, bool _keepInvariant, bool _removePreserveLeft>
 requires std::strict_weak_order <Comparator, T, T>
 struct binary_search_tree__ {
 	using equal_to = equal_to <T, Comparator>;
 	using node = binary_tree_node <T, equal_to>;
+
+	static constexpr bool keepInvariant = _keepInvariant;
+	static constexpr bool removePreserveLeft = _removePreserveLeft;
 
 	template <typename U>
 	static constexpr bool is_node_link_v =
@@ -52,7 +55,6 @@ struct binary_search_tree__ {
 			node
 		>
 	;
-
 };
 }
 
@@ -61,11 +63,11 @@ struct binary_search_tree__ {
 /// @tparam T
 /// @tparam Comparator STRICTLY-LESS-THAN comparator
 /// @warning Comparator must impose a strict weak ordering
-template <typename T, typename Comparator = std::less <T>>
+template <typename T, typename Comparator = std::less <T>, bool keepInvariant = false, bool removePreserveLeft = false>
 requires std::strict_weak_order <Comparator, T, T>
 class binary_search_tree {
 public:
-	using detail = detail::binary_search_tree__ <T, Comparator>;
+	using detail = detail::binary_search_tree__ <T, Comparator, keepInvariant, removePreserveLeft>;
 	using node = detail::node;
 	static constexpr Comparator less_than {};
 
@@ -75,8 +77,7 @@ public:
 		, m_size (0)
 	{}
 
-	binary_search_tree (const binary_search_tree & other)
-	{
+	binary_search_tree (const binary_search_tree & other) {
 		if (nullptr != other.m_root) {
 			m_root = new node (* other.m_root);
 			m_size = other.m_size;
@@ -195,18 +196,58 @@ public:
 		node ** link = getLink (value);
 
 		if (nullptr != * link) {
+			node ** linkLeft = & (* link)->left;
+			node ** linkRight = & (* link)->right;
+
 			node * to_remove = * link;
 
-			if (nullptr == (* link)->right) {
-				* link = (* link)->left;
+			if (nullptr == * linkRight) {
+				* link = * linkLeft;
+			}
+			else if (nullptr == * linkLeft) {
+				* link = * linkRight;
 			}
 			else {
-				if (nullptr != (* link)->left) {
-					node * leftmost = * getLinkToLeftmost (& (* link)->right);
-					leftmost->left = (* link)->left;
+				if constexpr (true == detail::keepInvariant) {
+					if constexpr (true == detail::removePreserveLeft) {
+						node * leftRightmost = * getLinkToRightmost (linkLeft);
+						leftRightmost->right = * linkRight;
+						* link = * linkLeft;
+					}
+					else {
+						node * rightLeftmost = * getLinkToLeftmost (linkRight);
+						rightLeftmost->left = * linkLeft;
+						* link = * linkRight;
+					}
 				}
+				else {
+					if constexpr (true == detail::removePreserveLeft) {
+						node ** leftRightmostLink = getLinkToRightmost (linkLeft);
 
-				* link = (* link)->right;
+						node * leftRightmost = * leftRightmostLink;
+						leftRightmost->right = * linkRight;
+
+						if (leftRightmostLink != linkLeft) {
+							* leftRightmostLink = leftRightmost->left;
+							leftRightmost->left = * linkLeft;
+						}
+
+						* link = leftRightmost;
+					}
+					else {
+						node ** rightLeftmostLink = getLinkToLeftmost (linkRight);
+
+						node * rightLeftmost = * rightLeftmostLink;
+						rightLeftmost->left = * linkLeft;
+
+						if (rightLeftmostLink != linkRight) {
+							* rightLeftmostLink = rightLeftmost->right;
+							rightLeftmost->right = * linkRight;
+						}
+
+						* link = rightLeftmost;
+					}
+				}
 			}
 
 			to_remove->left = nullptr;
