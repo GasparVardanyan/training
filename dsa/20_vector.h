@@ -3,17 +3,19 @@
 
 # include <algorithm>
 # include <cstddef>
+# include <cstdlib>
 # include <initializer_list>
 # include <iterator>
 # include <limits>
+# include <new>
 # include <stdexcept>
 # include <type_traits>
-
-// TODO: test with the verbose_class against std::vector
 
 template <typename T>
 class vector {
 public:
+	static_assert (std::is_destructible_v <T>, "T must be destructible.");
+
 	using iterator = T *;
 	using const_iterator =  const T *;
 
@@ -31,25 +33,45 @@ public:
 
 public:
 	explicit vector (const std::size_t size = 0) {
-		m_size = size;
-		m_capacity = make_capacity (m_size);
-		m_data = new T [m_capacity] (); // TODO: use placement-new
+		_initialize (size);
+
+		try {
+			for (; m_size < size; m_size++) {
+				new (m_data + m_size) T ();
+			}
+		} catch (...) { // std::bad_alloc?
+			_destroy ();
+			throw;
+		}
 	}
 
 	vector (std::initializer_list <T> init) {
-		m_size = init.size ();
-		m_capacity = make_capacity (m_size);
-		m_data = new T [m_capacity];
+		_initialize (init.size ());
 
-		std::copy (init.begin (), init.end (), m_data);
+		try {
+			for (const T & e : init) {
+				new (m_data + m_size) T (e);
+				m_size++;
+			}
+		} catch (...) {
+			_destroy ();
+			throw;
+		}
 	}
 
 	vector (const_iterator begin, const_iterator end) {
-		m_size = std::distance (begin, end);
-		m_capacity = make_capacity (m_size);
-		m_data = new T [m_capacity];
+		std::size_t size = std::distance (begin, end);
+		_initialize (size);
 
-		std::copy (begin, end, m_data);
+		try {
+			for (const_iterator it = begin; it != end; ++it) {
+				new (m_data + m_size) T (* it);
+				m_size++;
+			}
+		} catch (...) {
+			_destroy ();
+			throw;
+		}
 	}
 
 	template <
@@ -67,47 +89,53 @@ public:
 				std::input_iterator_tag
 			>
 		) {
-			m_size = 0;
-			m_capacity = make_capacity (m_size);
-			m_data = new T [m_capacity];
+			_initialize (0);
 
-			for (auto it = begin; it != end; it++) {
-				push_back (* it);
+			try {
+				for (auto it = begin; it != end; it++) {
+					push_back (* it);
+				}
+			} catch (...) {
+				_destroy ();
+				throw;
 			}
 		}
 		else { // at least forward_iterator
-			m_size = std::distance (begin, end);
-			m_capacity = make_capacity (m_size);
-			m_data = new T [m_capacity];
+			std::size_t size = std::distance (begin, end);
+			_initialize (size);
 
-			std::copy (begin, end, m_data);
+			try {
+				for (input_it it = begin; it != end; ++it) {
+					new (m_data + m_size) T (* it);
+					m_size++;
+				}
+			} catch (...) {
+				_destroy ();
+				throw;
+			}
 		}
 	}
 
 public:
 	vector (const vector & other) {
-		m_size = other.m_size;
-		m_capacity = other.m_capacity;
-		m_data = new T [m_capacity];
+		_initialize (other.m_size);
 
-		std::copy (other.m_data, other.m_data + other.m_size, m_data);
+		try {
+			while (m_size < other.m_size) {
+				new (m_data + m_size) T (other.m_data [m_size]);
+				m_size++;
+			}
+		}
+		catch (...) {
+			_destroy ();
+			throw;
+		}
 	}
 
 	vector & operator= (const vector & other) {
 		if (this != & other) {
-			// if (m_capacity < other.m_capacity) {
-			// 	m_capacity = other.m_capacity;
-			// 	delete [] m_data;
-			// 	m_data = new T [m_capacity];
-			// }
-			// m_size = other.m_size;
-			// std::copy (other.m_data, other.m_data + other.m_size, m_data);
-
-			vector copy (other); // uses copy constructor
-			// std::swap (m_data, copy.m_data);
-			// std::swap (m_capacity, copy.m_capacity);
-			// std::swap (m_size, copy.m_size);
-			std::swap (* this, copy); // uses move assignments
+			vector copy (other);
+			std::swap (* this, copy);
 		}
 
 		return * this;
@@ -117,34 +145,34 @@ public:
 		m_capacity = other.m_capacity;
 		m_size = other.m_size;
 		m_data = other.m_data;
-		other.m_capacity = 0;
-		other.m_size = 0;
-		other.m_data = nullptr;
+
+		other._zero ();
 	}
 
 	vector & operator= (vector && other) noexcept {
 		if (this != & other) {
-			delete [] m_data;
-
-			m_capacity = other.m_capacity;
-			m_size = other.m_size;
-			m_data = other.m_data;
-			other.m_capacity = 0;
-			other.m_size = 0;
-			other.m_data = nullptr;
+			swap (* this, other);
 		}
 
 		return * this;
 	}
 
-	~vector () {
-		delete [] m_data;
-		m_data = nullptr;
-		m_size = 0;
-		m_capacity = 0;
+	~vector () noexcept (noexcept (_destroy ())) {
+		_destroy ();
 	}
 
 public:
+	friend void swap (vector & first, vector & second) {
+		std::swap (first.m_size, second.m_size);
+		std::swap (first.m_capacity, second.m_capacity);
+		std::swap (first.m_data, second.m_data);
+	}
+
+	void clear () {
+		vector tmp;
+		swap (* this, tmp);
+	}
+
 	std::size_t size () const {
 		return m_size;
 	}
@@ -157,48 +185,27 @@ public:
 		return 0 == m_size;
 	}
 
-	void clear () {
-		m_size = 0;
-		m_capacity = make_capacity (m_size);
-		delete [] m_data;
-		m_data = new T [m_capacity];
+	void resize (const std::size_t new_size) {
+		_resize (new_size);
 	}
 
-	void resize (const std::size_t new_size) {
-		if (new_size > m_capacity) {
-			reserve (new_size);
-		}
-		else if (new_size < m_capacity) {
-			shrink_to_contain (new_size);
-		}
-		m_size = new_size;
+	void resize (const std::size_t new_size, const T & value) {
+		_resize (new_size, value);
 	}
 
 	void reserve (const std::size_t new_capacity) {
-		const std::size_t new_cap = make_capacity (new_capacity);
+		const std::size_t new_cap = _make_capacity (new_capacity);
 
 		if (new_cap > m_capacity) {
-			T * old_data = m_data;
-			m_data = new T [new_cap];
-			m_capacity = new_cap;
-			move_copy_or_whatever_data (old_data, m_data, m_size);
-			delete [] old_data;
+			_realloc (new_cap);
 		}
 	}
 
-	void shrink_to_contain (const std::size_t at_least) {
-		const std::size_t new_cap = make_capacity (at_least);
-
-		if (m_size > at_least) {
-			m_size = at_least;
-		}
+	void shrink_to_fit () {
+		const std::size_t new_cap = _make_capacity (m_size);
 
 		if (new_cap < m_capacity) {
-			T * old_data = m_data;
-			m_data = new T [new_cap];
-			m_capacity = new_cap;
-			move_copy_or_whatever_data (old_data, m_data, m_size);
-			delete [] old_data;
+			_realloc (new_cap);
 		}
 	}
 
@@ -211,43 +218,30 @@ public:
 	}
 
 	T & back () {
-		if (0 == m_size) {
-			m_size = 1; // capacity is always at least 1
-		}
-
 		return m_data [m_size - 1];
 	}
 
 	const T & back () const {
-		if (0 == m_size) {
-			m_size = 1; // and this is why m_size is mutable
-						// now a const method changes the class state
-						// this is bad...
-		}
-
 		return m_data [m_size - 1];
 	}
 
-	void push_back (const T & object) {
-		resize (m_size + 1);
-		m_data [m_size - 1] = object;
-	}
-
-	void push_back (T && object) {
-		resize (m_size + 1);
-		m_data [m_size - 1] = std::move (object);
+	template <typename U>
+	requires std::is_constructible_v <T, U>
+	void push_back (U && object) {
+		reserve (m_size + 1);
+		new (m_data + m_size) T (std::forward <U> (object));
+		m_size++;
 	}
 
 	void pop_back () {
-		if (m_size > 0) {
-			m_size--;
-		}
+		m_data [m_size - 1].~T ();
+		m_size--;
 	}
 
 private:
 	static inline constexpr std::size_t s_max_capacity = std::numeric_limits <std::size_t>::max () >> 1;
 
-	static size_t make_capacity (const std::size_t for_size) {
+	static size_t _make_capacity (const std::size_t for_size) {
 		std::size_t cap = 1;
 
 		while (for_size > cap) {
@@ -262,21 +256,102 @@ private:
 		return cap;
 	}
 
-	static void move_copy_or_whatever_data (T * src, T * dst, const std::size_t count) {
-		// TODO: consider using std::copy
+	void _initialize (std::size_t size) { // WARN: assumes no data is allocated
+		m_size = 0;
+		m_capacity = _make_capacity (size);
+		m_data = static_cast <T *> (::operator new (m_capacity * sizeof (T)));
+	}
 
-		if (true == std::is_move_assignable_v <T>) {
-			for (std::size_t i = 0; i < count; i++) {
-				dst [i] = std::move (src [i]);
+	void _destroy () noexcept (std::is_nothrow_destructible_v <T>) {
+		for (std::size_t i = 0; i < m_size; i++) {
+			m_data [i].~T ();
+		}
+
+		m_size = 0;
+		m_capacity = 0;
+		::operator delete (m_data);
+		m_data = nullptr;
+	}
+
+	void _zero () noexcept {
+		m_size = 0;
+		m_capacity = 0;
+		m_data = nullptr;
+	}
+
+	void _realloc (std::size_t new_cap) {
+		std::size_t new_size = m_size;
+		if (new_size > new_cap) {
+			new_size = new_cap;
+		}
+
+		T * new_data = static_cast <T *> (::operator new (new_cap * sizeof (T)));
+
+		std::size_t i = 0;
+
+		try {
+			for (; i < new_size; i++) {
+				if constexpr (true == std::is_nothrow_move_constructible_v <T>) {
+					new (new_data + i) T (std::move (m_data [i]));
+				}
+				else {
+					new (new_data + i) T (m_data [i]); // this can throw
+				}
+			}
+		} catch (...) {
+			for (std::size_t j = 0; j < i; j++) {
+				new_data [j].~T ();
+			}
+
+			::operator delete (new_data);
+			throw;
+		}
+
+		T * old_data = m_data;
+		m_data = new_data;
+		m_capacity = new_cap;
+		std::size_t old_size = m_size;
+		m_size = new_size;
+
+		try {
+			for (std::size_t i = 0; i < old_size; i++) {
+				old_data [i].~T ();
 			}
 		}
-		else if (true == std::is_copy_assignable_v <T>) {
-			for (std::size_t i = 0; i < count; i++) {
-				dst [i] = src [i];
-			}
+		catch (...) {
+			::operator delete (old_data);
+			throw;
 		}
-		else {
-			throw std::runtime_error ("don't be lazy, use place-new or whatever needed");
+
+		::operator delete (old_data);
+	}
+
+	template <typename ... U>
+	requires (1 >= sizeof ... (U)) && (std::is_constructible_v <T, U> && ...)
+	void _resize (const std::size_t new_size, const std::decay_t <U> & ... value) {
+		if (new_size > m_size) {
+			reserve (new_size);
+
+			std::size_t i = m_size;
+			try {
+				for (; i < new_size; i++) {
+					new (m_data + i) T (value ...);
+				}
+			}
+			catch (...) {
+				for (std::size_t j = m_size; j < i; j++) {
+					m_data [j].~T ();
+				}
+				throw;
+			}
+
+			m_size = new_size;
+		}
+		else if (new_size < m_size) {
+			for (std::size_t i = new_size; i < m_size; i++) {
+				m_data [i].~T ();
+			} // do not catch destruction exceptions... stl doesn't too
+			m_size = new_size;
 		}
 	}
 

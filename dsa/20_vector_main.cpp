@@ -32,7 +32,7 @@ int main () {
 
 	vector <int> vec2 (vec);
 
-	vec2.shrink_to_contain (5); std::cout << vec2.size () << " - " << vec2.capacity () << std::endl;
+	// vec2.shrink_to_contain (5); std::cout << vec2.size () << " - " << vec2.capacity () << std::endl;
 	vec2.reserve (20); std::cout << vec2.size () << " - " << vec2.capacity () << std::endl;
 	for (const auto & v : vec2) {
 		std::cout << v << ' ';
