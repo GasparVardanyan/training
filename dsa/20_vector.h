@@ -16,6 +16,7 @@ template <typename T>
 class vector {
 public:
 	static_assert (std::is_destructible_v <T>, "T must be destructible.");
+	// static_assert (std::is_nothrow_destructible_v <T>, "T must be nothrow destructible.");
 
 	using iterator = T *;
 	using const_iterator =  const T *;
@@ -226,11 +227,15 @@ public:
 		return m_data [m_size - 1];
 	}
 
-	template <typename U>
-	requires std::is_constructible_v <T, U>
-	void push_back (U && object) {
+	void push_back (const T & object) {
 		reserve (m_size + 1);
-		new (m_data + m_size) T (std::forward <U> (object));
+		new (m_data + m_size) T (object);
+		m_size++;
+	}
+
+	void push_back (T && object) {
+		reserve (m_size + 1);
+		new (m_data + m_size) T (std::move (object));
 		m_size++;
 	}
 
@@ -314,6 +319,7 @@ private:
 		std::size_t old_size = m_size;
 		m_size = new_size;
 
+		// NOTE: STL assumes destructors don't throw
 		try {
 			for (std::size_t i = 0; i < old_size; i++) {
 				old_data [i].~T ();
