@@ -10,6 +10,7 @@
 # include <new>
 # include <stdexcept>
 # include <type_traits>
+# include <utility>
 
 template <typename T>
 class vector {
@@ -327,7 +328,7 @@ private:
 	}
 
 	template <typename ... U>
-	requires (1 >= sizeof ... (U)) && (std::is_constructible_v <T, U> && ...)
+	requires (1 >= sizeof ... (U)) && (std::is_same_v <std::decay_t <U>, T> && ...)
 	void _resize (const std::size_t new_size, const std::decay_t <U> & ... value) {
 		if (new_size > m_size) {
 			reserve (new_size);
@@ -356,7 +357,7 @@ private:
 	}
 
 private:
-	mutable std::size_t m_size;
+	std::size_t m_size;
 	std::size_t m_capacity;
 	T * m_data;
 };
