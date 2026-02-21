@@ -9,6 +9,9 @@
 # include <ostream>
 # include <variant>
 
+# include "20_vector.h"
+# include "22_stack.h"
+# include "23_binary_tree_node.h"
 # include "23_binary_search_tree.h"
 
 namespace detail {
@@ -16,16 +19,19 @@ template <typename T, typename C, typename Data = std::monostate>
 struct avl_tree__ {
 	struct node_data : Data {
 		static_assert (false == requires (Data d) { d.value; }, "the value member of Data is reserved");
-		static_assert (false == requires (Data d) { d.height; }, "the height member of Data is reserved");
+		static_assert (
+			false == requires (Data d) { d.height_plus_one; },
+			"the height_plus_one member of Data is reserved"
+		);
 
 		T value;
-		std::size_t height;
+		std::size_t height_plus_one;
 
-		explicit (false) node_data (const T & value, std::size_t height = 0)
-			: value (value), height (height) {}
+		explicit (false) node_data (const T & value, std::size_t height_plus_one = 0)
+			: value (value), height_plus_one (height_plus_one) {}
 
-		explicit (false) node_data (T && value, std::size_t height = 0)
-			: value (std::move (value)), height (height) {}
+		explicit (false) node_data (T && value, std::size_t height_plus_one = 0)
+			: value (std::move (value)), height_plus_one (height_plus_one) {}
 
 		friend std::ostream & operator<< (std::ostream & os, const node_data & data) {
 			os << data.value;
@@ -52,11 +58,12 @@ public:
 	using detail = detail::avl_tree__ <T, Comparator, Data>;
 	using tree = detail::tree;
 	using node = tree::node;
+	using node_link = tree::node_link;
+	using const_node_link = tree::const_node_link;
 	using node_data = detail::node_data;
+	using value_type = T;
 
 public: // binary_search_tree interface
-	// using tree::insert;
-	// using tree::remove;
 	using tree::contains;
 	using tree::dumpInvariant;
 	using tree::dumpSorted;
@@ -67,6 +74,7 @@ public: // binary_search_tree interface
 	using tree::size;
 	using tree::empty;
 	using tree::at;
+	using tree::internal_path_length;
 
 	bool operator== (const avl_tree & other) const {
 		return
@@ -96,11 +104,11 @@ public:
 	template <typename U>
 	requires std::convertible_to <U, T>
 	void insert (U && value) {
-		stack <node **> path = getLinkStack (value);
-		node ** link = path.top ();
+		stack <node_link> path = getLinkStack (value);
+		node_link link = path.top ();
 
 		if (nullptr == * link) {
-			* link = new node (node_data (std::forward <U> (value),  0));
+			* link = new node (node_data (std::forward <U> (value), 1));
 			this->m_size++;
 			rebalance (std::move (path));
 		}
@@ -109,22 +117,132 @@ public:
 private:
 	/// rebalance the tree
 	/// @param path stack of links from leaf to root
-	void rebalance (stack <node **> && path) {
-		(void) path;
-		// while (false == path.empty ()) {
-		// 	node ** link = path.top ();
-		// 	path.pop ();
-		//
-		// 	std::size_t lh = getNodeHeightPlusOne ((* link)->left);
-		// 	std::size_t rh = getNodeHeightPlusOne ((* link)->right);
-		//
-		// 	if (lh > rh && lh - rh > 1) {
-		//
-		// 	}
-		// 	else if (rh > lh && rh - lh > 1) {
-		//
-		// 	}
-		// }
+	template <bool removing = false>
+	void rebalance (stack <node_link> && path) {
+		node_link child = path.top ();
+		path.pop ();
+
+		bool _left;
+
+		while (false == path.empty ()) {
+			node_link link = path.top ();
+			path.pop ();
+
+			bool _left1;
+			if constexpr (false == removing) {
+				_left1 = * child == (* link)->left;
+			}
+			else {
+				_left1 = * child == (* link)->right;
+			}
+
+			std::size_t lh = getNodeHeightPlusOne ((* link)->left);
+			std::size_t rh = getNodeHeightPlusOne ((* link)->right);
+
+			if (lh > rh && lh - rh > 1) {
+				if (true == _left) {
+					node * n = * link;
+					node * nl = n->left;
+					node * nlr = nl->right;
+
+					nl->right = n;
+					n->left = nlr;
+
+					* link = nl;
+
+					if constexpr (false == removing) {
+						n->data.height_plus_one -= 1;
+					}
+					else {
+						n->data.height_plus_one -= 2;
+					}
+
+					break; // since link->data.height_plus_one remains the same
+				}
+				else {
+					node * n = * link;
+					node * nl = n->left;
+					node * nlr = nl->right;
+					node * nlrl = nlr->left;
+					node * nlrr = nlr->right;
+
+					* link = nlr;
+
+					nlr->left = nl;
+					nlr->right = n;
+					nl->right = nlrl;
+					n->left = nlrr;
+
+					if constexpr (false == removing) {
+						n->data.height_plus_one -= 1;
+					}
+					else {
+						n->data.height_plus_one -= 2;
+					}
+					nl->data.height_plus_one -= 1;
+					nlr->data.height_plus_one += 1;
+				}
+			}
+			else if (rh > lh && rh - lh > 1) {
+				if (false == _left) {
+					node * n = * link;
+					node * nr = n->right;
+					node * nrl = nr->left;
+
+					* link = nr;
+
+					nr->left = n;
+					n->right = nrl;
+
+					if constexpr (false == removing) {
+						n->data.height_plus_one -= 1;
+					}
+					else {
+						n->data.height_plus_one -= 2;
+					}
+
+					break; // since link->data.height_plus_one remains the same
+				}
+				else {
+					node * n = * link;
+					node * nr = n->right;
+					node * nrl = nr->left;
+					node * nrll = nrl->left;
+					node * nrlr = nrl->right;
+
+					* link = nrl;
+
+					nrl->left = n;
+					nrl->right = nr;
+					n->right = nrll;
+					nr->left = nrlr;
+
+					if constexpr (false == removing) {
+						n->data.height_plus_one -= 1;
+					}
+					else {
+						n->data.height_plus_one -= 2;
+					}
+					nr->data.height_plus_one -= 1;
+					nrl->data.height_plus_one += 1;
+				}
+			}
+			else {
+				const std::size_t newHeight = 1 + (lh > rh ? lh : rh);
+				node * n = * link;
+
+				if (newHeight == n->data.height_plus_one) {
+					break;
+				}
+				else {
+					n->data.height_plus_one = newHeight;
+				}
+			}
+
+			child = link;
+
+			_left = _left1;
+		}
 	}
 
 	std::size_t getNodeHeightPlusOne (node * node) {
@@ -132,48 +250,8 @@ private:
 			return 0;
 		}
 		else {
-			return node->data.height + 1;
+			return node->data.height_plus_one;
 		}
-	}
-
-	void calcNodeHeight (node * node) {
-		std::size_t hl = getNodeHeightPlusOne (node->left);
-		std::size_t hr = getNodeHeightPlusOne (node->right);
-		std::size_t mh = hl > hr ? hl : hr;
-
-		setNodeHeight (node, mh + 1);
-	}
-
-	void setNodeHeight (node * node, std::size_t heightPlusOne) {
-		node->data.height = heightPlusOne - 1;
-	}
-
-	void rotateRight (node ** link) {
-		node * currBefore = * link;
-		node * leftBefore = currBefore->left;
-		node * leftRightBefore = leftBefore->right;
-
-		* link = leftBefore;
-		leftBefore->right = currBefore;
-		currBefore->left = leftRightBefore;
-
-		calcNodeHeight (currBefore);
-		calcNodeHeight (leftBefore);
-		// height (leftRightBefore) = const
-	}
-
-	void rotateLeft (node ** link) {
-		node * currBefore = * link;
-		node * rightBefore = currBefore->right;
-		node * rightLeftBefore = rightBefore->left;
-
-		* link = rightBefore;
-		rightBefore->left = currBefore;
-		currBefore->right = rightLeftBefore;
-
-		calcNodeHeight (currBefore);
-		calcNodeHeight (rightBefore);
-		// height (rightLeftBefore) = const
 	}
 
 protected:

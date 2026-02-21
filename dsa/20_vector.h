@@ -244,6 +244,20 @@ public:
 		m_size--;
 	}
 
+	bool operator== (const vector & other) const {
+		if (m_size != other.m_size) {
+			return false;
+		}
+
+		for (std::size_t i = 0; i < m_size; i++) {
+			if ((* this) [i] != other [i]) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 private:
 	static inline constexpr std::size_t s_max_capacity = std::numeric_limits <std::size_t>::max () >> 1;
 

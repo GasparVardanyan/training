@@ -69,6 +69,8 @@ class binary_search_tree {
 public:
 	using detail = detail::binary_search_tree__ <T, Comparator, keepInvariant, removePreserveLeft>;
 	using node = detail::node;
+	using node_link = node **;
+	using const_node_link = const node * const *;
 	static constexpr Comparator less_than {};
 
 public:
@@ -166,7 +168,7 @@ public:
 	template <typename U>
 	requires std::convertible_to <U, T>
 	void insert (U && value) {
-		node ** link = getLink (value);
+		node_link link = getLink (value);
 		if (nullptr == * link) {
 			* link = new node (std::forward <U> (value));
 			m_size++;
@@ -193,11 +195,11 @@ public:
 	}
 
 	void remove (const T & value) {
-		node ** link = getLink (value);
+		node_link link = getLink (value);
 
 		if (nullptr != * link) {
-			node ** linkLeft = & (* link)->left;
-			node ** linkRight = & (* link)->right;
+			node_link linkLeft = & (* link)->left;
+			node_link linkRight = & (* link)->right;
 
 			node * to_remove = * link;
 
@@ -222,7 +224,7 @@ public:
 				}
 				else {
 					if constexpr (true == detail::removePreserveLeft) {
-						node ** leftRightmostLink = getLinkToRightmost (linkLeft);
+						node_link leftRightmostLink = getLinkToRightmost (linkLeft);
 
 						node * leftRightmost = * leftRightmostLink;
 						leftRightmost->right = * linkRight;
@@ -235,7 +237,7 @@ public:
 						* link = leftRightmost;
 					}
 					else {
-						node ** rightLeftmostLink = getLinkToLeftmost (linkRight);
+						node_link rightLeftmostLink = getLinkToLeftmost (linkRight);
 
 						node * rightLeftmost = * rightLeftmostLink;
 						rightLeftmost->left = * linkLeft;
@@ -297,9 +299,21 @@ public:
 	std::size_t size () const { return m_size; }
 	bool empty () const { return 0 == m_size; }
 
+	std::size_t internal_path_length () {
+		std::size_t s = 0;
+
+		if (nullptr != m_root) {
+			m_root->level_order_traverse ([& s] (const node *, const node *, std::size_t l) -> void {
+				s += l;
+			});
+		}
+
+		return s;
+	}
+
 protected:
-	const node * const * getLink (const T & value) const {
-		const node * const * link = & m_root;
+	const_node_link getLink (const T & value) const {
+		const_node_link link = & m_root;
 
 		while (nullptr != * link) {
 			bool lt = less_than (value, (* link)->data);
@@ -319,16 +333,16 @@ protected:
 		return link;
 	}
 
-	node ** getLink (const T & value) {
-		return const_cast <node **> (const_cast <const binary_search_tree *> (this)->getLink (value));
+	node_link getLink (const T & value) {
+		return const_cast <node_link> (const_cast <const binary_search_tree *> (this)->getLink (value));
 	}
 
-	stack <const node * const *> getLinkStack (const T & value) const {
-		return getLinkStack <const node * const *> (& m_root, value);
+	stack <const_node_link> getLinkStack (const T & value) const {
+		return getLinkStack <const_node_link> (& m_root, value);
 	}
 
-	stack <node **> getLinkStack (const T & value) {
-		return getLinkStack <node **> (& m_root, value);
+	stack <node_link> getLinkStack (const T & value) {
+		return getLinkStack <node_link> (& m_root, value);
 	}
 
 protected:
