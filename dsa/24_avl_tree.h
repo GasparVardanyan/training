@@ -15,8 +15,10 @@
 # include "23_binary_search_tree.h"
 
 namespace detail {
-template <typename T, typename C, typename Data = std::monostate>
+template <typename T, typename C, typename Data = std::monostate, bool _removePreserveLeft = false>
 struct avl_tree__ {
+	static constexpr bool removePreserveLeft = _removePreserveLeft;
+
 	struct node_data : Data {
 		static_assert (false == requires (Data d) { d.value; }, "the value member of Data is reserved");
 		static_assert (
@@ -25,7 +27,7 @@ struct avl_tree__ {
 		);
 
 		T value;
-		std::size_t height_plus_one;
+		std::size_t height_plus_one; // TODO: replace height with diff of subtree heights, which is always -1, 0 or 1
 
 		explicit (false) node_data (const T & value, std::size_t height_plus_one = 0)
 			: value (value), height_plus_one (height_plus_one) {}
@@ -47,15 +49,15 @@ struct avl_tree__ {
 		}
 	};
 
-	using tree = binary_search_tree <node_data, C>;
+	using tree = binary_search_tree <node_data, C, false, removePreserveLeft>;
 };
 }
 
-template <typename T, typename Comparator = std::less <T>, typename Data = std::monostate>
+template <typename T, typename Comparator = std::less <T>, typename Data = std::monostate, bool removePreserveLeft = false>
 requires std::strict_weak_order <Comparator, T, T>
-class avl_tree : protected detail::avl_tree__ <T, Comparator, Data>::tree {
+class avl_tree : protected detail::avl_tree__ <T, Comparator, Data, removePreserveLeft>::tree {
 public:
-	using detail = detail::avl_tree__ <T, Comparator, Data>;
+	using detail = detail::avl_tree__ <T, Comparator, Data, removePreserveLeft>;
 	using tree = detail::tree;
 	using node = tree::node;
 	using node_link = tree::node_link;
@@ -105,42 +107,36 @@ public:
 	requires std::convertible_to <U, T>
 	void insert (U && value) {
 		stack <node_link> path = getLinkStack (value);
-		node_link link = path.top ();
+		node_link link = path.top (); // path is always non-empty
 
 		if (nullptr == * link) {
 			* link = new node (node_data (std::forward <U> (value), 1));
 			this->m_size++;
-			rebalance (std::move (path));
+			rebalanceAfterInsert (std::move (path));
 		}
 	}
 
 private:
-	/// rebalance the tree
-	/// @param path stack of links from leaf to root
-	template <bool removing = false>
-	void rebalance (stack <node_link> && path) {
+	void rebalanceAfterInsert (stack <node_link> && path) {
 		node_link child = path.top ();
 		path.pop ();
 
-		bool _left;
+		bool prevLeft;
 
 		while (false == path.empty ()) {
 			node_link link = path.top ();
 			path.pop ();
 
-			bool _left1;
-			if constexpr (false == removing) {
-				_left1 = * child == (* link)->left;
-			}
-			else {
-				_left1 = * child == (* link)->right;
-			}
+			bool left = * child == (* link)->left;
 
 			std::size_t lh = getNodeHeightPlusOne ((* link)->left);
 			std::size_t rh = getNodeHeightPlusOne ((* link)->right);
 
 			if (lh > rh && lh - rh > 1) {
-				if (true == _left) {
+				// Yes, when removing=false, at the first iteration of this loop
+				// prevLeft is uninitialized. This condition will reach only after
+				// the first iteration.
+				if (true == prevLeft) {
 					node * n = * link;
 					node * nl = n->left;
 					node * nlr = nl->right;
@@ -150,14 +146,7 @@ private:
 
 					* link = nl;
 
-					if constexpr (false == removing) {
-						n->data.height_plus_one -= 1;
-					}
-					else {
-						n->data.height_plus_one -= 2;
-					}
-
-					break; // since link->data.height_plus_one remains the same
+					n->data.height_plus_one -= 1;
 				}
 				else {
 					node * n = * link;
@@ -173,18 +162,15 @@ private:
 					nl->right = nlrl;
 					n->left = nlrr;
 
-					if constexpr (false == removing) {
-						n->data.height_plus_one -= 1;
-					}
-					else {
-						n->data.height_plus_one -= 2;
-					}
+					n->data.height_plus_one -= 1;
 					nl->data.height_plus_one -= 1;
 					nlr->data.height_plus_one += 1;
 				}
+
+				break; // since link->data.height_plus_one remains the same
 			}
 			else if (rh > lh && rh - lh > 1) {
-				if (false == _left) {
+				if (false == prevLeft) {
 					node * n = * link;
 					node * nr = n->right;
 					node * nrl = nr->left;
@@ -194,14 +180,7 @@ private:
 					nr->left = n;
 					n->right = nrl;
 
-					if constexpr (false == removing) {
-						n->data.height_plus_one -= 1;
-					}
-					else {
-						n->data.height_plus_one -= 2;
-					}
-
-					break; // since link->data.height_plus_one remains the same
+					n->data.height_plus_one -= 1;
 				}
 				else {
 					node * n = * link;
@@ -217,15 +196,12 @@ private:
 					n->right = nrll;
 					nr->left = nrlr;
 
-					if constexpr (false == removing) {
-						n->data.height_plus_one -= 1;
-					}
-					else {
-						n->data.height_plus_one -= 2;
-					}
+					n->data.height_plus_one -= 1;
 					nr->data.height_plus_one -= 1;
 					nrl->data.height_plus_one += 1;
 				}
+
+				break; // since link->data.height_plus_one remains the same
 			}
 			else {
 				const std::size_t newHeight = 1 + (lh > rh ? lh : rh);
@@ -240,8 +216,7 @@ private:
 			}
 
 			child = link;
-
-			_left = _left1;
+			prevLeft = left;
 		}
 	}
 
@@ -256,6 +231,8 @@ private:
 
 protected:
 	using tree::getLinkStack;
+	using tree::getLinkStackToLeftmost;
+	using tree::getLinkStackToRightmost;
 };
 
 # endif // AVL_TREE_H_24

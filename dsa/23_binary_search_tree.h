@@ -345,6 +345,22 @@ protected:
 		return getLinkStack <node_link> (& m_root, value);
 	}
 
+	stack <const_node_link> getLinkStackToLeftmost (const_node_link link) const {
+		return getLinkStackToLeftmost <const_node_link> (link);
+	}
+
+	stack <node_link> getLinkStackToLeftmost (node_link link) {
+		return getLinkStackToLeftmost <node_link> (link);
+	}
+
+	stack <const_node_link> getLinkStackToRightmost (const_node_link link) const {
+		return getLinkStackToRightmost <const_node_link> (link);
+	}
+
+	stack <node_link> getLinkStackToRightmost (node_link link) {
+		return getLinkStackToRightmost <node_link> (link);
+	}
+
 protected:
 	node * m_root;
 	std::size_t m_size;
@@ -398,6 +414,38 @@ protected:
 		}
 
 		return link;
+	}
+
+	template <typename U>
+	requires detail::template is_node_link_v <U>
+	static stack <U> getLinkStackToLeftmost (U link) {
+		stack <U> linkStack;
+		linkStack.push (link);
+
+		if (nullptr != * link) {
+			while (nullptr != (* link)->left) {
+				link = & (* link)->left;
+				linkStack.push (link);
+			}
+		}
+
+		return linkStack;
+	}
+
+	template <typename U>
+	requires detail::template is_node_link_v <U>
+	static stack <U> getLinkStackToRightmost (U link) {
+		stack <U> linkStack;
+		linkStack.push (link);
+
+		if (nullptr != * link) {
+			while (nullptr != (* link)->left) {
+				link = & (* link)->left;
+				linkStack.push (link);
+			}
+		}
+
+		return linkStack;
 	}
 };
 

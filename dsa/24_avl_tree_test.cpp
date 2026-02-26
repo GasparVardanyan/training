@@ -1,5 +1,5 @@
 # include <gtest/gtest.h>
-#include <limits>
+# include <limits>
 
 # include "20_vector.h"
 # include "22_stack.h"
@@ -80,47 +80,6 @@ bool verify_avlt (const avl_tree <T> & tree) {
 	return ok;
 }
 
-template <typename T>
-void print_avl (const avl_tree <T> & tree) {
-	tree.root ()->preorder_traverse (
-		[path = stack <const typename std::decay_t <decltype (tree)>::node *> ()]
-		(auto * node, auto * parent) mutable -> void {
-			if (nullptr != parent) {
-				while (path.top () != parent) {
-					path.pop ();
-				}
-			}
-			path.push (node);
-
-			std::size_t depth = path.size () - 1;
-
-			for (std::size_t i = 0; i < depth; i++) {
-				std::cout << "  ";
-			}
-
-			if (nullptr != parent) {
-				std::cout << "|- ";
-			}
-
-			std::cout << node->data;
-			std::cout << " (" << ((int) node->data.height_plus_one - 1) << ")";
-
-			if (nullptr != parent) {
-				if (nullptr == parent->left || nullptr == parent->right) {
-					if (node == parent->left) {
-						std::cout << " (L)";
-					}
-					else {
-						std::cout << " (R)";
-					}
-				}
-			}
-
-			std::cout << std::endl;
-		}
-	);
-}
-
 TEST(AVL, BruteForceTest)
 {
 	std::srand (std::time (NULL));
@@ -128,23 +87,16 @@ TEST(AVL, BruteForceTest)
 	for (int iter = 0; iter < 1000; iter++) {
 		int n = std::rand () % 100'000;
 
-		std::vector <int> myVec (n);
-
-		for (int & item : myVec) {
-			item = std::rand () % std::numeric_limits<int>::max ();
-		}
-
 		avl_tree <int> avlt;
-		for (int i : myVec) {
-			avlt.insert (i);
+
+		for (int i = 0; i < n; i++) {
+			int value = std::rand () % std::numeric_limits <int>::max ();
+			if (0 == std::rand () % 2) {
+				value *= -1;
+			}
+			avlt.insert (value);
 		}
 
-		std::cout << myVec.size () << " - " << avlt.size () << std::endl;
-
-		bool test = verify_avlt (avlt);
-
-		// print_avl (avlt);
-
-		EXPECT_EQ (true, test);
+		EXPECT_TRUE (verify_avlt (avlt));
 	}
 }
