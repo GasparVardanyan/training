@@ -117,85 +117,6 @@ public:
 		}
 	}
 
-	static bool verify_avlt (node * root) {
-		stack <node *> node_stack;
-		node_stack.push (root);
-
-		bool ok = true;
-
-		while (false == node_stack.empty ()) {
-			auto n = node_stack.top ();
-			if (nullptr == n) {
-				std::cout << "FUP2" << std::endl;
-			}
-
-			node_stack.pop ();
-
-			std::size_t lh, rh;
-
-			if (nullptr != n->left) {
-				lh = n->left->data.height_plus_one;
-				node_stack.push (n->left);
-			}
-			else {
-				lh = 0;
-			}
-
-			if (nullptr != n->right) {
-				rh = n->right->data.height_plus_one;
-				node_stack.push (n->right);
-			}
-			else {
-				rh = 0;
-			}
-
-			if (lh > rh) {
-				if (n->data.height_plus_one != lh + 1) {
-					ok = false;
-					break;
-				}
-				if (lh - rh > 1) { // probably unneccessary
-					ok = false;
-					break;
-				}
-			}
-			else if (rh > lh) {
-				if (n->data.height_plus_one != rh + 1) {
-					ok = false;
-					break;
-				}
-				if (rh - lh > 1) {
-					ok = false;
-					break;
-				}
-			}
-			else {
-				if (n->data.height_plus_one != lh + 1) {
-					ok = false;
-					break;
-				}
-			}
-		}
-
-		if (true == ok) {
-			vector <value_type> v;
-			root->inorder_traverse (
-				[&v] (const node * n, const node *) -> void {
-					v.push_back (n->data.value);
-				}
-			);
-			auto v2 = v;
-
-			std::sort (v2.begin (), v2.end ());
-
-			if (v != v2) {
-				ok = false;
-			}
-		}
-
-		return ok;
-	}
-
 	void remove (const T & value) {
 		stack <node_link> path = getLinkStack (value);
 		node_link link = path.top ();
@@ -273,9 +194,9 @@ private:
 			std::size_t rh = getNodeHeightPlusOne ((* link)->right);
 
 			if (lh > rh && lh - rh > 1) {
-				// Yes, when removing=false, at the first iteration of this loop
-				// prevLeft is uninitialized. This condition will reach only after
-				// the first iteration.
+				// Yes, at the first iteration of this loop prevLeft is
+				// uninitialized. This condition will reach only after the first
+				// iteration.
 				if (true == prevLeft) {
 					node * n = * link;
 					node * nl = n->left;

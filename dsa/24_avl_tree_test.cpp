@@ -1,9 +1,9 @@
-#include <algorithm>
 # include <gtest/gtest.h>
+
+# include <algorithm>
 # include <limits>
-#include <numeric>
-#include <random>
-#include <set>
+# include <numeric>
+# include <random>
 
 # include "20_vector.h"
 # include "22_stack.h"
@@ -47,7 +47,7 @@ bool verify_avl_balance (const avl_tree <T> & tree) {
 				ok = false;
 				break;
 			}
-			if (lh - rh > 1) { // probably unneccessary
+			if (lh - rh > 1) {
 				ok = false;
 				break;
 			}
@@ -104,10 +104,10 @@ TEST(AVL, InsertBruteForceBalanceAndOrder)
 				value *= -1;
 			}
 			avlt.insert (value);
-		}
 
-		EXPECT_TRUE (verify_avl_balance (avlt));
-		EXPECT_TRUE (verify_avl_order (avlt));
+			EXPECT_TRUE (verify_avl_balance (avlt));
+			EXPECT_TRUE (verify_avl_order (avlt));
+		}
 	}
 }
 
@@ -125,28 +125,23 @@ TEST(AVL, SingleTreeFullRemoveBalanceAndOrder)
 	avl_tree <int> avlt;
 	for (int item : values) {
 		avlt.insert (item);
+
+		EXPECT_TRUE (verify_avl_balance (avlt));
+		EXPECT_TRUE (verify_avl_order (avlt));
 	}
-
-	EXPECT_TRUE (verify_avl_balance (avlt));
-	EXPECT_TRUE (verify_avl_order (avlt));
-
-	std::size_t c = avlt.size ();
 
 	for (int i : values) {
 		avlt.remove (i);
 
 		EXPECT_TRUE (verify_avl_balance (avlt));
 		EXPECT_TRUE (verify_avl_order (avlt));
-
-		c--;
-
-		EXPECT_EQ (avlt.size (), c);
 	}
+
+	EXPECT_TRUE (avlt.empty ());
 }
 
 TEST(AVL, BruteForceTestBalance)
 {
-	# pragma omp parallel for schedule(dynamic)
 	for (int iter = 0; iter < 10; iter++) {
 		std::mt19937 rng (std::random_device {} ());
 
@@ -160,9 +155,8 @@ TEST(AVL, BruteForceTestBalance)
 		avl_tree <int> avlt;
 		for (int item : values) {
 			avlt.insert (item);
+			EXPECT_TRUE (verify_avl_balance (avlt));
 		}
-
-		EXPECT_TRUE (verify_avl_balance (avlt));
 
 		std::size_t c = avlt.size ();
 
