@@ -439,8 +439,8 @@ protected:
 		linkStack.push (link);
 
 		if (nullptr != * link) {
-			while (nullptr != (* link)->left) {
-				link = & (* link)->left;
+			while (nullptr != (* link)->right) {
+				link = & (* link)->right;
 				linkStack.push (link);
 			}
 		}

@@ -1,12 +1,16 @@
+#include <algorithm>
 # include <gtest/gtest.h>
 # include <limits>
+#include <numeric>
+#include <random>
+#include <set>
 
 # include "20_vector.h"
 # include "22_stack.h"
 # include "24_avl_tree.h"
 
 template <typename T>
-bool verify_avlt (const avl_tree <T> & tree) {
+bool verify_avl_balance (const avl_tree <T> & tree) {
 	if (0 == tree.size ()) {
 		return true;
 	}
@@ -66,21 +70,26 @@ bool verify_avlt (const avl_tree <T> & tree) {
 		}
 	}
 
-	if (true == ok) {
-		vector <typename avl_tree <T>::value_type> v = tree;
-		auto v2 = v;
+	return ok;
+}
 
-		std::sort (v2.begin (), v2.end ());
+template <typename T>
+bool verify_avl_order (const avl_tree <T> & tree) {
+	bool ok = true;
 
-		if (v != v2) {
-			ok = false;
-		}
+	vector <typename avl_tree <T>::value_type> v = tree;
+	auto v2 = v;
+
+	std::sort (v2.begin (), v2.end ());
+
+	if (v != v2) {
+		ok = false;
 	}
 
 	return ok;
 }
 
-TEST(AVL, BruteForceTest)
+TEST(AVL, InsertBruteForceBalanceAndOrder)
 {
 	std::srand (std::time (NULL));
 
@@ -97,6 +106,76 @@ TEST(AVL, BruteForceTest)
 			avlt.insert (value);
 		}
 
-		EXPECT_TRUE (verify_avlt (avlt));
+		EXPECT_TRUE (verify_avl_balance (avlt));
+		EXPECT_TRUE (verify_avl_order (avlt));
+	}
+}
+
+TEST(AVL, SingleTreeFullRemoveBalanceAndOrder)
+{
+	std::mt19937 rng (std::random_device {} ());
+
+	std::uniform_int_distribution <std::size_t> dist_n (80'000, 100'000);
+	int n = dist_n (rng);
+
+	std::vector <int> values (n);
+	std::iota (values.begin (), values.end (), 0);
+	std::ranges::shuffle (values, rng);
+
+	avl_tree <int> avlt;
+	for (int item : values) {
+		avlt.insert (item);
+	}
+
+	EXPECT_TRUE (verify_avl_balance (avlt));
+	EXPECT_TRUE (verify_avl_order (avlt));
+
+	std::size_t c = avlt.size ();
+
+	for (int i : values) {
+		avlt.remove (i);
+
+		EXPECT_TRUE (verify_avl_balance (avlt));
+		EXPECT_TRUE (verify_avl_order (avlt));
+
+		c--;
+
+		EXPECT_EQ (avlt.size (), c);
+	}
+}
+
+TEST(AVL, BruteForceTestBalance)
+{
+	# pragma omp parallel for schedule(dynamic)
+	for (int iter = 0; iter < 10; iter++) {
+		std::mt19937 rng (std::random_device {} ());
+
+		std::uniform_int_distribution <std::size_t> dist_n (80'000, 100'000);
+		int n = dist_n (rng);
+
+		std::vector <int> values (n);
+		std::iota (values.begin (), values.end (), 0);
+		std::ranges::shuffle (values, rng);
+
+		avl_tree <int> avlt;
+		for (int item : values) {
+			avlt.insert (item);
+		}
+
+		EXPECT_TRUE (verify_avl_balance (avlt));
+
+		std::size_t c = avlt.size ();
+
+		for (int i : values) {
+			avlt.remove (i);
+
+			if (c < 20 || c % 100 == 0) {
+				EXPECT_TRUE (verify_avl_balance (avlt));
+			}
+
+			c--;
+		}
+
+		EXPECT_TRUE (avlt.empty ());
 	}
 }
