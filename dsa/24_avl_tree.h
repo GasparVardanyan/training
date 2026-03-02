@@ -57,8 +57,10 @@ struct avl_tree__ {
 template <typename T, typename Comparator = std::less <T>, typename Data = std::monostate, bool removePreserveLeft = false>
 requires std::strict_weak_order <Comparator, T, T>
 class avl_tree : protected detail::avl_tree__ <T, Comparator, Data, removePreserveLeft>::tree {
-public:
+protected:
 	using detail = detail::avl_tree__ <T, Comparator, Data, removePreserveLeft>;
+
+public:
 	using tree = detail::tree;
 	using node = tree::node;
 	using node_link = tree::node_link;
@@ -126,8 +128,6 @@ public:
 			node_link linkLeft = & (* link)->left;
 			node_link linkRight = & (* link)->right;
 
-			bool rebalance_path = true;
-
 			node * to_remove = * link;
 
 			if (nullptr == * linkLeft) {
@@ -140,11 +140,31 @@ public:
 			}
 			else {
 				stack <node_link> path2;
-				stack <node_link> & leftRightmostLinkStack = path2;
 
-				leftRightmostLinkStack = getLinkStackToRightmost (linkLeft);
-				node_link leftRightmostLink = leftRightmostLinkStack.top ();
-				leftRightmostLinkStack.pop ();
+				node_link leftRightmostLink;
+				list <node_link> leftRightmostList;
+				stack <node_link> & leftRightmostLinkStack = path2;
+				{
+					node_link n = & (* linkLeft)->right;
+
+					if (nullptr == * n) {
+						leftRightmostLink = linkLeft;
+					}
+					else {
+						while (true) {
+							node_link n2 = & (* n)->right;
+
+							if (nullptr == * n2) {
+								leftRightmostLink = n;
+								break;
+							}
+							else {
+								leftRightmostList.push_back (n);
+								n = n2;
+							}
+						}
+					}
+				}
 
 				node * leftRightmost = * leftRightmostLink;
 				leftRightmost->right = * linkRight;
@@ -154,21 +174,21 @@ public:
 					leftRightmost->left = * linkLeft;
 				}
 
-				leftRightmost->data.height_plus_one = to_remove->data.height_plus_one;
 				* link = leftRightmost;
+				(* link)->data.height_plus_one = to_remove->data.height_plus_one;
 				path.push (link);
 
-				if (false == path2.empty ()) {
-					node_link lrm_parent = path2.top ();
-					path2 = getLinkStack ((* lrm_parent)->data); // FIXME: avoid this stupid garbage
-					rebalance_path = rebalanceAfterRemove (std::move (path2));
+				if (nullptr != (* link)->left) {
+					leftRightmostList.push_front (& (* link)->left);
 				}
 
-				if (true == rebalance_path) {
-					rebalanceAfterRemove (std::move (path));
+				for (node_link l : leftRightmostList) {
+					leftRightmostLinkStack.push (l);
 				}
+
+				rebalanceAfterRemove (std::move (path2));
+				rebalanceAfterRemove (std::move (path));
 			}
-
 
 			to_remove->left = nullptr;
 			to_remove->right = nullptr;
@@ -398,6 +418,8 @@ protected:
 	using tree::getLinkStack;
 	using tree::getLinkStackToLeftmost;
 	using tree::getLinkStackToRightmost;
+	using tree::getLinkToLeftmost;
+	using tree::getLinkToRightmost;
 };
 
 # endif // AVL_TREE_H_24

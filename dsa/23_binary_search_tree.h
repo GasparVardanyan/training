@@ -66,8 +66,10 @@ struct binary_search_tree__ {
 template <typename T, typename Comparator = std::less <T>, bool keepInvariant = false, bool removePreserveLeft = false>
 requires std::strict_weak_order <Comparator, T, T>
 class binary_search_tree {
-public:
+protected:
 	using detail = detail::binary_search_tree__ <T, Comparator, keepInvariant, removePreserveLeft>;
+
+public:
 	using node = detail::node;
 	using node_link = node **;
 	using const_node_link = const node * const *;
