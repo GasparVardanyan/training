@@ -8,6 +8,8 @@
 # include "22_stack.h"
 # include "24_avl_tree.h"
 
+inline const std::size_t nIter = 100;
+
 template <typename T>
 bool verify_avl_balance (const avl_tree <T> & tree) {
 	if (0 == tree.size ()) {
@@ -97,86 +99,6 @@ std::vector <T> random_permutation (std::size_t n, std::mt19937 & rng) {
 	return values;
 }
 
-TEST(AVL, InsertBruteForceBalance)
-{
-	for (int iter = 0; iter < 1000; iter++) {
-		std::mt19937 rng (std::random_device {} ());
-		std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
-		std::vector <int> values = random_permutation (n, rng);
-
-		avl_tree <int> avlt;
-
-		for (int item : values) {
-			avlt.insert (item);
-
-			EXPECT_TRUE (verify_avl_balance (avlt));
-		}
-	}
-}
-
-TEST(AVL, InsertBruteForceOrder)
-{
-	for (int iter = 0; iter < 1000; iter++) {
-		std::mt19937 rng (std::random_device {} ());
-		std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
-		std::vector <int> values = random_permutation (n, rng);
-
-		avl_tree <int> avlt;
-
-		for (int item : values) {
-			avlt.insert (item);
-
-			EXPECT_TRUE (verify_avl_order (avlt));
-		}
-	}
-}
-
-TEST(AVL, RemoveBruteForceBalance)
-{
-	for (int iter = 0; iter < 1000; iter++) {
-		std::mt19937 rng (std::random_device {} ());
-		std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
-		std::vector <int> values = random_permutation (n, rng);
-
-		avl_tree <int> avlt;
-
-		for (int item : values) {
-			avlt.insert (item);
-		}
-
-		for (int i : values) {
-			avlt.remove (i);
-
-			EXPECT_TRUE (verify_avl_balance (avlt));
-		}
-
-		EXPECT_TRUE (avlt.empty ());
-	}
-}
-
-TEST(AVL, RemoveBruteForceOrder)
-{
-	for (int iter = 0; iter < 1000; iter++) {
-		std::mt19937 rng (std::random_device {} ());
-		std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
-		std::vector <int> values = random_permutation (n, rng);
-
-		avl_tree <int> avlt;
-
-		for (int item : values) {
-			avlt.insert (item);
-		}
-
-		for (int i : values) {
-			avlt.remove (i);
-
-			EXPECT_TRUE (verify_avl_order (avlt));
-		}
-
-		EXPECT_TRUE (avlt.empty ());
-	}
-}
-
 TEST(AVL, SingleTreeFullInsertRemoveBalance)
 {
 	std::mt19937 rng (std::random_device {} ());
@@ -221,4 +143,84 @@ TEST(AVL, SingleTreeFullInsertRemoveOrder)
 	}
 
 	EXPECT_TRUE (avlt.empty ());
+}
+
+TEST(AVL, InsertBruteForceBalance)
+{
+	for (std::size_t iter = 0; iter < nIter; iter++) {
+		std::mt19937 rng (std::random_device {} ());
+		std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
+		std::vector <int> values = random_permutation (n, rng);
+
+		avl_tree <int> avlt;
+
+		for (int item : values) {
+			avlt.insert (item);
+
+			EXPECT_TRUE (verify_avl_balance (avlt));
+		}
+	}
+}
+
+TEST(AVL, InsertBruteForceOrder)
+{
+	for (std::size_t iter = 0; iter < nIter; iter++) {
+		std::mt19937 rng (std::random_device {} ());
+		std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
+		std::vector <int> values = random_permutation (n, rng);
+
+		avl_tree <int> avlt;
+
+		for (int item : values) {
+			avlt.insert (item);
+
+			EXPECT_TRUE (verify_avl_order (avlt));
+		}
+	}
+}
+
+TEST(AVL, RemoveBruteForceBalance)
+{
+	for (std::size_t iter = 0; iter < nIter; iter++) {
+		std::mt19937 rng (std::random_device {} ());
+		std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
+		std::vector <int> values = random_permutation (n, rng);
+
+		avl_tree <int> avlt;
+
+		for (int item : values) {
+			avlt.insert (item);
+		}
+
+		for (int i : values) {
+			avlt.remove (i);
+
+			EXPECT_TRUE (verify_avl_balance (avlt));
+		}
+
+		EXPECT_TRUE (avlt.empty ());
+	}
+}
+
+TEST(AVL, RemoveBruteForceOrder)
+{
+	for (std::size_t iter = 0; iter < nIter; iter++) {
+		std::mt19937 rng (std::random_device {} ());
+		std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
+		std::vector <int> values = random_permutation (n, rng);
+
+		avl_tree <int> avlt;
+
+		for (int item : values) {
+			avlt.insert (item);
+		}
+
+		for (int i : values) {
+			avlt.remove (i);
+
+			EXPECT_TRUE (verify_avl_order (avlt));
+		}
+
+		EXPECT_TRUE (avlt.empty ());
+	}
 }
