@@ -132,18 +132,15 @@ public:
 
 			if (nullptr == * linkLeft) {
 				* link = * linkRight;
-				rebalanceAfterRemove (std::move (path));
 			}
 			else if (nullptr == * linkRight) {
 				* link = * linkLeft;
-				rebalanceAfterRemove (std::move (path));
 			}
 			else {
 				stack <node_link> path2;
 
 				node_link leftRightmostLink;
 				list <node_link> leftRightmostList;
-				stack <node_link> & leftRightmostLinkStack = path2;
 				{
 					node_link n = & (* linkLeft)->right;
 
@@ -178,22 +175,22 @@ public:
 				(* link)->data.height_plus_one = to_remove->data.height_plus_one;
 				path.push (link);
 
-				if (nullptr != (* link)->left) {
-					leftRightmostList.push_front (& (* link)->left);
+				if (leftRightmostLink != linkLeft) {
+					if (nullptr != (* link)->left) {
+						path.push (& (* link)->left);
+					}
 				}
 
 				for (node_link l : leftRightmostList) {
-					leftRightmostLinkStack.push (l);
+					path.push (l);
 				}
-
-				rebalanceAfterRemove (std::move (path2));
-				rebalanceAfterRemove (std::move (path));
 			}
 
 			to_remove->left = nullptr;
 			to_remove->right = nullptr;
 			delete to_remove;
 			this->m_size--;
+			rebalanceAfterRemove (std::move (path));
 		}
 	}
 
@@ -301,9 +298,7 @@ private:
 		}
 	}
 
-	bool rebalanceAfterRemove (stack <node_link> && path) {
-		bool finished = false;
-
+	void rebalanceAfterRemove (stack <node_link> && path) {
 		while (false == path.empty ()) {
 			node_link link = path.top ();
 			path.pop ();
@@ -329,7 +324,6 @@ private:
 					if (nllh == nlrh) {
 						n->data.height_plus_one -= 1;
 						nl->data.height_plus_one += 1;
-						finished = true;
 						break;
 					}
 					else {
@@ -367,7 +361,6 @@ private:
 					if (nrlh == nrrh) {
 						n->data.height_plus_one -= 1;
 						nr->data.height_plus_one += 1;
-						finished = true;
 						break;
 					}
 					else {
@@ -393,7 +386,6 @@ private:
 				const std::size_t newHeight = 1 + (lh > rh ? lh : rh);
 
 				if (newHeight == n->data.height_plus_one) {
-					finished = true;
 					break;
 				}
 				else {
@@ -401,8 +393,6 @@ private:
 				}
 			}
 		}
-
-		return finished;
 	}
 
 	inline std::size_t getNodeHeightPlusOne (node * node) {

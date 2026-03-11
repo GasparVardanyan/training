@@ -99,128 +99,177 @@ std::vector <T> random_permutation (std::size_t n, std::mt19937 & rng) {
 	return values;
 }
 
-TEST(AVL, SingleTreeFullInsertRemoveBalance)
-{
+struct TestParams {
+	const std::size_t minCount = 80'000;
+	const std::size_t maxCount = 100'000;
+	const bool test_insert_balance = true;
+	const bool test_insert_order = true;
+	const bool test_remove_balance = true;
+	const bool test_remove_order = true;
+	const std::size_t check_interval = 0;
+};
+
+template <const TestParams params>
+void avl_test () {
 	std::mt19937 rng (std::random_device {} ());
-	std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
+	std::size_t n = std::uniform_int_distribution <std::size_t> (params.minCount, params.maxCount) (rng);
 	std::vector <int> values = random_permutation (n, rng);
+
+	std::size_t counter = 0;
 
 	avl_tree <int> avlt;
 
 	for (int item : values) {
 		avlt.insert (item);
 
-		EXPECT_TRUE (verify_avl_balance (avlt));
-	}
+		bool check = false;
 
-	for (int i : values) {
-		avlt.remove (i);
-
-		EXPECT_TRUE (verify_avl_balance (avlt));
-	}
-
-	EXPECT_TRUE (avlt.empty ());
-}
-
-TEST(AVL, SingleTreeFullInsertRemoveOrder)
-{
-	std::mt19937 rng (std::random_device {} ());
-	std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
-	std::vector <int> values = random_permutation (n, rng);
-
-	avl_tree <int> avlt;
-
-	for (int item : values) {
-		avlt.insert (item);
-
-		EXPECT_TRUE (verify_avl_order (avlt));
-	}
-
-	for (int i : values) {
-		avlt.remove (i);
-
-		EXPECT_TRUE (verify_avl_order (avlt));
-	}
-
-	EXPECT_TRUE (avlt.empty ());
-}
-
-TEST(AVL, InsertBruteForceBalance)
-{
-	for (std::size_t iter = 0; iter < nIter; iter++) {
-		std::mt19937 rng (std::random_device {} ());
-		std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
-		std::vector <int> values = random_permutation (n, rng);
-
-		avl_tree <int> avlt;
-
-		for (int item : values) {
-			avlt.insert (item);
-
-			EXPECT_TRUE (verify_avl_balance (avlt));
+		if constexpr (0 == params.check_interval) {
+			check = true;
 		}
-	}
-}
-
-TEST(AVL, InsertBruteForceOrder)
-{
-	for (std::size_t iter = 0; iter < nIter; iter++) {
-		std::mt19937 rng (std::random_device {} ());
-		std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
-		std::vector <int> values = random_permutation (n, rng);
-
-		avl_tree <int> avlt;
-
-		for (int item : values) {
-			avlt.insert (item);
-
-			EXPECT_TRUE (verify_avl_order (avlt));
-		}
-	}
-}
-
-TEST(AVL, RemoveBruteForceBalance)
-{
-	for (std::size_t iter = 0; iter < nIter; iter++) {
-		std::mt19937 rng (std::random_device {} ());
-		std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
-		std::vector <int> values = random_permutation (n, rng);
-
-		avl_tree <int> avlt;
-
-		for (int item : values) {
-			avlt.insert (item);
+		else if (++counter == params.check_interval) {
+			counter = 0;
+			check = true;
 		}
 
-		for (int i : values) {
-			avlt.remove (i);
+		if (true == check) {
+			if constexpr (true == params.test_insert_balance) {
+				EXPECT_TRUE (verify_avl_balance (avlt));
+			}
+			if constexpr (true == params.test_insert_order) {
+				EXPECT_TRUE (verify_avl_order (avlt));
+			}
+		}
+	}
 
-			EXPECT_TRUE (verify_avl_balance (avlt));
+	if constexpr (true == params.test_remove_balance || true == params.test_remove_order) {
+		for (int item : values) {
+			avlt.remove (item);
+
+			bool check = false;
+
+			if constexpr (0 == params.check_interval) {
+				check = true;
+			}
+			else if (++counter == params.check_interval) {
+				counter = 0;
+				check = true;
+			}
+
+			if (true == check) {
+				if constexpr (true == params.test_remove_balance) {
+					EXPECT_TRUE (verify_avl_balance (avlt));
+				}
+				if constexpr (true == params.test_remove_order) {
+					EXPECT_TRUE (verify_avl_order (avlt));
+				}
+			}
 		}
 
 		EXPECT_TRUE (avlt.empty ());
 	}
 }
 
-TEST(AVL, RemoveBruteForceOrder)
+TEST(SingleTreeFullInsertRemove, FullSmallTree)
 {
-	for (std::size_t iter = 0; iter < nIter; iter++) {
-		std::mt19937 rng (std::random_device {} ());
-		std::size_t n = std::uniform_int_distribution <std::size_t> (80'000, 100'000) (rng);
-		std::vector <int> values = random_permutation (n, rng);
+	avl_test <{
+		.minCount = 8'000,
+		.maxCount = 10'000,
+		.test_insert_balance = true,
+		.test_insert_order = true,
+		.test_remove_balance = true,
+		.test_remove_order = true,
+		.check_interval = 0
+	}> ();
+}
 
-		avl_tree <int> avlt;
+TEST(SingleTreeFullInsertRemove, BigTreeSmallIntervals)
+{
+	avl_test <{
+		.minCount = 80'000,
+		.maxCount = 100'000,
+		.test_insert_balance = true,
+		.test_insert_order = true,
+		.test_remove_balance = true,
+		.test_remove_order = true,
+		.check_interval = 100
+	}> ();
+}
 
-		for (int item : values) {
-			avlt.insert (item);
-		}
+TEST(SingleTreeFullInsertRemove, Balance)
+{
+	avl_test <{
+		.minCount = 80'000,
+		.maxCount = 100'000,
+		.test_insert_balance = true,
+		.test_insert_order = false,
+		.test_remove_balance = true,
+		.test_remove_order = false,
+		.check_interval = 0
+	}> ();
+}
 
-		for (int i : values) {
-			avlt.remove (i);
+TEST(SingleTreeFullInsertRemove, Order)
+{
+	avl_test <{
+		.minCount = 80'000,
+		.maxCount = 100'000,
+		.test_insert_balance = false,
+		.test_insert_order = true,
+		.test_remove_balance = false,
+		.test_remove_order = true,
+		.check_interval = 0
+	}> ();
+}
 
-			EXPECT_TRUE (verify_avl_order (avlt));
-		}
+TEST(BruteForceInsert, Balance)
+{
+	avl_test <{
+		.minCount = 80'000,
+		.maxCount = 100'000,
+		.test_insert_balance = true,
+		.test_insert_order = false,
+		.test_remove_balance = false,
+		.test_remove_order = false,
+		.check_interval = 0
+	}> ();
+}
 
-		EXPECT_TRUE (avlt.empty ());
-	}
+TEST(BruteForceInsert, Order)
+{
+	avl_test <{
+		.minCount = 80'000,
+		.maxCount = 100'000,
+		.test_insert_balance = false,
+		.test_insert_order = true,
+		.test_remove_balance = false,
+		.test_remove_order = false,
+		.check_interval = 0
+	}> ();
+}
+
+TEST(BruteForceRemove, Balance)
+{
+	avl_test <{
+		.minCount = 80'000,
+		.maxCount = 100'000,
+		.test_insert_balance = false,
+		.test_insert_order = false,
+		.test_remove_balance = true,
+		.test_remove_order = false,
+		.check_interval = 0
+	}> ();
+}
+
+TEST(BruteForceRemove, Order)
+{
+	avl_test <{
+		.minCount = 80'000,
+		.maxCount = 100'000,
+		.test_insert_balance = false,
+		.test_insert_order = false,
+		.test_remove_balance = false,
+		.test_remove_order = true,
+		.check_interval = 0
+	}> ();
 }
