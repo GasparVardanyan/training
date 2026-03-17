@@ -2,6 +2,7 @@
 # define EXPRESSION_TREE_H_23
 
 # include <string>
+# include <type_traits>
 # include <utility>
 
 # include "22_config.h"
@@ -43,8 +44,8 @@ struct ExpressionTree : protected NotationConverter {
 		}
 	}
 
-	static std::string TreeToInfix (const binary_tree_node <std::string> * tree) {
-		binary_tree_node <std::string> tree_copy = (* tree);
+	static std::string TreeToInfix (const binary_tree_node <std::string> & tree) {
+		binary_tree_node <std::string> tree_copy (tree);
 
 		MyStack <binary_tree_node <std::string> *> nodes;
 		MyStack <binary_tree_node <std::string> *> parents;
@@ -85,8 +86,8 @@ struct ExpressionTree : protected NotationConverter {
 		return s;
 	}
 
-	static std::string TreeToInfix2 (const binary_tree_node <std::string> * tree) {
-		binary_tree_node <std::string> tree_copy (* tree);
+	static std::string TreeToInfix2 (const binary_tree_node <std::string> & tree) {
+		binary_tree_node <std::string> tree_copy (tree);
 
 		tree_copy.postorder_traverse ([] (
 			binary_tree_node <std::string> * node,
@@ -110,12 +111,12 @@ struct ExpressionTree : protected NotationConverter {
 		return tree_copy.data;
 	}
 
-	static std::string TreeToInfix3 (const binary_tree_node <std::string> * tree) {
+	static std::string TreeToInfix3 (const binary_tree_node <std::string> & tree) {
 		binary_tree_node <std::pair <std::string, std::string>> pair_tree ({
-			tree->data, tree->data // orig, result
+			tree.data, tree.data // orig, result
 		});
-		stack <decltype (tree)> tree_stack;
-		tree_stack.push (tree);
+		stack <const std::decay_t <decltype (tree)> *> tree_stack;
+		tree_stack.push (& tree);
 		stack <decltype (pair_tree) *> pair_tree_stack;
 		pair_tree_stack.push (& pair_tree);
 
@@ -161,8 +162,8 @@ struct ExpressionTree : protected NotationConverter {
 		return pair_tree.data.second;
 	}
 
-	static std::string TreeToPostfix (const binary_tree_node <std::string> * tree) {
-		binary_tree_node <std::string> copy (* tree);
+	static std::string TreeToPostfix (const binary_tree_node <std::string> & tree) {
+		binary_tree_node <std::string> copy (tree);
 
 		copy.postorder_traverse ([] (auto * node, auto *) -> void {
 			if (nullptr != node->left && nullptr != node->right) {

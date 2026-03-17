@@ -15,9 +15,10 @@ int main () {
 
 	auto tree = ExpressionTree::PostfixToTree (res);
 
-	std::cout << ExpressionTree::TreeToInfix (tree) << std::endl;
-	std::cout << ExpressionTree::TreeToInfix2 (tree) << std::endl;
-	std::cout << ExpressionTree::TreeToInfix3 (tree) << std::endl;
+	std::cout << ExpressionTree::TreeToPostfix (* tree) << std::endl;
+	std::cout << ExpressionTree::TreeToInfix (* tree) << std::endl;
+	std::cout << ExpressionTree::TreeToInfix2 (* tree) << std::endl;
+	std::cout << ExpressionTree::TreeToInfix3 (* tree) << std::endl;
 
 	delete tree;
 

@@ -1,6 +1,7 @@
 # include <gtest/gtest.h>
 
 # include <algorithm>
+# include <limits>
 # include <numeric>
 # include <random>
 
@@ -11,7 +12,7 @@
 inline const std::size_t nIter = 100;
 
 template <typename T>
-bool verify_avl_balance (const avl_tree <T> & tree) {
+static bool verify_avl_balance (const avl_tree <T> & tree) {
 	if (0 == tree.size ()) {
 		return true;
 	}
@@ -75,7 +76,7 @@ bool verify_avl_balance (const avl_tree <T> & tree) {
 }
 
 template <typename T>
-bool verify_avl_order (const avl_tree <T> & tree) {
+static bool verify_avl_order (const avl_tree <T> & tree) {
 	bool ok = true;
 
 	vector <typename avl_tree <T>::value_type> v = tree;
@@ -91,7 +92,7 @@ bool verify_avl_order (const avl_tree <T> & tree) {
 }
 
 template <typename T = int>
-std::vector <T> random_permutation (std::size_t n, std::mt19937 & rng) {
+static std::vector <T> random_permutation (std::size_t n, std::mt19937 & rng) {
 	std::vector <T> values (n);
 	std::iota (values.begin (), values.end (), 0);
 	std::ranges::shuffle (values, rng);
@@ -107,44 +108,24 @@ struct TestParams {
 	const bool test_remove_balance = true;
 	const bool test_remove_order = true;
 	const std::size_t check_interval = 0;
+	const std::size_t iterations = 1;
 };
 
 template <const TestParams params>
 void avl_test () {
-	std::mt19937 rng (std::random_device {} ());
-	std::size_t n = std::uniform_int_distribution <std::size_t> (params.minCount, params.maxCount) (rng);
-	std::vector <int> values = random_permutation (n, rng);
+	static_assert (0 < params.iterations && params.iterations < std::numeric_limits <std::size_t>::max (), "illegal iterations count");
 
-	std::size_t counter = 0;
+	for (std::size_t i = 0; i < params.iterations; i++) {
+		std::mt19937 rng (std::random_device {} ());
+		std::size_t n = std::uniform_int_distribution <std::size_t> (params.minCount, params.maxCount) (rng);
+		std::vector <int> values = random_permutation (n, rng);
 
-	avl_tree <int> avlt;
+		std::size_t counter = 0;
 
-	for (int item : values) {
-		avlt.insert (item);
+		avl_tree <int> avlt;
 
-		bool check = false;
-
-		if constexpr (0 == params.check_interval) {
-			check = true;
-		}
-		else if (++counter == params.check_interval) {
-			counter = 0;
-			check = true;
-		}
-
-		if (true == check) {
-			if constexpr (true == params.test_insert_balance) {
-				EXPECT_TRUE (verify_avl_balance (avlt));
-			}
-			if constexpr (true == params.test_insert_order) {
-				EXPECT_TRUE (verify_avl_order (avlt));
-			}
-		}
-	}
-
-	if constexpr (true == params.test_remove_balance || true == params.test_remove_order) {
 		for (int item : values) {
-			avlt.remove (item);
+			avlt.insert (item);
 
 			bool check = false;
 
@@ -157,20 +138,47 @@ void avl_test () {
 			}
 
 			if (true == check) {
-				if constexpr (true == params.test_remove_balance) {
+				if constexpr (true == params.test_insert_balance) {
 					EXPECT_TRUE (verify_avl_balance (avlt));
 				}
-				if constexpr (true == params.test_remove_order) {
+				if constexpr (true == params.test_insert_order) {
 					EXPECT_TRUE (verify_avl_order (avlt));
 				}
 			}
 		}
 
-		EXPECT_TRUE (avlt.empty ());
+		std::cout << "Tree size: " << avlt.size () << ", height: " << (static_cast <int> (avlt.root ()->data.height_plus_one) - 1) << std::endl;
+
+		if constexpr (true == params.test_remove_balance || true == params.test_remove_order) {
+			for (int item : values) {
+				avlt.remove (item);
+
+				bool check = false;
+
+				if constexpr (0 == params.check_interval) {
+					check = true;
+				}
+				else if (++counter == params.check_interval) {
+					counter = 0;
+					check = true;
+				}
+
+				if (true == check) {
+					if constexpr (true == params.test_remove_balance) {
+						EXPECT_TRUE (verify_avl_balance (avlt));
+					}
+					if constexpr (true == params.test_remove_order) {
+						EXPECT_TRUE (verify_avl_order (avlt));
+					}
+				}
+			}
+
+			EXPECT_TRUE (avlt.empty ());
+		}
 	}
 }
 
-TEST(SingleTreeFullInsertRemove, FullSmallTree)
+TEST(SingleTreeFullInsertRemove, SmallTree)
 {
 	avl_test <{
 		.minCount = 8'000,
@@ -179,7 +187,8 @@ TEST(SingleTreeFullInsertRemove, FullSmallTree)
 		.test_insert_order = true,
 		.test_remove_balance = true,
 		.test_remove_order = true,
-		.check_interval = 0
+		.check_interval = 0,
+		.iterations = 1
 	}> ();
 }
 
@@ -192,7 +201,8 @@ TEST(SingleTreeFullInsertRemove, BigTreeSmallIntervals)
 		.test_insert_order = true,
 		.test_remove_balance = true,
 		.test_remove_order = true,
-		.check_interval = 100
+		.check_interval = 100,
+		.iterations = 1
 	}> ();
 }
 
@@ -205,7 +215,8 @@ TEST(SingleTreeFullInsertRemove, Balance)
 		.test_insert_order = false,
 		.test_remove_balance = true,
 		.test_remove_order = false,
-		.check_interval = 0
+		.check_interval = 0,
+		.iterations = 1
 	}> ();
 }
 
@@ -218,58 +229,63 @@ TEST(SingleTreeFullInsertRemove, Order)
 		.test_insert_order = true,
 		.test_remove_balance = false,
 		.test_remove_order = true,
-		.check_interval = 0
+		.check_interval = 0,
+		.iterations = 1
 	}> ();
 }
 
 TEST(BruteForceInsert, Balance)
 {
 	avl_test <{
-		.minCount = 80'000,
-		.maxCount = 100'000,
+		.minCount = 8'000,
+		.maxCount = 10'000,
 		.test_insert_balance = true,
 		.test_insert_order = false,
 		.test_remove_balance = false,
 		.test_remove_order = false,
-		.check_interval = 0
+		.check_interval = 0,
+		.iterations = nIter
 	}> ();
 }
 
 TEST(BruteForceInsert, Order)
 {
 	avl_test <{
-		.minCount = 80'000,
-		.maxCount = 100'000,
+		.minCount = 8'000,
+		.maxCount = 10'000,
 		.test_insert_balance = false,
 		.test_insert_order = true,
 		.test_remove_balance = false,
 		.test_remove_order = false,
-		.check_interval = 0
+		.check_interval = 0,
+		.iterations = nIter
 	}> ();
 }
 
 TEST(BruteForceRemove, Balance)
 {
 	avl_test <{
-		.minCount = 80'000,
-		.maxCount = 100'000,
+		.minCount = 8'000,
+		.maxCount = 10'000,
 		.test_insert_balance = false,
 		.test_insert_order = false,
 		.test_remove_balance = true,
 		.test_remove_order = false,
-		.check_interval = 0
+		.check_interval = 0,
+		.iterations = nIter
 	}> ();
 }
 
 TEST(BruteForceRemove, Order)
 {
 	avl_test <{
-		.minCount = 80'000,
-		.maxCount = 100'000,
+		.minCount = 8'000,
+		.maxCount = 10'000,
 		.test_insert_balance = false,
 		.test_insert_order = false,
 		.test_remove_balance = false,
 		.test_remove_order = true,
-		.check_interval = 0
+		.check_interval = 0,
+		.iterations = nIter
 	}> ();
 }

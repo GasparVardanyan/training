@@ -4,12 +4,12 @@
 # include <concepts>
 # include <cstddef>
 # include <functional>
-# include <iostream>
 # include <iterator>
 # include <ostream>
 # include <variant>
 
 # include "20_vector.h"
+# include "21_list.h"
 # include "22_stack.h"
 # include "23_binary_tree_node.h"
 # include "23_binary_search_tree.h"
@@ -17,8 +17,6 @@
 namespace detail {
 template <typename T, typename C, typename Data = std::monostate, bool _removePreserveLeft = false>
 struct avl_tree__ {
-	static constexpr bool removePreserveLeft = _removePreserveLeft;
-
 	struct node_data : Data {
 		static_assert (false == requires (Data d) { d.value; }, "the value member of Data is reserved");
 		static_assert (
@@ -49,16 +47,15 @@ struct avl_tree__ {
 		}
 	};
 
-	using tree = binary_search_tree <node_data, C, false, removePreserveLeft>;
+	using tree = binary_search_tree <node_data, C, false>;
 };
 }
 
-// WARN: removePreserveLeft isn't used
-template <typename T, typename Comparator = std::less <T>, typename Data = std::monostate, bool removePreserveLeft = false>
+template <typename T, typename Comparator = std::less <T>, typename Data = std::monostate>
 requires std::strict_weak_order <Comparator, T, T>
-class avl_tree : protected detail::avl_tree__ <T, Comparator, Data, removePreserveLeft>::tree {
+class avl_tree : protected detail::avl_tree__ <T, Comparator, Data>::tree {
 protected:
-	using detail = detail::avl_tree__ <T, Comparator, Data, removePreserveLeft>;
+	using detail = detail::avl_tree__ <T, Comparator, Data>;
 
 public:
 	using tree = detail::tree;
@@ -122,7 +119,6 @@ public:
 	void remove (const T & value) {
 		stack <node_link> path = getLinkStack (value);
 		node_link link = path.top ();
-		path.pop ();
 
 		if (nullptr != * link) {
 			node_link linkLeft = & (* link)->left;
@@ -131,58 +127,105 @@ public:
 			node * to_remove = * link;
 
 			if (nullptr == * linkLeft) {
+				path.pop ();
 				* link = * linkRight;
 			}
 			else if (nullptr == * linkRight) {
+				path.pop ();
 				* link = * linkLeft;
 			}
 			else {
-				stack <node_link> path2;
+				if ((* linkLeft)->data.height_plus_one > (* linkRight)->data.height_plus_one) {
+					node_link leftRightmostLink;
 
-				node_link leftRightmostLink;
-				list <node_link> leftRightmostList;
-				{
-					node_link n = & (* linkLeft)->right;
+					list <node_link> leftRightmostList; {
+						node_link n = & (* linkLeft)->right;
 
-					if (nullptr == * n) {
-						leftRightmostLink = linkLeft;
-					}
-					else {
-						while (true) {
-							node_link n2 = & (* n)->right;
+						if (nullptr == * n) {
+							leftRightmostLink = linkLeft;
+						}
+						else {
+							while (true) {
+								node_link n2 = & (* n)->right;
 
-							if (nullptr == * n2) {
-								leftRightmostLink = n;
-								break;
-							}
-							else {
-								leftRightmostList.push_back (n);
-								n = n2;
+								if (nullptr == * n2) {
+									leftRightmostLink = n;
+									break;
+								}
+								else {
+									leftRightmostList.push_back (n);
+									n = n2;
+								}
 							}
 						}
 					}
-				}
 
-				node * leftRightmost = * leftRightmostLink;
-				leftRightmost->right = * linkRight;
+					// path: [root, link]
+					// leftRightmostList: [linkLeft, leftRightmostLink)
+					// (leftRightmostLink == linkLeft) <=> leftRightmostList.empty ()
 
-				if (leftRightmostLink != linkLeft) {
-					* leftRightmostLink = leftRightmost->left;
-					leftRightmost->left = * linkLeft;
-				}
+					node * leftRightmost = * leftRightmostLink;
+					leftRightmost->right = * linkRight;
+					leftRightmost->data.height_plus_one = to_remove->data.height_plus_one;
 
-				* link = leftRightmost;
-				(* link)->data.height_plus_one = to_remove->data.height_plus_one;
-				path.push (link);
+					if (leftRightmostLink != linkLeft) {
+						* leftRightmostLink = leftRightmost->left;
+						leftRightmost->left = * linkLeft;
 
-				if (leftRightmostLink != linkLeft) {
-					if (nullptr != (* link)->left) {
-						path.push (& (* link)->left);
+						path.push (& leftRightmost->left);
+
+						for (node_link l : leftRightmostList) {
+							path.push (l);
+						}
 					}
-				}
 
-				for (node_link l : leftRightmostList) {
-					path.push (l);
+					* link = leftRightmost;
+				}
+				else {
+					node_link rightLeftmostLink;
+
+					list <node_link> rightLeftmostList; {
+						node_link n = & (* linkRight)->left;
+
+						if (nullptr == * n) {
+							rightLeftmostLink = linkRight;
+						}
+						else {
+							while (true) {
+								node_link n2 = & (* n)->left;
+
+								if (nullptr == * n2) {
+									rightLeftmostLink = n;
+									break;
+								}
+								else {
+									rightLeftmostList.push_back (n);
+									n = n2;
+								}
+							}
+						}
+					}
+
+					// path: [root, link]
+					// rightLeftmostList: [linkRight, rightLeftmostLink)
+					// (rightLeftmostLink == linkRight) <=> rightLeftmostList.empty ()
+
+					node * rightLeftmost = * rightLeftmostLink;
+					rightLeftmost->left = * linkLeft;
+					rightLeftmost->data.height_plus_one = to_remove->data.height_plus_one;
+
+					if (rightLeftmostLink != linkRight) {
+						* rightLeftmostLink = rightLeftmost->right;
+						rightLeftmost->right = * linkRight;
+
+						path.push (& rightLeftmost->right);
+
+						for (node_link l : rightLeftmostList) {
+							path.push (l);
+						}
+					}
+
+					* link = rightLeftmost;
 				}
 			}
 
