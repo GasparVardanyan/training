@@ -139,10 +139,10 @@ void avl_test () {
 
 			if (true == check) {
 				if constexpr (true == params.test_insert_balance) {
-					EXPECT_TRUE (verify_avl_balance (avlt));
+					ASSERT_TRUE (verify_avl_balance (avlt));
 				}
 				if constexpr (true == params.test_insert_order) {
-					EXPECT_TRUE (verify_avl_order (avlt));
+					ASSERT_TRUE (verify_avl_order (avlt));
 				}
 			}
 		}
@@ -165,15 +165,15 @@ void avl_test () {
 
 				if (true == check) {
 					if constexpr (true == params.test_remove_balance) {
-						EXPECT_TRUE (verify_avl_balance (avlt));
+						ASSERT_TRUE (verify_avl_balance (avlt));
 					}
 					if constexpr (true == params.test_remove_order) {
-						EXPECT_TRUE (verify_avl_order (avlt));
+						ASSERT_TRUE (verify_avl_order (avlt));
 					}
 				}
 			}
 
-			EXPECT_TRUE (avlt.empty ());
+			ASSERT_TRUE (avlt.empty ());
 		}
 	}
 }

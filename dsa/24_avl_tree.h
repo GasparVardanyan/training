@@ -6,6 +6,7 @@
 # include <functional>
 # include <iterator>
 # include <ostream>
+# include <stdexcept>
 # include <variant>
 
 # include "20_vector.h"
@@ -136,33 +137,7 @@ public:
 			}
 			else {
 				if ((* linkLeft)->data.height_plus_one > (* linkRight)->data.height_plus_one) {
-					node_link leftRightmostLink;
-
-					list <node_link> leftRightmostList; {
-						node_link n = & (* linkLeft)->right;
-
-						if (nullptr == * n) {
-							leftRightmostLink = linkLeft;
-						}
-						else {
-							while (true) {
-								node_link n2 = & (* n)->right;
-
-								if (nullptr == * n2) {
-									leftRightmostLink = n;
-									break;
-								}
-								else {
-									leftRightmostList.push_back (n);
-									n = n2;
-								}
-							}
-						}
-					}
-
-					// path: [root, link]
-					// leftRightmostList: [linkLeft, leftRightmostLink)
-					// (leftRightmostLink == linkLeft) <=> leftRightmostList.empty ()
+					node_link leftRightmostLink = getLinkToRightmost (linkLeft);
 
 					node * leftRightmost = * leftRightmostLink;
 					leftRightmost->right = * linkRight;
@@ -172,43 +147,19 @@ public:
 						* leftRightmostLink = leftRightmost->left;
 						leftRightmost->left = * linkLeft;
 
-						path.push (& leftRightmost->left);
+						node_link n = & leftRightmost->left;
 
-						for (node_link l : leftRightmostList) {
-							path.push (l);
+						do {
+							path.push (n);
+							n = & (* n)->right;
 						}
+						while (* leftRightmostLink != * n);
 					}
 
 					* link = leftRightmost;
 				}
 				else {
-					node_link rightLeftmostLink;
-
-					list <node_link> rightLeftmostList; {
-						node_link n = & (* linkRight)->left;
-
-						if (nullptr == * n) {
-							rightLeftmostLink = linkRight;
-						}
-						else {
-							while (true) {
-								node_link n2 = & (* n)->left;
-
-								if (nullptr == * n2) {
-									rightLeftmostLink = n;
-									break;
-								}
-								else {
-									rightLeftmostList.push_back (n);
-									n = n2;
-								}
-							}
-						}
-					}
-
-					// path: [root, link]
-					// rightLeftmostList: [linkRight, rightLeftmostLink)
-					// (rightLeftmostLink == linkRight) <=> rightLeftmostList.empty ()
+					node_link rightLeftmostLink = getLinkToLeftmost (linkRight);
 
 					node * rightLeftmost = * rightLeftmostLink;
 					rightLeftmost->left = * linkLeft;
@@ -218,11 +169,13 @@ public:
 						* rightLeftmostLink = rightLeftmost->right;
 						rightLeftmost->right = * linkRight;
 
-						path.push (& rightLeftmost->right);
+						node_link n = & rightLeftmost->right;
 
-						for (node_link l : rightLeftmostList) {
-							path.push (l);
+						do {
+							path.push (n);
+							n = & (* n)->left;
 						}
+						while (* rightLeftmostLink != * n);
 					}
 
 					* link = rightLeftmost;
