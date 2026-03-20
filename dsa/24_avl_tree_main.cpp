@@ -206,11 +206,11 @@ int main () {
 	std::cout << std::endl;
 
 	if (false == avlt.empty ()) {
-		std::cout << avlt.findMin ()->data << " - " << avlt.findMax ()->data << std::endl;
+		std::cout << avlt.find_min ()->data << " - " << avlt.find_max ()->data << std::endl;
 	}
 
 	std::vector <int> v;
-	avlt.dumpSorted (std::back_inserter(v));
+	avlt.dump_sorted (std::back_inserter(v));
 	for (int i : v) {
 		std::cout << i << ", ";
 	}

@@ -33,14 +33,14 @@ template <typename T, typename U>
 requires std::convertible_to <T, U>
 struct equal_to <T, std::greater <U>> : std::equal_to <U> {};
 
-template <typename T, typename Comparator, bool _keepInvariant, bool _removePreserveLeft>
+template <typename T, typename Comparator, bool _KeepInvariant, bool _RemovePreserveLeft>
 requires std::strict_weak_order <Comparator, T, T>
 struct binary_search_tree__ {
 	using equal_to = equal_to <T, Comparator>;
 	using node = binary_tree_node <T, equal_to>;
 
-	static constexpr bool keepInvariant = _keepInvariant;
-	static constexpr bool removePreserveLeft = _removePreserveLeft;
+	static constexpr bool KeepInvariant = _KeepInvariant;
+	static constexpr bool RemovePreserveLeft = _RemovePreserveLeft;
 
 	template <typename U>
 	static constexpr bool is_node_link_v =
@@ -63,11 +63,11 @@ struct binary_search_tree__ {
 /// @tparam T
 /// @tparam Comparator STRICTLY-LESS-THAN comparator
 /// @warning Comparator must impose a strict weak ordering
-template <typename T, typename Comparator = std::less <T>, bool keepInvariant = false, bool removePreserveLeft = false>
+template <typename T, typename Comparator = std::less <T>, bool KeepInvariant = false, bool RemovePreserveLeft = false>
 requires std::strict_weak_order <Comparator, T, T>
 class binary_search_tree {
 protected:
-	using detail = detail::binary_search_tree__ <T, Comparator, keepInvariant, removePreserveLeft>;
+	using detail = detail::binary_search_tree__ <T, Comparator, KeepInvariant, RemovePreserveLeft>;
 
 public:
 	using node = detail::node;
@@ -149,7 +149,7 @@ public:
 		vector <T> v;
 		v.reserve (m_size);
 
-		dumpSorted (std::back_inserter (v));
+		dump_sorted (std::back_inserter (v));
 
 		return v;
 	}
@@ -170,7 +170,7 @@ public:
 	template <typename U>
 	requires std::convertible_to <U, T>
 	void insert (U && value) {
-		node_link link = getLink (value);
+		node_link link = get_link (value);
 		if (nullptr == * link) {
 			* link = new node (std::forward <U> (value));
 			m_size++;
@@ -189,67 +189,67 @@ public:
 	}
 
 	const node * at (const T & value) const {
-		return * getLink (value);
+		return * get_link (value);
 	}
 
 	node * at (const T & value) {
-		return * getLink (value);
+		return * get_link (value);
 	}
 
 	void remove (const T & value) {
-		node_link link = getLink (value);
+		node_link link = get_link (value);
 
 		if (nullptr != * link) {
-			node_link linkLeft = & (* link)->left;
-			node_link linkRight = & (* link)->right;
+			node_link link_left = & (* link)->left;
+			node_link link_right = & (* link)->right;
 
 			node * to_remove = * link;
 
-			if (nullptr == * linkRight) {
-				* link = * linkLeft;
+			if (nullptr == * link_right) {
+				* link = * link_left;
 			}
-			else if (nullptr == * linkLeft) {
-				* link = * linkRight;
+			else if (nullptr == * link_left) {
+				* link = * link_right;
 			}
 			else {
-				if constexpr (true == detail::keepInvariant) {
-					if constexpr (true == detail::removePreserveLeft) {
-						node * leftRightmost = * getLinkToRightmost (linkLeft);
-						leftRightmost->right = * linkRight;
-						* link = * linkLeft;
+				if constexpr (true == detail::KeepInvariant) {
+					if constexpr (true == detail::RemovePreserveLeft) {
+						node * left_rightmost = * get_link_to_rightmost (link_left);
+						left_rightmost->right = * link_right;
+						* link = * link_left;
 					}
 					else {
-						node * rightLeftmost = * getLinkToLeftmost (linkRight);
-						rightLeftmost->left = * linkLeft;
-						* link = * linkRight;
+						node * right_leftmost = * get_link_to_leftmost (link_right);
+						right_leftmost->left = * link_left;
+						* link = * link_right;
 					}
 				}
 				else {
-					if constexpr (true == detail::removePreserveLeft) {
-						node_link leftRightmostLink = getLinkToRightmost (linkLeft);
+					if constexpr (true == detail::RemovePreserveLeft) {
+						node_link left_rightmost_link = get_link_to_rightmost (link_left);
 
-						node * leftRightmost = * leftRightmostLink;
-						leftRightmost->right = * linkRight;
+						node * left_rightmost = * left_rightmost_link;
+						left_rightmost->right = * link_right;
 
-						if (leftRightmostLink != linkLeft) {
-							* leftRightmostLink = leftRightmost->left;
-							leftRightmost->left = * linkLeft;
+						if (left_rightmost_link != link_left) {
+							* left_rightmost_link = left_rightmost->left;
+							left_rightmost->left = * link_left;
 						}
 
-						* link = leftRightmost;
+						* link = left_rightmost;
 					}
 					else {
-						node_link rightLeftmostLink = getLinkToLeftmost (linkRight);
+						node_link right_leftmost_link = get_link_to_leftmost (link_right);
 
-						node * rightLeftmost = * rightLeftmostLink;
-						rightLeftmost->left = * linkLeft;
+						node * right_leftmost = * right_leftmost_link;
+						right_leftmost->left = * link_left;
 
-						if (rightLeftmostLink != linkRight) {
-							* rightLeftmostLink = rightLeftmost->right;
-							rightLeftmost->right = * linkRight;
+						if (right_leftmost_link != link_right) {
+							* right_leftmost_link = right_leftmost->right;
+							right_leftmost->right = * link_right;
 						}
 
-						* link = rightLeftmost;
+						* link = right_leftmost;
 					}
 				}
 			}
@@ -261,7 +261,7 @@ public:
 		}
 	}
 
-	void dumpSorted (std::output_iterator <T> auto it) const {
+	void dump_sorted (std::output_iterator <T> auto it) const {
 		if (nullptr != m_root) {
 			m_root->inorder_traverse (
 				[&it] (const node * n, const node *) -> void {
@@ -271,7 +271,7 @@ public:
 		}
 	}
 
-	void dumpInvariant (std::output_iterator <T> auto it) const {
+	void dump_invariant (std::output_iterator <T> auto it) const {
 		if (nullptr != m_root) {
 			m_root->level_order_traverse (
 				[&it] (const node * n, const node *) -> void {
@@ -281,15 +281,15 @@ public:
 		}
 	}
 
-	const node * findMin () const {
-		return * getLinkToLeftmost (& m_root);
+	const node * find_min () const {
+		return * get_link_to_leftmost (& m_root);
 	}
 
-	const node * findMax () const {
-		return * getLinkToRightmost (& m_root);
+	const node * find_max () const {
+		return * get_link_to_rightmost (& m_root);
 	}
 
-	void makeEmpty () {
+	void make_empty () {
 		if (nullptr != m_root) {
 			delete m_root;
 			m_root = nullptr;
@@ -301,7 +301,7 @@ public:
 	std::size_t size () const { return m_size; }
 	bool empty () const { return 0 == m_size; }
 
-	std::size_t internalPathLength () {
+	std::size_t internal_path_length () {
 		std::size_t s = 0;
 
 		if (nullptr != m_root) {
@@ -314,7 +314,7 @@ public:
 	}
 
 protected:
-	const_node_link getLink (const T & value) const {
+	const_node_link get_link (const T & value) const {
 		const_node_link link = & m_root;
 
 		while (nullptr != * link) {
@@ -335,32 +335,32 @@ protected:
 		return link;
 	}
 
-	node_link getLink (const T & value) {
-		return const_cast <node_link> (const_cast <const binary_search_tree *> (this)->getLink (value));
+	node_link get_link (const T & value) {
+		return const_cast <node_link> (const_cast <const binary_search_tree *> (this)->get_link (value));
 	}
 
-	stack <const_node_link> getLinkStack (const T & value) const {
-		return getLinkStack <const_node_link> (& m_root, value);
+	stack <const_node_link> get_link_stack (const T & value) const {
+		return get_link_stack <const_node_link> (& m_root, value);
 	}
 
-	stack <node_link> getLinkStack (const T & value) {
-		return getLinkStack <node_link> (& m_root, value);
+	stack <node_link> get_link_stack (const T & value) {
+		return get_link_stack <node_link> (& m_root, value);
 	}
 
-	stack <const_node_link> getLinkStackToLeftmost (const_node_link link) const {
-		return getLinkStackToLeftmost <const_node_link> (link);
+	stack <const_node_link> get_link_stack_to_leftmost (const_node_link link) const {
+		return get_link_stack_to_leftmost <const_node_link> (link);
 	}
 
-	stack <node_link> getLinkStackToLeftmost (node_link link) {
-		return getLinkStackToLeftmost <node_link> (link);
+	stack <node_link> get_link_stack_to_leftmost (node_link link) {
+		return get_link_stack_to_leftmost <node_link> (link);
 	}
 
-	stack <const_node_link> getLinkStackToRightmost (const_node_link link) const {
-		return getLinkStackToRightmost <const_node_link> (link);
+	stack <const_node_link> get_link_stack_to_rightmost (const_node_link link) const {
+		return get_link_stack_to_rightmost <const_node_link> (link);
 	}
 
-	stack <node_link> getLinkStackToRightmost (node_link link) {
-		return getLinkStackToRightmost <node_link> (link);
+	stack <node_link> get_link_stack_to_rightmost (node_link link) {
+		return get_link_stack_to_rightmost <node_link> (link);
 	}
 
 protected:
@@ -370,9 +370,9 @@ protected:
 protected:
 	template <typename U>
 	requires detail::template is_node_link_v <U>
-	static stack <U> getLinkStack (U link, const T & value) {
-		stack <U> linkStack;
-		linkStack.push (link);
+	static stack <U> get_link_stack (U link, const T & value) {
+		stack <U> link_stack;
+		link_stack.push (link);
 
 		while (nullptr != * link) {
 			bool lt = less_than (value, (* link)->data);
@@ -380,23 +380,23 @@ protected:
 
 			if (true == lt) {
 				link = & (* link)->left;
-				linkStack.push (link);
+				link_stack.push (link);
 			}
 			else if (true == gt) {
 				link = & (* link)->right;
-				linkStack.push (link);
+				link_stack.push (link);
 			}
 			else {
 				break;
 			}
 		}
 
-		return linkStack;
+		return link_stack;
 	}
 
 	template <typename U>
 	requires detail::template is_node_link_v <U>
-	static U getLinkToLeftmost (U link) {
+	static U get_link_to_leftmost (U link) {
 		if (nullptr != * link) {
 			while (nullptr != (* link)->left) {
 				link = & (* link)->left;
@@ -408,7 +408,7 @@ protected:
 
 	template <typename U>
 	requires detail::template is_node_link_v <U>
-	static U getLinkToRightmost (U link) {
+	static U get_link_to_rightmost (U link) {
 		if (nullptr != * link) {
 			while (nullptr != (* link)->right) {
 				link = & (* link)->right;
@@ -420,34 +420,34 @@ protected:
 
 	template <typename U>
 	requires detail::template is_node_link_v <U>
-	static stack <U> getLinkStackToLeftmost (U link) {
-		stack <U> linkStack;
-		linkStack.push (link);
+	static stack <U> get_link_stack_to_leftmost (U link) {
+		stack <U> link_stack;
+		link_stack.push (link);
 
 		if (nullptr != * link) {
 			while (nullptr != (* link)->left) {
 				link = & (* link)->left;
-				linkStack.push (link);
+				link_stack.push (link);
 			}
 		}
 
-		return linkStack;
+		return link_stack;
 	}
 
 	template <typename U>
 	requires detail::template is_node_link_v <U>
-	static stack <U> getLinkStackToRightmost (U link) {
-		stack <U> linkStack;
-		linkStack.push (link);
+	static stack <U> get_link_stack_to_rightmost (U link) {
+		stack <U> link_stack;
+		link_stack.push (link);
 
 		if (nullptr != * link) {
 			while (nullptr != (* link)->right) {
 				link = & (* link)->right;
-				linkStack.push (link);
+				link_stack.push (link);
 			}
 		}
 
-		return linkStack;
+		return link_stack;
 	}
 };
 

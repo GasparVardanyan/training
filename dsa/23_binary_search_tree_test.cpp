@@ -61,8 +61,8 @@ TEST_F(BinarySearchTreeTest, SearchAndExtremes) {
 	EXPECT_TRUE(bst.contains(80));
 	EXPECT_FALSE(bst.contains(99));
 
-	EXPECT_EQ(bst.findMin()->data, 20);
-	EXPECT_EQ(bst.findMax()->data, 80);
+	EXPECT_EQ(bst.find_min()->data, 20);
+	EXPECT_EQ(bst.find_max()->data, 80);
 
 	const decltype (bst)::node * node = bst.at (30);
 	ASSERT_NE(node, nullptr);
@@ -138,11 +138,11 @@ TEST_F(BinarySearchTreeTest, CustomComparatorDescending) {
 
 	// Inorder should now be descending
 	std::vector<int> v;
-	desc_bst.dumpSorted(std::back_inserter(v));
+	desc_bst.dump_sorted(std::back_inserter(v));
 
 	std::vector<int> expected = {20, 10, 5};
 	EXPECT_EQ(v, expected);
-	EXPECT_EQ(desc_bst.findMin()->data, 20); // Min in terms of comparator
+	EXPECT_EQ(desc_bst.find_min()->data, 20); // Min in terms of comparator
 }
 
 TEST_F(BinarySearchTreeTest, VectorConversion) {
@@ -155,7 +155,7 @@ TEST_F(BinarySearchTreeTest, VectorConversion) {
 
 TEST_F(BinarySearchTreeTest, MakeEmpty) {
 	PopulateStandard(bst);
-	bst.makeEmpty();
+	bst.make_empty();
 	EXPECT_EQ(bst.size(), 0);
 	EXPECT_EQ(bst.root(), nullptr);
 	EXPECT_TRUE(bst.empty());

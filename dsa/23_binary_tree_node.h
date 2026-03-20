@@ -140,29 +140,29 @@ public:
 				break;
 			}
 
-			const binary_tree_node * oL = o->left;
-			const binary_tree_node * oR = o->right;
-			const binary_tree_node * tL = t->left;
-			const binary_tree_node * tR = t->right;
+			const binary_tree_node * o_l = o->left;
+			const binary_tree_node * o_r = o->right;
+			const binary_tree_node * t_l = t->left;
+			const binary_tree_node * t_r = t->right;
 
-			const bool oLNull = oL == nullptr;
-			const bool oRNull = oR == nullptr;
-			const bool tLNull = tL == nullptr;
-			const bool tRNull = tR == nullptr;
+			const bool o_l_null = o_l == nullptr;
+			const bool o_r_null = o_r == nullptr;
+			const bool t_l_null = t_l == nullptr;
+			const bool t_r_null = t_r == nullptr;
 
-			if (oLNull != tLNull || oRNull != tRNull) {
+			if (o_l_null != t_l_null || o_r_null != t_r_null) {
 				equal = false;
 				break;
 			}
 
-			if (false == oLNull) {
-				our.push (oL);
-				their.push (tL);
+			if (false == o_l_null) {
+				our.push (o_l);
+				their.push (t_l);
 			}
 
-			if (false == oRNull) {
-				our.push (oR);
-				their.push (tR);
+			if (false == o_r_null) {
+				our.push (o_r);
+				their.push (t_r);
 			}
 		}
 

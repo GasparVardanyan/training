@@ -85,7 +85,7 @@ int main () {
 	}
 	std::cout << std::endl;
 
-	std::cout << bst.findMin ()->data << " - " << bst.findMax ()->data << std::endl;
+	std::cout << bst.find_min ()->data << " - " << bst.find_max ()->data << std::endl;
 	std::cout << (* bst.root () == * bst.root ()) << std::endl;
 	// const int y = 20;
 	// bst1.insert(y);

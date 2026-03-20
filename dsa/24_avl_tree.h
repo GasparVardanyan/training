@@ -66,16 +66,16 @@ public:
 
 public: // binary_search_tree interface
 	using tree::contains;
-	using tree::dumpInvariant;
-	using tree::dumpSorted;
-	using tree::findMin;
-	using tree::findMax;
-	using tree::makeEmpty;
+	using tree::dump_invariant;
+	using tree::dump_sorted;
+	using tree::find_min;
+	using tree::find_max;
+	using tree::make_empty;
 	using tree::root;
 	using tree::size;
 	using tree::empty;
 	using tree::at;
-	using tree::internalPathLength;
+	using tree::internal_path_length;
 
 	bool operator== (const avl_tree & other) const {
 		return
@@ -88,7 +88,7 @@ public: // binary_search_tree interface
 		vector <T> v;
 		v.reserve (size ());
 
-		dumpSorted (std::back_inserter (v));
+		dump_sorted (std::back_inserter (v));
 
 		return v;
 	}
@@ -105,78 +105,78 @@ public:
 	template <typename U>
 	requires std::convertible_to <U, T>
 	void insert (U && value) {
-		stack <node_link> path = getLinkStack (value);
+		stack <node_link> path = get_link_stack (value);
 		node_link link = path.top (); // path is always non-empty
 
 		if (nullptr == * link) {
 			* link = new node (node_data (std::forward <U> (value), 1));
 			this->m_size++;
-			rebalanceAfterInsert (std::move (path));
+			rebalance_after_insert (std::move (path));
 		}
 	}
 
 	void remove (const T & value) {
-		stack <node_link> path = getLinkStack (value);
+		stack <node_link> path = get_link_stack (value);
 		node_link link = path.top ();
 
 		if (nullptr != * link) {
-			node_link linkLeft = & (* link)->left;
-			node_link linkRight = & (* link)->right;
+			node_link link_left = & (* link)->left;
+			node_link link_right = & (* link)->right;
 
 			node * to_remove = * link;
 
-			if (nullptr == * linkLeft) {
+			if (nullptr == * link_left) {
 				path.pop ();
-				* link = * linkRight;
+				* link = * link_right;
 			}
-			else if (nullptr == * linkRight) {
+			else if (nullptr == * link_right) {
 				path.pop ();
-				* link = * linkLeft;
+				* link = * link_left;
 			}
 			else {
-				if ((* linkLeft)->data.height_plus_one > (* linkRight)->data.height_plus_one) {
-					node_link leftRightmostLink = getLinkToRightmost (linkLeft);
+				if ((* link_left)->data.height_plus_one > (* link_right)->data.height_plus_one) {
+					node_link left_rightmost_link = get_link_to_rightmost (link_left);
 
-					node * leftRightmost = * leftRightmostLink;
-					leftRightmost->right = * linkRight;
-					leftRightmost->data.height_plus_one = to_remove->data.height_plus_one;
+					node * left_rightmost = * left_rightmost_link;
+					left_rightmost->right = * link_right;
+					left_rightmost->data.height_plus_one = to_remove->data.height_plus_one;
 
-					if (leftRightmostLink != linkLeft) {
-						* leftRightmostLink = leftRightmost->left;
-						leftRightmost->left = * linkLeft;
+					if (left_rightmost_link != link_left) {
+						* left_rightmost_link = left_rightmost->left;
+						left_rightmost->left = * link_left;
 
-						node_link n = & leftRightmost->left;
+						node_link n = & left_rightmost->left;
 
 						do {
 							path.push (n);
 							n = & (* n)->right;
 						}
-						while (* leftRightmostLink != * n);
+						while (* left_rightmost_link != * n);
 					}
 
-					* link = leftRightmost;
+					* link = left_rightmost;
 				}
 				else {
-					node_link rightLeftmostLink = getLinkToLeftmost (linkRight);
+					node_link right_leftmost_link = get_link_to_leftmost (link_right);
 
-					node * rightLeftmost = * rightLeftmostLink;
-					rightLeftmost->left = * linkLeft;
-					rightLeftmost->data.height_plus_one = to_remove->data.height_plus_one;
+					node * right_leftmost = * right_leftmost_link;
+					right_leftmost->left = * link_left;
+					right_leftmost->data.height_plus_one = to_remove->data.height_plus_one;
 
-					if (rightLeftmostLink != linkRight) {
-						* rightLeftmostLink = rightLeftmost->right;
-						rightLeftmost->right = * linkRight;
+					if (right_leftmost_link != link_right) {
+						* right_leftmost_link = right_leftmost->right;
+						right_leftmost->right = * link_right;
 
-						node_link n = & rightLeftmost->right;
+						node_link n = & right_leftmost->right;
 
 						do {
 							path.push (n);
 							n = & (* n)->left;
 						}
-						while (* rightLeftmostLink != * n);
+						while (* right_leftmost_link != * n);
 					}
 
-					* link = rightLeftmost;
+					* link = right_leftmost;
 				}
 			}
 
@@ -184,16 +184,16 @@ public:
 			to_remove->right = nullptr;
 			delete to_remove;
 			this->m_size--;
-			rebalanceAfterRemove (std::move (path));
+			rebalance_after_remove (std::move (path));
 		}
 	}
 
 private:
-	void rebalanceAfterInsert (stack <node_link> && path) {
+	void rebalance_after_insert (stack <node_link> && path) {
 		node_link child = path.top ();
 		path.pop ();
 
-		bool prevLeft = false;
+		bool prev_left = false;
 
 		while (false == path.empty ()) {
 			node_link link = path.top ();
@@ -201,11 +201,11 @@ private:
 
 			bool left = * child == (* link)->left;
 
-			std::size_t lh = getNodeHeightPlusOne ((* link)->left);
-			std::size_t rh = getNodeHeightPlusOne ((* link)->right);
+			std::size_t lh = get_node_height_plus_one ((* link)->left);
+			std::size_t rh = get_node_height_plus_one ((* link)->right);
 
 			if (lh > rh && lh - rh > 1) {
-				if (true == prevLeft) {
+				if (true == prev_left) {
 					node * n = * link;
 					node * nl = n->left;
 					node * nlr = nl->right;
@@ -239,7 +239,7 @@ private:
 				break; // since link->data.height_plus_one remains the same
 			}
 			else if (rh > lh && rh - lh > 1) {
-				if (false == prevLeft) {
+				if (false == prev_left) {
 					node * n = * link;
 					node * nr = n->right;
 					node * nrl = nr->left;
@@ -273,23 +273,23 @@ private:
 				break; // since link->data.height_plus_one remains the same
 			}
 			else {
-				const std::size_t newHeight = 1 + (lh > rh ? lh : rh);
+				const std::size_t new_height = 1 + (lh > rh ? lh : rh);
 				node * n = * link;
 
-				if (newHeight == n->data.height_plus_one) {
+				if (new_height == n->data.height_plus_one) {
 					break;
 				}
 				else {
-					n->data.height_plus_one = newHeight;
+					n->data.height_plus_one = new_height;
 				}
 			}
 
 			child = link;
-			prevLeft = left;
+			prev_left = left;
 		}
 	}
 
-	void rebalanceAfterRemove (stack <node_link> && path) {
+	void rebalance_after_remove (stack <node_link> && path) {
 		while (false == path.empty ()) {
 			node_link link = path.top ();
 			path.pop ();
@@ -297,15 +297,15 @@ private:
 			node * nl = n->left;
 			node * nr = n->right;
 
-			std::size_t lh = getNodeHeightPlusOne (nl);
-			std::size_t rh = getNodeHeightPlusOne (nr);
+			std::size_t lh = get_node_height_plus_one (nl);
+			std::size_t rh = get_node_height_plus_one (nr);
 
 			if (lh > rh && lh - rh > 1) {
 				node * nll = nl->left;
 				node * nlr = nl->right;
 
-				std::size_t nllh = getNodeHeightPlusOne (nll);
-				std::size_t nlrh = getNodeHeightPlusOne (nlr);
+				std::size_t nllh = get_node_height_plus_one (nll);
+				std::size_t nlrh = get_node_height_plus_one (nlr);
 
 				if (nllh >= nlrh) {
 					n->left = nlr;
@@ -341,8 +341,8 @@ private:
 				node * nrl = nr->left;
 				node * nrr = nr->right;
 
-				std::size_t nrlh = getNodeHeightPlusOne (nrl);
-				std::size_t nrrh = getNodeHeightPlusOne (nrr);
+				std::size_t nrlh = get_node_height_plus_one (nrl);
+				std::size_t nrrh = get_node_height_plus_one (nrr);
 
 				if (nrlh <= nrrh) {
 					n->right = nrl;
@@ -374,19 +374,19 @@ private:
 				}
 			}
 			else {
-				const std::size_t newHeight = 1 + (lh > rh ? lh : rh);
+				const std::size_t new_height = 1 + (lh > rh ? lh : rh);
 
-				if (newHeight == n->data.height_plus_one) {
+				if (new_height == n->data.height_plus_one) {
 					break;
 				}
 				else {
-					n->data.height_plus_one = newHeight;
+					n->data.height_plus_one = new_height;
 				}
 			}
 		}
 	}
 
-	inline std::size_t getNodeHeightPlusOne (node * node) {
+	inline std::size_t get_node_height_plus_one (node * node) {
 		if (nullptr == node) {
 			return 0;
 		}
@@ -396,11 +396,11 @@ private:
 	}
 
 protected:
-	using tree::getLinkStack;
-	using tree::getLinkStackToLeftmost;
-	using tree::getLinkStackToRightmost;
-	using tree::getLinkToLeftmost;
-	using tree::getLinkToRightmost;
+	using tree::get_link_stack;
+	using tree::get_link_stack_to_leftmost;
+	using tree::get_link_stack_to_rightmost;
+	using tree::get_link_to_leftmost;
+	using tree::get_link_to_rightmost;
 };
 
 # endif // AVL_TREE_H_24
