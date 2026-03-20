@@ -289,3 +289,59 @@ TEST(BruteForceRemove, Order)
 		.iterations = nIter
 	}> ();
 }
+
+TEST(BigTreeInsert, Balance)
+{
+	avl_test <{
+		.minCount = 80'000,
+		.maxCount = 100'000,
+		.test_insert_balance = true,
+		.test_insert_order = false,
+		.test_remove_balance = false,
+		.test_remove_order = false,
+		.check_interval = 0,
+		.iterations = 1
+	}> ();
+}
+
+TEST(BigTreeInsert, Order)
+{
+	avl_test <{
+		.minCount = 80'000,
+		.maxCount = 100'000,
+		.test_insert_balance = false,
+		.test_insert_order = true,
+		.test_remove_balance = false,
+		.test_remove_order = false,
+		.check_interval = 0,
+		.iterations = 1
+	}> ();
+}
+
+TEST(BigTreeRemove, Balance)
+{
+	avl_test <{
+		.minCount = 80'000,
+		.maxCount = 100'000,
+		.test_insert_balance = false,
+		.test_insert_order = false,
+		.test_remove_balance = true,
+		.test_remove_order = false,
+		.check_interval = 0,
+		.iterations = 1
+	}> ();
+}
+
+TEST(BigTreeRemove, Order)
+{
+	avl_test <{
+		.minCount = 80'000,
+		.maxCount = 100'000,
+		.test_insert_balance = false,
+		.test_insert_order = false,
+		.test_remove_balance = false,
+		.test_remove_order = true,
+		.check_interval = 0,
+		.iterations = 1
+	}> ();
+}

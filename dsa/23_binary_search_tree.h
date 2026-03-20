@@ -301,7 +301,7 @@ public:
 	std::size_t size () const { return m_size; }
 	bool empty () const { return 0 == m_size; }
 
-	std::size_t internal_path_length () {
+	std::size_t internalPathLength () {
 		std::size_t s = 0;
 
 		if (nullptr != m_root) {

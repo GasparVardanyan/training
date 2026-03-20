@@ -6,17 +6,15 @@
 # include <functional>
 # include <iterator>
 # include <ostream>
-# include <stdexcept>
 # include <variant>
 
 # include "20_vector.h"
-# include "21_list.h"
 # include "22_stack.h"
 # include "23_binary_tree_node.h"
 # include "23_binary_search_tree.h"
 
 namespace detail {
-template <typename T, typename C, typename Data = std::monostate, bool _removePreserveLeft = false>
+template <typename T, typename C, typename Data = std::monostate>
 struct avl_tree__ {
 	struct node_data : Data {
 		static_assert (false == requires (Data d) { d.value; }, "the value member of Data is reserved");
@@ -77,7 +75,7 @@ public: // binary_search_tree interface
 	using tree::size;
 	using tree::empty;
 	using tree::at;
-	using tree::internal_path_length;
+	using tree::internalPathLength;
 
 	bool operator== (const avl_tree & other) const {
 		return
@@ -195,7 +193,7 @@ private:
 		node_link child = path.top ();
 		path.pop ();
 
-		bool prevLeft;
+		bool prevLeft = false;
 
 		while (false == path.empty ()) {
 			node_link link = path.top ();
@@ -207,9 +205,6 @@ private:
 			std::size_t rh = getNodeHeightPlusOne ((* link)->right);
 
 			if (lh > rh && lh - rh > 1) {
-				// Yes, at the first iteration of this loop prevLeft is
-				// uninitialized. This condition will reach only after the first
-				// iteration.
 				if (true == prevLeft) {
 					node * n = * link;
 					node * nl = n->left;
