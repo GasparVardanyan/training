@@ -7,8 +7,8 @@
 
 # include "20_vector.h"
 
-template <template <typename...> typename C, typename E>
-concept StackContainer = requires (C <E> t, C <E> const tc, E e) {
+template <typename C, typename E>
+concept StackContainer = requires (C t, C const tc, E e) {
 	t.push_back (e);
 	t.push_back (std::move (e));
 	t.pop_back ();
@@ -21,15 +21,15 @@ concept StackContainer = requires (C <E> t, C <E> const tc, E e) {
 	{ tc.empty () } -> std::convertible_to <bool>;
 };
 
-template <typename T, template <typename...> typename C = vector>
+template <typename T, typename C = vector <T>>
 requires StackContainer <C, T>
 class stack
 {
 public:
-	using reference = C <T>::reference;
-	using const_reference = C <T>::const_reference;
-	using size_type = C <T>::size_type;
-	using value_type = C <T>::value_type;
+	using reference = C::reference;
+	using const_reference = C::const_reference;
+	using size_type = C::size_type;
+	using value_type = C::value_type;
 
 public:
 	template <typename U>
@@ -57,12 +57,12 @@ public:
 		m_container.clear ();
 	}
 
-	const C <T> & container () const {
+	const C & container () const {
 		return m_container;
 	}
 
 private:
-	C <T> m_container;
+	C m_container;
 };
 
 # endif // STACK_H_22

@@ -9,7 +9,7 @@
 
 # include "22_config.h"
 
-class BalanceChecker {
+class BalanceChecker : TypeConfig <>::TypeConfigCustom {
 public:
 	enum class SymbolType {
 		Regular = 0,
@@ -92,7 +92,7 @@ public:
 		return processString ();
 	}
 
-	const MyVector <MyVector <PairInfo>> & pairInfo (SymbolType t) {
+	const Vector <Vector <PairInfo>> & pairInfo (SymbolType t) {
 		return m_pairInfos [static_cast <std::size_t> (t)];
 	}
 
@@ -177,7 +177,7 @@ private:
 		std::size_t _type = static_cast <std::size_t> (type);
 
 		if (m_pairInfos [_type].size () < 1 + m_currentLevels [_type]) {
-			m_pairInfos [_type].push_back (MyVector <PairInfo> {});
+			m_pairInfos [_type].push_back (Vector <PairInfo> {});
 		}
 
 		m_pairInfos [_type] [m_currentLevels [_type]].push_back ({
@@ -201,7 +201,7 @@ private:
 		std::fill (
 			std::begin (m_pairInfos),
 			std::end (m_pairInfos),
-			MyVector <MyVector <PairInfo>> {}
+			Vector <Vector <PairInfo>> {}
 		);
 		std::fill (
 			std::begin (m_currentLevels),
@@ -217,10 +217,10 @@ private:
 private:
 	bool m_openerCloser;
 	std::string m_string;
-	MyStack <Data> m_stack;
+	Stack <Data> m_stack;
 	Status m_status;
 	// symbol type -> level -> info
-	MyVector <MyVector <PairInfo>> m_pairInfos [(std::size_t) SymbolType::SymbolTypeCount];
+	Vector <Vector <PairInfo>> m_pairInfos [(std::size_t) SymbolType::SymbolTypeCount];
 	std::size_t m_currentLevels [(std::size_t) SymbolType::SymbolTypeCount];
 };
 

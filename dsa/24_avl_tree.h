@@ -63,6 +63,7 @@ public:
 	using const_node_link = tree::const_node_link;
 	using node_data = detail::node_data;
 	using value_type = T;
+	using tree::less_than;
 
 public: // binary_search_tree interface
 	using tree::contains;
@@ -98,7 +99,47 @@ public: // binary_search_tree interface
 			{ os << t } -> std::convertible_to <std::ostream &>;
 		}
 	{
-		return os << static_cast <const avl_tree::tree &> (tree);
+		// return os << static_cast <const avl_tree::tree &> (tree);
+
+		tree.root ()->preorder_traverse (
+			[path = stack <const typename std::decay_t <decltype (tree)>::node *> (), &os]
+			(auto * node, auto * parent) mutable -> void {
+				if (nullptr != parent) {
+					while (path.top () != parent) {
+						path.pop ();
+					}
+				}
+				path.push (node);
+
+				std::size_t depth = path.size () - 1;
+
+				for (std::size_t i = 0; i < depth; i++) {
+					os << "  ";
+				}
+
+				if (nullptr != parent) {
+					os << "|- ";
+				}
+
+				os << node->data;
+				os << " (" << ((int) node->data.height_plus_one - 1) << ")";
+
+				if (nullptr != parent) {
+					if (nullptr == parent->left || nullptr == parent->right) {
+						if (node == parent->left) {
+							os << " (L)";
+						}
+						else {
+							os << " (R)";
+						}
+					}
+				}
+
+				os << std::endl;
+			}
+		);
+
+		return os;
 	}
 
 public:
@@ -198,16 +239,17 @@ private:
 		while (false == path.empty ()) {
 			node_link link = path.top ();
 			path.pop ();
+			node * n = * link;
+			node * nl = n->left;
+			node * nr = n->right;
 
 			bool left = * child == (* link)->left;
 
-			std::size_t lh = get_node_height_plus_one ((* link)->left);
-			std::size_t rh = get_node_height_plus_one ((* link)->right);
+			std::size_t lh = get_node_height_plus_one (nl);
+			std::size_t rh = get_node_height_plus_one (nr);
 
 			if (lh > rh && lh - rh > 1) {
 				if (true == prev_left) {
-					node * n = * link;
-					node * nl = n->left;
 					node * nlr = nl->right;
 
 					nl->right = n;
@@ -218,8 +260,6 @@ private:
 					n->data.height_plus_one -= 1;
 				}
 				else {
-					node * n = * link;
-					node * nl = n->left;
 					node * nlr = nl->right;
 					node * nlrl = nlr->left;
 					node * nlrr = nlr->right;
@@ -240,8 +280,6 @@ private:
 			}
 			else if (rh > lh && rh - lh > 1) {
 				if (false == prev_left) {
-					node * n = * link;
-					node * nr = n->right;
 					node * nrl = nr->left;
 
 					* link = nr;
@@ -252,8 +290,6 @@ private:
 					n->data.height_plus_one -= 1;
 				}
 				else {
-					node * n = * link;
-					node * nr = n->right;
 					node * nrl = nr->left;
 					node * nrll = nrl->left;
 					node * nrlr = nrl->right;
@@ -274,7 +310,6 @@ private:
 			}
 			else {
 				const std::size_t new_height = 1 + (lh > rh ? lh : rh);
-				node * n = * link;
 
 				if (new_height == n->data.height_plus_one) {
 					break;

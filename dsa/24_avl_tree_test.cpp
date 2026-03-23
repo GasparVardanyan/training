@@ -1,9 +1,13 @@
 # include <gtest/gtest.h>
 
 # include <algorithm>
+# include <chrono>
+# include <cmath>
+# include <iomanip>
 # include <limits>
 # include <numeric>
 # include <random>
+# include <vector>
 
 # include "20_vector.h"
 # include "22_stack.h"
@@ -80,12 +84,12 @@ static bool verify_avl_order (const avl_tree <T> & tree) {
 	bool ok = true;
 
 	vector <typename avl_tree <T>::value_type> v = tree;
-	auto v2 = v;
 
-	std::sort (v2.begin (), v2.end ());
-
-	if (v != v2) {
-		ok = false;
+	for (std::size_t i = 1; i < v.size (); i++) {
+		if (false == tree.less_than (v [i - 1], v [i])) {
+			ok = false;
+			break;
+		}
 	}
 
 	return ok;
@@ -149,7 +153,11 @@ void avl_test () {
 
 		std::cout << "Tree size: " << avlt.size () << ", height: " << (static_cast <int> (avlt.root ()->data.height_plus_one) - 1) << std::endl;
 
+		counter = 0;
+
 		if constexpr (true == params.test_remove_balance || true == params.test_remove_order) {
+			std::shuffle (values.begin (), values.end (), rng);
+
 			for (int item : values) {
 				avlt.remove (item);
 
@@ -344,4 +352,179 @@ TEST(BigTreeRemove, Order)
 		.check_interval = 0,
 		.iterations = 1
 	}> ();
+}
+
+
+
+//   ____                _       _                                       _           _
+//  / ___| ___ _ __ ___ (_)_ __ (_)       __ _  ___ _ __   ___ _ __ __ _| |_ ___  __| |_
+// | |  _ / _ \ '_ ` _ \| | '_ \| |_____ / _` |/ _ \ '_ \ / _ \ '__/ _` | __/ _ \/ _` (_)
+// | |_| |  __/ | | | | | | | | | |_____| (_| |  __/ | | |  __/ | | (_| | ||  __/ (_| |_
+//  \____|\___|_| |_| |_|_|_| |_|_|      \__, |\___|_| |_|\___|_|  \__,_|\__\___|\__,_(_)
+//                                       |___/
+
+TEST(ManualCornerCases, EmptyAndSingle) {
+	avl_tree<int> tree;
+	ASSERT_TRUE(tree.empty());
+
+	// Single node
+	tree.insert(10);
+	ASSERT_EQ(tree.size(), 1);
+	ASSERT_TRUE(verify_avl_balance(tree));
+
+	// Remove only node
+	tree.remove(10);
+	ASSERT_TRUE(tree.empty());
+	ASSERT_EQ(tree.size(), 0);
+}
+
+TEST(ManualCornerCases, DuplicateHandling) {
+	avl_tree<int> tree;
+	tree.insert(10);
+	tree.insert(10); // BST logic usually ignores or overwrites
+	ASSERT_EQ(tree.size(), 1);
+	ASSERT_TRUE(verify_avl_balance(tree));
+}
+
+TEST(ManualCornerCases, InsertionRotations) {
+	// LL Rotation (Left-Left)
+	{
+		avl_tree<int> tree;
+		for (int i : {30, 20, 10}) tree.insert(i);
+		ASSERT_TRUE(verify_avl_balance(tree));
+		ASSERT_EQ(tree.root()->data.value, 20);
+	}
+	// RR Rotation (Right-Right)
+	{
+		avl_tree<int> tree;
+		for (int i : {10, 20, 30}) tree.insert(i);
+		ASSERT_TRUE(verify_avl_balance(tree));
+		ASSERT_EQ(tree.root()->data.value, 20);
+	}
+	// LR Rotation (Left-Right)
+	{
+		avl_tree<int> tree;
+		for (int i : {30, 10, 20}) tree.insert(i);
+		ASSERT_TRUE(verify_avl_balance(tree));
+		ASSERT_EQ(tree.root()->data.value, 20);
+	}
+	// RL Rotation (Right-Left)
+	{
+		avl_tree<int> tree;
+		for (int i : {10, 30, 20}) tree.insert(i);
+		ASSERT_TRUE(verify_avl_balance(tree));
+		ASSERT_EQ(tree.root()->data.value, 20);
+	}
+}
+
+TEST(ManualCornerCases, RemovalScenarios) {
+	// Remove leaf
+	{
+		avl_tree<int> tree;
+		for (int i : {20, 10, 30}) tree.insert(i);
+		tree.remove(10);
+		ASSERT_EQ(tree.size(), 2);
+		ASSERT_TRUE(verify_avl_balance(tree));
+	}
+	// Remove node with 1 child
+	{
+		avl_tree<int> tree;
+		for (int i : {20, 10, 30, 5}) tree.insert(i);
+		tree.remove(10);
+		ASSERT_TRUE(verify_avl_balance(tree));
+		ASSERT_TRUE(tree.contains(5));
+	}
+	// Remove node with 2 children (triggers predecessor/successor logic)
+	{
+		avl_tree<int> tree;
+		for (int i : {20, 10, 30, 5, 15, 25, 35}) tree.insert(i);
+		tree.remove(20); // Remove root
+		ASSERT_TRUE(verify_avl_balance(tree));
+		ASSERT_TRUE(verify_avl_order(tree));
+	}
+}
+
+TEST(ManualCornerCases, RemovalPropagation) {
+	avl_tree<int> tree;
+	// Build a tree that requires multiple passes of rebalancing on remove
+	// Sequence designed to trigger rh - lh > 1 in rebalance_after_remove
+	for (int i : {50, 25, 75, 10, 30, 60, 80, 5, 15, 27, 35, 90}) tree.insert(i);
+
+	tree.remove(5);
+	ASSERT_TRUE(verify_avl_balance(tree));
+
+	tree.remove(15);
+	ASSERT_TRUE(verify_avl_balance(tree));
+
+	// Mass removal until empty
+	std::vector<int> vals = {50, 25, 75, 10, 30, 60, 80, 27, 35, 90};
+	for (int v : vals) {
+		tree.remove(v);
+		ASSERT_TRUE(verify_avl_balance(tree));
+	}
+	ASSERT_TRUE(tree.empty());
+}
+
+TEST(ManualCornerCases, PathologicalSequences) {
+	const int count = 1000;
+
+	// Strictly Ascending
+	avl_tree<int> asc;
+	for (int i = 0; i < count; ++i) {
+		asc.insert(i);
+		if (i % 10 == 0) ASSERT_TRUE(verify_avl_balance(asc));
+	}
+
+	// Strictly Descending
+	avl_tree<int> desc;
+	for (int i = count; i > 0; --i) {
+		desc.insert(i);
+		if (i % 10 == 0) ASSERT_TRUE(verify_avl_balance(desc));
+	}
+
+	ASSERT_TRUE(verify_avl_order(asc));
+	ASSERT_TRUE(verify_avl_order(desc));
+}
+
+void run_structural_test(std::size_t n) {
+	avl_tree<int> tree;
+	std::vector<int> data(n);
+	std::iota(data.begin(), data.end(), 0);
+	std::shuffle(data.begin(), data.end(), std::mt19937(42));
+
+	auto start = std::chrono::high_resolution_clock::now();
+	for (int x : data) tree.insert(x);
+	auto end = std::chrono::high_resolution_clock::now();
+
+	std::chrono::duration<double, std::micro> duration = end - start;
+
+	// Structural Metrics
+	std::size_t height = tree.root() ? tree.root()->data.height_plus_one - 1 : 0;
+	std::size_t ipl = tree.internal_path_length();
+
+	double log2n = std::log2(n);
+	double height_ratio = static_cast<double>(height) / log2n;
+	double avg_depth = static_cast<double>(ipl) / n;
+
+	std::cout << "N: " << std::setw(8) << n
+			  << " | Height: " << std::setw(2) << height
+			  << " (Ratio: " << std::fixed << std::setprecision(2) << height_ratio << "x logN)"
+			  << " | Avg Depth: " << std::setprecision(2) << avg_depth
+			  << " | Time/Ins: " << std::setprecision(3) << (duration.count() / n) << "us"
+			  << std::endl;
+}
+
+TEST(Benchmark, ScalingAndBalance) {
+	std::cout << "\n--- AVL Structural Efficiency Benchmark ---\n";
+	run_structural_test (1E3);
+	run_structural_test (1E4);
+	run_structural_test (1E5);
+	run_structural_test (1E6);
+	// Sample output:
+	//
+	// --- AVL Structural Efficiency Benchmark ---
+	// N:     1000 | Height: 11 (Ratio: 1.10x logN) | Avg Depth: 8.17  | Time/Ins: 0.465us
+	// N:    10000 | Height: 15 (Ratio: 1.13x logN) | Avg Depth: 11.57 | Time/Ins: 0.399us
+	// N:   100000 | Height: 19 (Ratio: 1.14x logN) | Avg Depth: 14.96 | Time/Ins: 0.524us
+	// N:  1000000 | Height: 23 (Ratio: 1.15x logN) | Avg Depth: 18.31 | Time/Ins: 0.914us
 }

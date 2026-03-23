@@ -12,10 +12,13 @@ add_executable (3_class 3_class.cpp 3_IntCell.cpp 3_IntCell.h)
 add_executable (4_vector 4_vector.cpp)
 add_executable (5_pointers 5_pointers.cpp)
 add_executable (6_references 6_references.cpp)
+
 add_executable (7_references 7_references.cpp verbose_class.h)
 target_compile_options (7_references PRIVATE -fno-elide-constructors)
+
 add_executable (8_big_five 8_big_five.cpp verbose_class.h)
 target_compile_options (8_big_five PRIVATE -fno-elide-constructors)
+
 add_executable (9_function_templates 9_function_templates.cpp)
 add_executable (10_class_templates 10_class_templates.cpp)
 add_executable (11_object_and_comparable 11_object_and_comparable.cpp)

@@ -8,21 +8,29 @@
 # include "22_config.h"
 # include "22_notation_converter.h"
 # include "23_binary_tree_node.h"
-# include "22_stack.h"
 
-struct ExpressionTree : protected NotationConverter {
+struct ExpressionTree : TypeConfig<>::TypeConfigCustom {
+protected:
+	struct NotationConverter : protected ::NotationConverter {
+		using Token = NotationConverter::Token;
+		using TokenType = NotationConverter::TokenType;
+		using ::NotationConverter::Tokenize;
+		using ::NotationConverter::NeedParenthesis;
+	};
+
+public:
 	static binary_tree_node <std::string> * PostfixToTree (const std::string & s) {
-		MyQueue <Token> tokens = Tokenize (s);
-		MyStack <binary_tree_node <std::string> *> nodes;
+		Queue <NotationConverter::Token> tokens = NotationConverter::Tokenize (s);
+		Stack <binary_tree_node <std::string> *> nodes;
 
 		while (false == tokens.empty ()) {
-			Token t = tokens.front ();
+			NotationConverter::Token t = tokens.front ();
 			tokens.pop ();
 
-			if (TokenType::Operand == t.type) {
+			if (NotationConverter::TokenType::Operand == t.type) {
 				nodes.push (new binary_tree_node <std::string> (t.value));
 			}
-			else if (TokenType::Operator == t.type) {
+			else if (NotationConverter::TokenType::Operator == t.type) {
 				auto o2 = nodes.top ();
 				nodes.pop ();
 				auto o1 = nodes.top ();
@@ -47,8 +55,8 @@ struct ExpressionTree : protected NotationConverter {
 	static std::string TreeToInfix (const binary_tree_node <std::string> & tree) {
 		binary_tree_node <std::string> tree_copy (tree);
 
-		MyStack <binary_tree_node <std::string> *> nodes;
-		MyStack <binary_tree_node <std::string> *> parents;
+		Stack <binary_tree_node <std::string> *> nodes;
+		Stack <binary_tree_node <std::string> *> parents;
 
 		tree_copy.level_order_traverse ([&nodes, &parents] (binary_tree_node <std::string> * n, binary_tree_node <std::string> * p) -> void {
 			nodes.push (n);
@@ -95,11 +103,11 @@ struct ExpressionTree : protected NotationConverter {
 		) -> void {
 			if (nullptr != node->left && nullptr != node->right) {
 				if ('*' == node->data [0] || '/' == node->data [0]) {
-					if (true == NeedParenthesis (node->left->data)) {
+					if (true == NotationConverter::NeedParenthesis (node->left->data)) {
 						node->left->data = '(' + node->left->data + ')';
 					}
 
-					if (true == NeedParenthesis (node->right->data)) {
+					if (true == NotationConverter::NeedParenthesis (node->right->data)) {
 						node->right->data = '(' + node->right->data + ')';
 					}
 				}

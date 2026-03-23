@@ -4,11 +4,10 @@
 # include <algorithm>
 # include <string>
 
-# include "22_config.h"
 # include "22_balance_checker.h"
 
 // NOTE: no negative numbers, no parenthesis, integer division only
-struct NotationConverter {
+struct NotationConverter : TypeConfig <>::TypeConfigCustom {
 protected:
 	enum class TokenType : int {
 		Operator,
@@ -61,15 +60,15 @@ protected:
 
 public:
 	static std::string InfixToPostfix (const std::string & s) {
-		MyQueue <Token> tokens = Tokenize (s);
+		Queue <Token> tokens = Tokenize (s);
 
-		MyStack <MyStack <int>> values;           values.push (MyStack <int> ());
-		MyStack <MyStack <char>> operators;       operators.push (MyStack <char> ());
-		MyStack <std::string> results;            results.push ("");
+		Stack <Stack <int>> values;           values.push (Stack <int> ());
+		Stack <Stack <char>> operators;       operators.push (Stack <char> ());
+		Stack <std::string> results;            results.push ("");
 
 		auto processLast = [&] () -> void {
-			MyStack <int> & curr_values = values.top ();
-			MyStack <char> & curr_ops = operators.top ();
+			Stack <int> & curr_values = values.top ();
+			Stack <char> & curr_ops = operators.top ();
 			std::string & curr_res = results.top ();
 
 			char op = curr_ops.top ();
@@ -94,8 +93,8 @@ public:
 		};
 
 		auto processValue = [&] (int value, bool newValue = false) -> void {
-			MyStack <int> & curr_vals = values.top ();
-			MyStack <char> & curr_ops = operators.top ();
+			Stack <int> & curr_vals = values.top ();
+			Stack <char> & curr_ops = operators.top ();
 			std::string & curr_res = results.top ();
 			curr_vals.push (value);
 
@@ -136,8 +135,8 @@ public:
 			tokens.pop ();
 
 			if (TokenType::GroupOpener == t.type) {
-				values.push (MyStack <int> ());
-				operators.push (MyStack <char> ());
+				values.push (Stack <int> ());
+				operators.push (Stack <char> ());
 				results.push ("");
 			}
 			else if (TokenType::Operator == t.type) {
@@ -163,8 +162,8 @@ public:
 			}
 		}
 
-		MyStack <int> & curr_values = values.top ();
-		MyStack <char> & curr_ops = operators.top ();
+		Stack <int> & curr_values = values.top ();
+		Stack <char> & curr_ops = operators.top ();
 
 		if (false == curr_ops.empty ()) {
 			processLast ();
@@ -176,7 +175,7 @@ public:
 	static std::string InfixToPostfix_ShuntingYard (const std::string & s) {
 		std::string res = "";
 
-		MyStack <char> opStack;
+		Stack <char> opStack;
 
 		static const char opPriority [256] = {
 			['*'] = 0,
@@ -186,9 +185,9 @@ public:
 			['('] = 2,
 		};
 
-		static const MyVector <char> opList {'*', '/', '+', '-'};
+		static const Vector <char> opList {'*', '/', '+', '-'};
 
-		MyStack <int> valueStack;
+		Stack <int> valueStack;
 
 		std::string currOperand;
 
@@ -270,9 +269,9 @@ public:
 	}
 
 	static std::string PostfixToInfix (const std::string & s) {
-		MyQueue <Token> tokens = Tokenize (s);
-		MyStack <int> values;
-		MyStack <std::string> expressions;
+		Queue <Token> tokens = Tokenize (s);
+		Stack <int> values;
+		Stack <std::string> expressions;
 
 		while (false == tokens.empty ()) {
 			Token t = tokens.front ();
@@ -312,8 +311,8 @@ public:
 	}
 
 protected:
-	static MyQueue <Token> Tokenize (const std::string & s) {
-		MyQueue <Token> tokens;
+	static Queue <Token> Tokenize (const std::string & s) {
+		Queue <Token> tokens;
 
 		bool operand = false;
 		std::string curr_operand;
@@ -380,4 +379,5 @@ protected:
 		}
 	}
 };
+
 # endif // NOTATION_CONVERTER_H_22

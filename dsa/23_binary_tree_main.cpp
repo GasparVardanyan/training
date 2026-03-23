@@ -20,6 +20,8 @@ int main () {
 	std::cout << ExpressionTree::TreeToInfix2 (* tree) << std::endl;
 	std::cout << ExpressionTree::TreeToInfix3 (* tree) << std::endl;
 
+	std::cout << * tree << std::endl;
+
 	delete tree;
 
 	// avl_tree <int> bst;
