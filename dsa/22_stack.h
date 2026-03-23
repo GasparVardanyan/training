@@ -3,6 +3,7 @@
 
 # include <algorithm>
 # include <concepts>
+# include <iostream>
 # include <utility>
 
 # include "20_vector.h"
@@ -58,6 +59,7 @@ public:
 	}
 
 	const C & container () const {
+		std::clog << "!!! stack::container is for only debugging purposes !!!" << std::endl;
 		return m_container;
 	}
 

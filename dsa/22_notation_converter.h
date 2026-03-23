@@ -2,11 +2,14 @@
 # define NOTATION_CONVERTER_H_22
 
 # include <algorithm>
+# include <set>
 # include <string>
 
 # include "22_balance_checker.h"
 
-// NOTE: no negative numbers, no parenthesis, integer division only
+// NOTE: no negative numbers, no parenthesis, integer division only.
+// Expression structural change can happen when it doesn't change the result !!!
+// For example a*(b*c) can become a*b*c.
 struct NotationConverter : TypeConfig <>::TypeConfigCustom {
 protected:
 	enum class TokenType : int {
@@ -293,13 +296,14 @@ public:
 					std::string eo1 = expressions.top ();
 					expressions.pop ();
 
-					if ('*' == t.value [0] || '/' == t.value [0]) {
-						if (true == NeedParenthesis (eo1)) {
-							eo1 = '(' + eo1 + ')';
-						}
-						if (true == NeedParenthesis (eo2)) {
-							eo2 = '(' + eo2 + ')';
-						}
+					char op = t.value [0];
+
+					if (true == NeedParenthesis_BalanceChecker (op, eo1, false)) {
+						eo1 = '(' + eo1 + ')';
+					}
+
+					if (true == NeedParenthesis_BalanceChecker (op, eo2, true)) {
+						eo2 = '(' + eo2 + ')';
 					}
 
 					expressions.push (eo1 + ' ' + t.value + ' ' + eo2);
@@ -357,7 +361,7 @@ protected:
 		return tokens;
 	}
 
-	static bool NeedParenthesis (std::string str) {
+	static bool NeedParenthesis_BalanceChecker (char op, std::string str, bool isRightOperand = true) {
 		BalanceChecker ch;
 		ch.setString (str);
 		const auto & parenInfo = ch.pairInfo (BalanceChecker::SymbolType::Parenthesis);
@@ -368,15 +372,57 @@ protected:
 			}
 		}
 
-		if (
-			   str.cend () != std::find (str.cbegin (), str.cend (), '+')
-			|| str.cend () != std::find (str.cbegin (), str.cend (), '-')
-		) {
-			return true;
+		std::set <char> flops;
+
+		for (char c : str) {
+			if (TokenType::Operator == s_symbolType [(unsigned) c]) {
+				flops.insert (c);
+			}
 		}
-		else {
-			return false;
+
+		return NeedParenthesis (op, flops, isRightOperand);
+	}
+
+	static bool NeedParenthesis (char op, std::set <char> flops, bool isRightOperand = true) {
+		bool np = false;
+
+		if ('*' == op) {
+			if (true == flops.contains ('-') || flops.contains ('+')) {
+				np = true;
+			}
 		}
+		else if ('/' == op) {
+			if (false == isRightOperand) {
+				if (true == flops.contains ('-') || flops.contains ('+')) {
+					np = true;
+				}
+			}
+			else {
+				if (false == flops.empty ()) {
+					np = true;
+				}
+			}
+		}
+		else if ('-' == op) {
+			if (true == isRightOperand) {
+				if (true == flops.contains ('-') || flops.contains ('+')) {
+					np = true;
+				}
+			}
+		}
+
+		return np;
+	}
+
+	static bool NeedParenthesis (char op, std::string flops_str, bool isRightOperand = true) {
+		std::set <char> flops;
+
+		for (char c : flops_str) {
+			if (TokenType::Operator == s_symbolType [(unsigned) c]) {
+				flops.insert (c);
+			}
+		}
+		return NeedParenthesis (op, flops, isRightOperand);
 	}
 };
 

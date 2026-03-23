@@ -12,19 +12,19 @@
 # include <stack>
 
 template <
-	template <typename ...> typename _Vector = vector,
-	template <typename ...> typename _List = list,
-	template <typename ...> typename _Stack = stack,
-	template <typename ...> typename _Queue = queue,
-	template <typename> typename _StackContainer = _Vector,
-	template <typename> typename _QueueContainer = _List
+	template <typename ...> typename Vector__ = vector,
+	template <typename ...> typename List__ = list,
+	template <typename ...> typename Stack__ = stack,
+	template <typename ...> typename Queue__ = queue,
+	template <typename> typename StackContainer__ = Vector__,
+	template <typename> typename QueueContainer__ = List__
 >
 struct TypeConfig {
 public:
-	template <typename ... TS> using Vector = _Vector <TS ...>;
-	template <typename ... TS> using List = _List <TS ...>;
-	template <typename T> using Stack = _Stack <T, _StackContainer <T>>;
-	template <typename T> using Queue = _Queue <T, _QueueContainer <T>>;
+	template <typename ... TS> using Vector = Vector__ <TS ...>;
+	template <typename ... TS> using List = List__ <TS ...>;
+	template <typename T> using Stack = Stack__ <T, StackContainer__ <T>>;
+	template <typename T> using Queue = Queue__ <T, QueueContainer__ <T>>;
 
 	using TypeConfigCustom = TypeConfig <vector, list, stack, queue>;
 	using TypeConfigStd = TypeConfig <std::vector, std::list, std::stack, std::queue>;

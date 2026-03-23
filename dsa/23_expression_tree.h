@@ -11,10 +11,11 @@
 
 struct ExpressionTree : TypeConfig<>::TypeConfigCustom {
 protected:
-	struct NotationConverter : protected ::NotationConverter {
+	struct NotationConverter : public ::NotationConverter {
 		using Token = NotationConverter::Token;
 		using TokenType = NotationConverter::TokenType;
 		using ::NotationConverter::Tokenize;
+		using ::NotationConverter::NeedParenthesis_BalanceChecker;
 		using ::NotationConverter::NeedParenthesis;
 	};
 
@@ -52,16 +53,19 @@ public:
 		}
 	}
 
-	static std::string TreeToInfix (const binary_tree_node <std::string> & tree) {
+	static std::string TreeToInfix_NotAssociative (const binary_tree_node <std::string> & tree) {
 		binary_tree_node <std::string> tree_copy (tree);
 
 		Stack <binary_tree_node <std::string> *> nodes;
 		Stack <binary_tree_node <std::string> *> parents;
 
-		tree_copy.level_order_traverse ([&nodes, &parents] (binary_tree_node <std::string> * n, binary_tree_node <std::string> * p) -> void {
-			nodes.push (n);
-			parents.push (p);
-		});
+		tree_copy.level_order_traverse (
+			[&nodes, &parents]
+			(binary_tree_node <std::string> * n, binary_tree_node <std::string> * p) -> void {
+				nodes.push (n);
+				parents.push (p);
+			}
+		);
 
 		while (false == nodes.empty ()) {
 			auto c = nodes.top ();
@@ -80,11 +84,10 @@ public:
 					}
 				}
 
+				c->data = c->left->data + ' ' + c->data + ' ' + c->right->data;
+
 				if (true == needParen) {
-					c->data = '(' + c->left->data + ' ' + c->data + ' ' + c->right->data + ')';
-				}
-				else {
-					c->data = c->left->data + ' ' + c->data + ' ' + c->right->data;
+					c->data = '(' + c->data + ')';
 				}
 			}
 		}
@@ -94,7 +97,7 @@ public:
 		return s;
 	}
 
-	static std::string TreeToInfix2 (const binary_tree_node <std::string> & tree) {
+	static std::string TreeToInfix (const binary_tree_node <std::string> & tree) {
 		binary_tree_node <std::string> tree_copy (tree);
 
 		tree_copy.postorder_traverse ([] (
@@ -102,14 +105,12 @@ public:
 			binary_tree_node <std::string> *
 		) -> void {
 			if (nullptr != node->left && nullptr != node->right) {
-				if ('*' == node->data [0] || '/' == node->data [0]) {
-					if (true == NotationConverter::NeedParenthesis (node->left->data)) {
-						node->left->data = '(' + node->left->data + ')';
-					}
+				if (true == NotationConverter::NeedParenthesis_BalanceChecker (node->data [0], node->left->data, false)) {
+					node->left->data = '(' + node->left->data + ')';
+				}
 
-					if (true == NotationConverter::NeedParenthesis (node->right->data)) {
-						node->right->data = '(' + node->right->data + ')';
-					}
+				if (true == NotationConverter::NeedParenthesis_BalanceChecker (node->data [0], node->right->data, true)) {
+					node->right->data = '(' + node->right->data + ')';
 				}
 
 				node->data = node->left->data + ' ' + node->data + ' ' + node->right->data;
@@ -119,13 +120,13 @@ public:
 		return tree_copy.data;
 	}
 
-	static std::string TreeToInfix3 (const binary_tree_node <std::string> & tree) {
+	static std::string TreeToInfix_NoBalanceChecker (const binary_tree_node <std::string> & tree) {
 		binary_tree_node <std::pair <std::string, std::string>> pair_tree ({
 			tree.data, tree.data // orig, result
 		});
-		stack <const std::decay_t <decltype (tree)> *> tree_stack;
+		Stack <const std::decay_t <decltype (tree)> *> tree_stack;
 		tree_stack.push (& tree);
-		stack <decltype (pair_tree) *> pair_tree_stack;
+		Stack <decltype (pair_tree) *> pair_tree_stack;
 		pair_tree_stack.push (& pair_tree);
 
 		while (false == tree_stack.empty ()) {
@@ -153,17 +154,29 @@ public:
 
 		pair_tree.postorder_traverse ([] (auto * node, auto *) -> void {
 			if (nullptr != node->left && nullptr != node->right) {
-				if ('*' == node->data.first [0] || '/' == node->data.first [0]) {
-					if ('+' == node->left->data.first [0] || '-' == node->left->data.first [0]) {
-						node->left->data.second = '(' + node->left->data.second + ')';
-					}
+				const std::string & lflops = node->left->data.first;
+				const std::string & rflops = node->right->data.first;
 
-					if ('+' == node->right->data.first [0] || '-' == node->right->data.first [0]) {
-						node->right->data.second = '(' + node->right->data.second + ')';
-					}
+				std::string nflops = node->data.first;
+
+				char op = nflops [0];
+
+				if (true == NotationConverter::NeedParenthesis (op, lflops, false)) {
+					node->left->data.second = '(' + node->left->data.second + ')';
+				}
+				else {
+					nflops += lflops;
 				}
 
-				node->data.second = node->left->data.second + ' ' + node->data.first + ' ' + node->right->data.second;
+				if (true == NotationConverter::NeedParenthesis (op, rflops, true)) {
+					node->right->data.second = '(' + node->right->data.second + ')';
+				}
+				else {
+					nflops += rflops;
+				}
+
+				node->data.first = nflops;
+				node->data.second = node->left->data.second + ' ' + op + ' ' + node->right->data.second;
 			}
 		});
 
