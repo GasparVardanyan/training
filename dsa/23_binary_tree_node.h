@@ -2,20 +2,116 @@
 # define BINARY_TREE_NODE_H_23
 
 # include <concepts>
+# include <cstddef>
 # include <functional>
 # include <iostream>
 # include <ostream>
 # include <type_traits>
 # include <utility>
 
+# include "20_vector.h"
 # include "22_queue.h"
 # include "22_stack.h"
 
 template <typename T, std::equivalence_relation <T, T> EqualTo = std::equal_to <T>>
 struct binary_tree_node {
+private:
+	template <typename NPT>
+	class iterator_base {
+		friend struct binary_tree_node;
+	public:
+		using difference_type = std::ptrdiff_t;
+		using value_type = T;
+		using iterator_category = std::bidirectional_iterator_tag;
+
+	private:
+		using _reference_t = std::conditional_t <std::is_const_v <std::remove_pointer_t <NPT>>, const T &, T &>;
+		using _node_ptr_t = std::conditional_t <std::is_const_v <std::remove_pointer_t <NPT>>, const binary_tree_node *, binary_tree_node *>;
+		using _non_cost_iterator_t = iterator_base <std::remove_pointer_t <std::remove_const_t <NPT>>> *;
+
+	public:
+		friend class iterator_base <const std::decay_t <std::remove_pointer_t <NPT>> *>;
+
+		explicit iterator_base (NPT node = nullptr)
+			: m_node (node)
+		{}
+
+		template <
+			typename NPT2,
+			typename = std::enable_if_t <
+				std::is_same_v <NPT2, NPT> || std::is_same_v <std::remove_const_t <std::remove_pointer_t <NPT>> *, NPT2>
+			>
+		>
+		// template <typename NPT2>
+		// requires (std::same_as <NPT2, NPT> || std::same_as <std::remove_const_t <std::remove_pointer_t <NPT>> *, NPT2>)
+		iterator_base (const iterator_base <NPT2> & other)
+			: m_node (other.m_node)
+		{}
+
+		// iterator_base (const iterator_base &) = delete;
+		// iterator_base (iterator_base &&) = delete;
+		// iterator_base & operator= (const iterator_base &) = delete;
+		// iterator_base & operator= (iterator_base &&) = delete;
+
+		_reference_t & operator* () {
+			return static_cast <_node_ptr_t> (m_node)->data;
+		}
+
+		const _reference_t & operator* () const {
+			return static_cast <_node_ptr_t> (m_node)->data;
+		}
+
+		template <
+			typename NPT2,
+			typename = std::enable_if_t <
+				true == std::is_same_v <
+					std::remove_const_t <std::remove_pointer_t <NPT>>,
+					std::remove_const_t <std::remove_pointer_t <NPT2>>
+				>
+			>
+		>
+		bool operator== (const iterator_base <NPT2> & other) const {
+			return m_node == other.m_node;
+		}
+
+		iterator_base & operator++ () {
+			* this = * m_next;
+			return * this;
+		}
+
+		iterator_base operator++ (int) {
+			iterator_base before = * this;
+			* this = * m_next;
+			return before;
+		}
+
+		iterator_base & operator-- () {
+			* this = * m_prev;
+			return * this;
+		}
+
+		iterator_base operator-- (int) {
+			iterator_base before = * this;
+			* this = * m_prev;
+			return before;
+		}
+
+		NPT base () {
+			return m_node;
+		}
+
+	private:
+		NPT m_node;
+		iterator_base * m_prev = nullptr;
+		iterator_base * m_next = nullptr;
+	};
+
 public:
 	using equivalence_relation = EqualTo;
 	static constexpr equivalence_relation equal_to {};
+
+	using iterator = iterator_base <binary_tree_node *>;
+	using const_iterator = iterator_base <const binary_tree_node *>;
 
 public:
 	T data;
@@ -215,6 +311,27 @@ public:
 	}
 
 public:
+	void generate_iterators (vector <iterator *> & iterators) {
+		// iterators.clear ();
+
+		inorder_traverse ([&iterators] (binary_tree_node * node, binary_tree_node *) -> void {
+			iterators.push_back (new iterator (node));
+		});
+
+		iterators.push_back (new iterator (nullptr));
+
+		iterator * prev = nullptr;
+
+		for (iterator * it : iterators) {
+			if (nullptr != prev) {
+				prev->m_next = it;
+			}
+			it->m_prev = prev;
+
+			prev = it;
+		}
+	}
+
 	template <typename F>
 	requires std::invocable <F &, binary_tree_node *, binary_tree_node *>
 	void preorder_traverse (F && func) {

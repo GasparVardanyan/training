@@ -11,6 +11,8 @@
 # include "20_vector.h"
 # include "23_binary_tree_node.h"
 
+// TODO: optimize iterator handling
+
 namespace detail {
 template <typename T, typename Comparator>
 requires std::strict_weak_order <Comparator, T, T>
@@ -73,12 +75,22 @@ public:
 	using node = detail::node;
 	using node_link = node **;
 	using const_node_link = const node * const *;
+	using iterator = node::iterator;
+	using const_iterator = node::const_iterator;
 	static constexpr Comparator less_than {};
+
+	iterator begin () { validate_iterators (); return * m_iterators.front (); }
+	iterator end () { validate_iterators (); return * m_iterators.back (); }
+	const_iterator cbegin () const { validate_iterators (); return * m_iterators.front (); }
+	const_iterator cend () const { validate_iterators (); return * m_iterators.back (); }
+	const_iterator begin () const { validate_iterators (); return * m_iterators.front (); }
+	const_iterator end () const { validate_iterators (); return * m_iterators.back (); }
 
 public:
 	binary_search_tree ()
 		: m_root (nullptr)
 		, m_size (0)
+		, m_iterators_valid (false)
 	{}
 
 	binary_search_tree (const binary_search_tree & other) {
@@ -90,6 +102,7 @@ public:
 			m_root = nullptr;
 			m_size = 0;
 		}
+		m_iterators_valid = false;
 	}
 
 	binary_search_tree & operator= (const binary_search_tree & other) {
@@ -104,6 +117,8 @@ public:
 				m_root = nullptr;
 				m_size = 0;
 			}
+
+			m_iterators_valid = false;
 		}
 
 		return * this;
@@ -112,15 +127,20 @@ public:
 	binary_search_tree (binary_search_tree && other) noexcept
 		: m_root (other.m_root)
 		, m_size (other.m_size)
+		, m_iterators (std::move (other.m_iterators))
+		, m_iterators_valid (other.m_iterators_valid)
 	{
 		other.m_root = nullptr;
 		other.m_size = 0;
+		other.m_iterators_valid = false;
 	}
 
 	binary_search_tree & operator= (binary_search_tree && other) noexcept {
 		if (this != & other) {
 			std::swap (m_root, other.m_root);
 			std::swap (m_size, other.m_size);
+			std::swap (m_iterators, other.m_iterators);
+			std::swap (m_iterators_valid, other.m_iterators_valid);
 		}
 
 		return * this;
@@ -129,6 +149,11 @@ public:
 	~binary_search_tree () {
 		delete m_root;
 		m_size = 0;
+		for (auto it : m_iterators) {
+			delete it;
+		}
+		m_iterators.clear ();
+		m_iterators_valid = false;
 	}
 
 public:
@@ -174,6 +199,7 @@ public:
 		if (nullptr == * link) {
 			* link = new node (std::forward <U> (value));
 			m_size++;
+			m_iterators_valid = false;
 		}
 	}
 
@@ -258,6 +284,7 @@ public:
 			to_remove->right = nullptr;
 			delete to_remove;
 			m_size--;
+			m_iterators_valid = false;
 		}
 	}
 
@@ -294,6 +321,11 @@ public:
 			delete m_root;
 			m_root = nullptr;
 			m_size = 0;
+			m_iterators_valid = false;
+			for (auto it : m_iterators) {
+				delete it;
+			}
+			m_iterators.clear ();
 		}
 	}
 
@@ -363,9 +395,33 @@ protected:
 		return get_link_stack_to_rightmost <node_link> (link);
 	}
 
+	void validate_iterators () const {
+		if (false == m_iterators_valid) {
+			for (auto it : m_iterators) {
+				delete it;
+			}
+			m_iterators.clear ();
+			m_iterators.reserve (1 + m_size);
+			if (nullptr != m_root) {
+				m_root->generate_iterators (m_iterators);
+			}
+			else {
+				m_iterators.push_back (new iterator (nullptr));
+			}
+
+			m_iterators_valid = true;
+		}
+	}
+
+	void invalidate_iterators () {
+		m_iterators_valid = false;
+	}
+
 protected:
 	node * m_root;
 	std::size_t m_size;
+	mutable vector <iterator *> m_iterators;
+	mutable bool m_iterators_valid;
 
 protected:
 	template <typename U>
