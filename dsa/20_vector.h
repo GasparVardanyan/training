@@ -219,14 +219,6 @@ public:
 		return m_data [index];
 	}
 
-	T & front () {
-		return * m_data;
-	}
-
-	const T & front () const {
-		return * m_data;
-	}
-
 	T & back () {
 		return m_data [m_size - 1];
 	}
