@@ -98,8 +98,6 @@ int main () {
 	}
 	std::cout << std::endl;
 
-	std::cout << avlt.at (20)->data << std::endl;
-
 	std::cout << "\n====================\n" << std::endl;
 
 	struct Traverse {

@@ -2,6 +2,7 @@
 # define BINARY_TREE_NODE_H_23
 
 # include <concepts>
+# include <cstddef>
 # include <functional>
 # include <iostream>
 # include <ostream>

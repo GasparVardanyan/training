@@ -111,6 +111,8 @@ add_executable (24_avl_tree 24_avl_tree.h 24_avl_tree_main.cpp)
 add_executable (24_avl_tree_test 24_avl_tree_test.cpp)
 target_link_libraries (24_avl_tree_test GTest::gtest_main)
 
+add_executable (25_splay_tree 25_splay_tree.h 25_splay_tree_main.cpp)
+
 add_executable (ex_1_1_selection_problem ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
 target_link_libraries (ex_1_1_selection_problem GTest::gtest_main)
 

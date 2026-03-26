@@ -75,7 +75,6 @@ public: // binary_search_tree interface
 	using tree::root;
 	using tree::size;
 	using tree::empty;
-	using tree::at;
 	using tree::internal_path_length;
 
 	bool operator== (const avl_tree & other) const {
@@ -229,7 +228,7 @@ public:
 		}
 	}
 
-private:
+protected:
 	void rebalance_after_insert (stack <node_link> && path) {
 		node_link child = path.top ();
 		path.pop ();
@@ -431,6 +430,7 @@ private:
 	}
 
 protected:
+	using tree::at;
 	using tree::get_link_stack;
 	using tree::get_link_stack_to_leftmost;
 	using tree::get_link_stack_to_rightmost;

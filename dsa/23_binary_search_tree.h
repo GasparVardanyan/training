@@ -56,32 +56,26 @@ struct binary_search_tree__ {
 		>
 	;
 };
-}
 
-// TODO: learn commenting: https://www.doxygen.nl/manual/docblocks.html
-
-/// @tparam T
-/// @tparam Comparator STRICTLY-LESS-THAN comparator
-/// @warning Comparator must impose a strict weak ordering
-template <typename T, typename Comparator = std::less <T>, bool KeepInvariant = false, bool RemovePreserveLeft = false>
+template <typename Inheritor, typename T, typename Comparator = std::less <T>, bool KeepInvariant = false, bool RemovePreserveLeft = false>
 requires std::strict_weak_order <Comparator, T, T>
-class binary_search_tree {
+class binary_search_tree_base {
 protected:
 	using detail = detail::binary_search_tree__ <T, Comparator, KeepInvariant, RemovePreserveLeft>;
 
 public:
 	using node = detail::node;
-	using node_link = node **;
-	using const_node_link = const node * const *;
+	using node_link = node::link;
+	using const_node_link = node::const_link;
 	static constexpr Comparator less_than {};
 
 public:
-	binary_search_tree ()
+	binary_search_tree_base ()
 		: m_root (nullptr)
 		, m_size (0)
 	{}
 
-	binary_search_tree (const binary_search_tree & other) {
+	binary_search_tree_base (const binary_search_tree_base & other) {
 		if (nullptr != other.m_root) {
 			m_root = new node (* other.m_root);
 			m_size = other.m_size;
@@ -92,7 +86,7 @@ public:
 		}
 	}
 
-	binary_search_tree & operator= (const binary_search_tree & other) {
+	binary_search_tree_base & operator= (const binary_search_tree_base & other) {
 		if (this != & other) {
 			delete m_root;
 
@@ -109,7 +103,7 @@ public:
 		return * this;
 	}
 
-	binary_search_tree (binary_search_tree && other) noexcept
+	binary_search_tree_base (binary_search_tree_base && other) noexcept
 		: m_root (other.m_root)
 		, m_size (other.m_size)
 	{
@@ -117,7 +111,7 @@ public:
 		other.m_size = 0;
 	}
 
-	binary_search_tree & operator= (binary_search_tree && other) noexcept {
+	binary_search_tree_base & operator= (binary_search_tree_base && other) noexcept {
 		if (this != & other) {
 			std::swap (m_root, other.m_root);
 			std::swap (m_size, other.m_size);
@@ -126,13 +120,13 @@ public:
 		return * this;
 	}
 
-	~binary_search_tree () {
+	~binary_search_tree_base () {
 		delete m_root;
 		m_size = 0;
 	}
 
 public:
-	bool operator== (const binary_search_tree & other) const {
+	bool operator== (const binary_search_tree_base & other) const {
 		if (m_size != other.m_size) {
 			return false;
 		}
@@ -149,12 +143,12 @@ public:
 		vector <T> v;
 		v.reserve (m_size);
 
-		dump_sorted (std::back_inserter (v));
+		static_cast <const Inheritor *> (this)->dump_sorted (std::back_inserter (v));
 
 		return v;
 	}
 
-	friend std::ostream & operator<< (std::ostream & os, const binary_search_tree & tree)
+	friend std::ostream & operator<< (std::ostream & os, const binary_search_tree_base & tree)
 		requires requires (std::ostream & os, T t) {
 			{ os << t } -> std::convertible_to <std::ostream &>;
 		}
@@ -170,7 +164,7 @@ public:
 	template <typename U>
 	requires std::convertible_to <U, T>
 	void insert (U && value) {
-		node_link link = get_link (value);
+		node_link link = static_cast <Inheritor *> (this)->get_link (value);
 		if (nullptr == * link) {
 			* link = new node (std::forward <U> (value));
 			m_size++;
@@ -178,7 +172,7 @@ public:
 	}
 
 	bool contains (const T & value) const {
-		const node * n = at (value);
+		const node * n = static_cast <const Inheritor *> (this)->at (value);
 
 		if (nullptr != n) {
 			return true;
@@ -188,16 +182,8 @@ public:
 		}
 	}
 
-	const node * at (const T & value) const {
-		return * get_link (value);
-	}
-
-	node * at (const T & value) {
-		return * get_link (value);
-	}
-
 	void remove (const T & value) {
-		node_link link = get_link (value);
+		node_link link = static_cast <Inheritor *> (this)->get_link (value);
 
 		if (nullptr != * link) {
 			node_link link_left = & (* link)->left;
@@ -214,19 +200,19 @@ public:
 			else {
 				if constexpr (true == detail::KeepInvariant) {
 					if constexpr (true == detail::RemovePreserveLeft) {
-						node * left_rightmost = * get_link_to_rightmost (link_left);
+						node * left_rightmost = * static_cast <Inheritor *> (this)->get_link_to_rightmost (link_left);
 						left_rightmost->right = * link_right;
 						* link = * link_left;
 					}
 					else {
-						node * right_leftmost = * get_link_to_leftmost (link_right);
+						node * right_leftmost = * static_cast <Inheritor *> (this)->get_link_to_leftmost (link_right);
 						right_leftmost->left = * link_left;
 						* link = * link_right;
 					}
 				}
 				else {
 					if constexpr (true == detail::RemovePreserveLeft) {
-						node_link left_rightmost_link = get_link_to_rightmost (link_left);
+						node_link left_rightmost_link = static_cast <Inheritor *> (this)->get_link_to_rightmost (link_left);
 
 						node * left_rightmost = * left_rightmost_link;
 						left_rightmost->right = * link_right;
@@ -239,7 +225,7 @@ public:
 						* link = left_rightmost;
 					}
 					else {
-						node_link right_leftmost_link = get_link_to_leftmost (link_right);
+						node_link right_leftmost_link = static_cast <Inheritor *> (this)->get_link_to_leftmost (link_right);
 
 						node * right_leftmost = * right_leftmost_link;
 						right_leftmost->left = * link_left;
@@ -282,11 +268,11 @@ public:
 	}
 
 	const node * find_min () const {
-		return * get_link_to_leftmost (& m_root);
+		return * static_cast <const Inheritor *> (this)->get_link_to_leftmost (& m_root);
 	}
 
 	const node * find_max () const {
-		return * get_link_to_rightmost (& m_root);
+		return * static_cast <const Inheritor *> (this)->get_link_to_rightmost (& m_root);
 	}
 
 	void make_empty () {
@@ -314,6 +300,14 @@ public:
 	}
 
 protected:
+	const node * at (const T & value) const {
+		return * static_cast <const Inheritor *> (this)->get_link (value);
+	}
+
+	node * at (const T & value) {
+		return * static_cast <Inheritor *> (this)->get_link (value);
+	}
+
 	const_node_link get_link (const T & value) const {
 		const_node_link link = & m_root;
 
@@ -336,31 +330,31 @@ protected:
 	}
 
 	node_link get_link (const T & value) {
-		return const_cast <node_link> (const_cast <const binary_search_tree *> (this)->get_link (value));
+		return const_cast <node_link> (const_cast <const binary_search_tree_base *> (this)->get_link (value));
 	}
 
 	stack <const_node_link> get_link_stack (const T & value) const {
-		return get_link_stack <const_node_link> (& m_root, value);
+		return static_cast <Inheritor *> (this)->template get_link_stack <const_node_link> (& m_root, value);
 	}
 
 	stack <node_link> get_link_stack (const T & value) {
-		return get_link_stack <node_link> (& m_root, value);
+		return static_cast <Inheritor *> (this)->template get_link_stack <node_link> (& m_root, value);
 	}
 
 	stack <const_node_link> get_link_stack_to_leftmost (const_node_link link) const {
-		return get_link_stack_to_leftmost <const_node_link> (link);
+		return static_cast <Inheritor *> (this)->template get_link_stack_to_leftmost <const_node_link> (link);
 	}
 
 	stack <node_link> get_link_stack_to_leftmost (node_link link) {
-		return get_link_stack_to_leftmost <node_link> (link);
+		return static_cast <Inheritor *> (this)->template get_link_stack_to_leftmost <node_link> (link);
 	}
 
 	stack <const_node_link> get_link_stack_to_rightmost (const_node_link link) const {
-		return get_link_stack_to_rightmost <const_node_link> (link);
+		return static_cast <Inheritor *> (this)->template get_link_stack_to_rightmost <const_node_link> (link);
 	}
 
 	stack <node_link> get_link_stack_to_rightmost (node_link link) {
-		return get_link_stack_to_rightmost <node_link> (link);
+		return static_cast <Inheritor *> (this)->template get_link_stack_to_rightmost <node_link> (link);
 	}
 
 protected:
@@ -450,5 +444,23 @@ protected:
 		return link_stack;
 	}
 };
+}
+
+// TODO: learn commenting: https://www.doxygen.nl/manual/docblocks.html
+
+/// @tparam T
+/// @tparam Comparator STRICTLY-LESS-THAN comparator
+/// @warning Comparator must impose a strict weak ordering
+template <typename T, typename Comparator = std::less <T>, bool KeepInvariant = false, bool RemovePreserveLeft = false>
+requires std::strict_weak_order <Comparator, T, T>
+class binary_search_tree
+	: public detail::binary_search_tree_base <
+		binary_search_tree <T, Comparator, KeepInvariant, RemovePreserveLeft>,
+		T,
+		Comparator,
+		KeepInvariant,
+		RemovePreserveLeft
+	>
+{};
 
 # endif // BINARY_SEARCH_TREE_23

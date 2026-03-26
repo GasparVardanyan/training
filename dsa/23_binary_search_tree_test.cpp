@@ -64,9 +64,7 @@ TEST_F(BinarySearchTreeTest, SearchAndExtremes) {
 	EXPECT_EQ(bst.find_min()->data, 20);
 	EXPECT_EQ(bst.find_max()->data, 80);
 
-	const decltype (bst)::node * node = bst.at (30);
-	ASSERT_NE(node, nullptr);
-	EXPECT_EQ(node->data, 30);
+	EXPECT_TRUE(bst.contains(20));
 }
 
 // --- Deletion Logic ---
