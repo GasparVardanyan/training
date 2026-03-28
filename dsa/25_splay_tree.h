@@ -3,36 +3,108 @@
 
 # include "23_binary_search_tree.h"
 
-template <typename T, typename Comparator = std::less <T>, bool KeepInvariant = false, bool RemovePreserveLeft = false>
+namespace detail {
+template <typename T, typename C>
+struct splay_tree__ {
+	using tree = binary_search_tree <T, C>;
+};
+}
+
+template <typename T, typename Comparator = std::less <T>>
 requires std::strict_weak_order <Comparator, T, T>
-class splay_tree
-	: public detail::binary_search_tree_base <
-		splay_tree <T, Comparator, KeepInvariant, RemovePreserveLeft>,
-		T, Comparator, KeepInvariant, RemovePreserveLeft
-	>
+class splay_tree : protected detail::splay_tree__ <T, Comparator>::tree
 {
+protected:
+	using detail = detail::splay_tree__ <T, Comparator>;
+
 public:
-	using tree = detail::binary_search_tree_base <
-		splay_tree <T, Comparator, KeepInvariant, RemovePreserveLeft>,
-		T, Comparator, KeepInvariant, RemovePreserveLeft
-	>;
-
-	friend tree;
-
+	using tree = detail::tree;
 	using node = tree::node;
 	using node_link = tree::node_link;
 	using const_node_link = tree::const_node_link;
 	using value_type = T;
 
+public: // binary_search_tree interface
+	using tree::dump_invariant;
+	using tree::dump_sorted;
+	using tree::make_empty;
+	using tree::root;
+	using tree::size;
+	using tree::empty;
+	using tree::internal_path_length;
+
+	bool operator== (const splay_tree & other) const {
+		return
+			   static_cast <const tree &> (* this)
+			== static_cast <const tree &> (other)
+		;
+	}
+
+	operator vector <T> () const {
+		vector <T> v;
+		v.reserve (size ());
+
+		dump_sorted (std::back_inserter (v));
+
+		return v;
+	}
+
+	friend std::ostream & operator<< (std::ostream & os, const splay_tree & tree)
+		requires requires (std::ostream & os, T t) {
+			{ os << t } -> std::convertible_to <std::ostream &>;
+		}
+	{
+		return os << static_cast <const splay_tree::tree &> (tree);
+	}
+
+	template <typename U>
+	requires std::convertible_to <U, T>
+	void insert (U && value) {
+		stack <node_link> path = get_link_stack (value);
+		if (nullptr == * path.top ()) {
+			tree::insert_at (path.top (), value);
+		}
+		splay (std::move (path));
+	}
+
+	bool contains (const T & value) const {
+		// return const_cast <splay_tree *> (this)->contains (value);
+		return tree::contains (value);
+	}
+
+	bool contains (const T & value) {
+		stack <node_link> path = get_link_stack (value);
+		bool c = * path.top () != nullptr;
+
+		if (false == c) {
+			path.pop ();
+
+			if (false == path.empty ()) {
+				splay (std::move (path));
+			}
+		}
+		else {
+			splay (std::move (path));
+		}
+
+		return c;
+	}
+
+	void remove (const T & value) {
+		stack <node_link> path = get_link_stack (value);
+
+		if (nullptr != * path.top ()) {
+			remove_at (path.top ());
+		}
+
+		path.pop ();
+
+		if (false == path.empty ()) {
+			splay (std::move (path));
+		}
+	}
+
 protected:
-	const_node_link get_link (const T & value) const {
-		return const_cast <splay_tree *> (this)->get_link (value);
-	}
-
-	tree::node_link get_link (const T & value) {
-		return tree::get_link (value);
-	}
-
 	void splay (stack <node_link> && path) {
 		node_link current = path.top (); // path always contains & m_root
 		path.pop ();
@@ -156,6 +228,8 @@ protected:
 	}
 
 protected:
+	using tree::insert_at;
+	using tree::remove_at;
 	using tree::at;
 	using tree::get_link_stack;
 	using tree::get_link_stack_to_leftmost;

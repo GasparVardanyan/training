@@ -13,10 +13,6 @@
 # include "23_binary_tree_node.h"
 # include "23_binary_search_tree.h"
 
-template <typename T, typename Comparator, typename Data>
-requires std::strict_weak_order <Comparator, T, T>
-class avl_tree;
-
 namespace detail {
 template <typename T, typename C, typename Data = std::monostate>
 struct avl_tree__ {
@@ -50,22 +46,18 @@ struct avl_tree__ {
 		}
 	};
 
-	using tree = binary_search_tree_base <
-		avl_tree <T, C, Data>, node_data, C, false
-	>;
+	using tree = binary_search_tree <node_data, C, false>;
 };
 }
 
 template <typename T, typename Comparator = std::less <T>, typename Data = std::monostate>
 requires std::strict_weak_order <Comparator, T, T>
-class avl_tree : public detail::avl_tree__ <T, Comparator, Data>::tree {
+class avl_tree : protected detail::avl_tree__ <T, Comparator, Data>::tree {
 protected:
 	using detail = detail::avl_tree__ <T, Comparator, Data>;
 
 public:
 	using tree = detail::tree;
-	friend tree;
-
 	using node = tree::node;
 	using node_link = tree::node_link;
 	using const_node_link = tree::const_node_link;
@@ -74,6 +66,15 @@ public:
 	using tree::less_than;
 
 public: // binary_search_tree interface
+	using tree::contains;
+	using tree::dump_invariant;
+	using tree::dump_sorted;
+	using tree::make_empty;
+	using tree::root;
+	using tree::size;
+	using tree::empty;
+	using tree::internal_path_length;
+
 	bool operator== (const avl_tree & other) const {
 		return
 			   static_cast <const tree &> (* this)
@@ -83,9 +84,9 @@ public: // binary_search_tree interface
 
 	operator vector <T> () const {
 		vector <T> v;
-		v.reserve (this->tree::size ());
+		v.reserve (size ());
 
-		this->tree::dump_sorted (std::back_inserter (v));
+		dump_sorted (std::back_inserter (v));
 
 		return v;
 	}
@@ -225,7 +226,7 @@ public:
 		}
 	}
 
-protected:
+private:
 	void rebalance_after_insert (stack <node_link> && path) {
 		node_link child = path.top ();
 		path.pop ();
@@ -245,7 +246,7 @@ protected:
 			std::size_t rh = get_node_height_plus_one (nr);
 
 			if (lh > rh && lh - rh > 1) {
-				if (true == prev_left) { // [ROT] this is called right rotation... confusing names !!!
+				if (true == prev_left) {
 					node * nlr = nl->right;
 
 					nl->right = n;
@@ -255,7 +256,7 @@ protected:
 
 					n->data.height_plus_one -= 1;
 				}
-				else { // [ROT] and this is left-right
+				else {
 					node * nlr = nl->right;
 					node * nlrl = nlr->left;
 					node * nlrr = nlr->right;
@@ -275,7 +276,7 @@ protected:
 				break; // since link->data.height_plus_one remains the same
 			}
 			else if (rh > lh && rh - lh > 1) {
-				if (false == prev_left) { // [ROT] this is left rotation
+				if (false == prev_left) {
 					node * nrl = nr->left;
 
 					* link = nr;
@@ -285,7 +286,7 @@ protected:
 
 					n->data.height_plus_one -= 1;
 				}
-				else { // [ROT] and this is right-left rotation
+				else {
 					node * nrl = nr->left;
 					node * nrll = nrl->left;
 					node * nrlr = nrl->right;
@@ -427,7 +428,6 @@ protected:
 	}
 
 protected:
-	using tree::at;
 	using tree::get_link_stack;
 	using tree::get_link_stack_to_leftmost;
 	using tree::get_link_stack_to_rightmost;

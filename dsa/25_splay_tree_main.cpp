@@ -12,7 +12,7 @@ int main () {
 	spt.insert (20);
 	spt.insert (10);
 
-	// spt.splay (15);
+	std::cout << spt.contains (16) << std::endl;
 
 	std::cout << spt << std::endl;
 }

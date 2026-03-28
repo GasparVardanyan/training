@@ -166,8 +166,7 @@ public:
 	void insert (U && value) {
 		node_link link = static_cast <Inheritor *> (this)->get_link (value);
 		if (nullptr == * link) {
-			* link = new node (std::forward <U> (value));
-			m_size++;
+			insert_at (link, std::forward <U> (value));
 		}
 	}
 
@@ -186,64 +185,7 @@ public:
 		node_link link = static_cast <Inheritor *> (this)->get_link (value);
 
 		if (nullptr != * link) {
-			node_link link_left = & (* link)->left;
-			node_link link_right = & (* link)->right;
-
-			node * to_remove = * link;
-
-			if (nullptr == * link_right) {
-				* link = * link_left;
-			}
-			else if (nullptr == * link_left) {
-				* link = * link_right;
-			}
-			else {
-				if constexpr (true == detail::KeepInvariant) {
-					if constexpr (true == detail::RemovePreserveLeft) {
-						node * left_rightmost = * static_cast <Inheritor *> (this)->get_link_to_rightmost (link_left);
-						left_rightmost->right = * link_right;
-						* link = * link_left;
-					}
-					else {
-						node * right_leftmost = * static_cast <Inheritor *> (this)->get_link_to_leftmost (link_right);
-						right_leftmost->left = * link_left;
-						* link = * link_right;
-					}
-				}
-				else {
-					if constexpr (true == detail::RemovePreserveLeft) {
-						node_link left_rightmost_link = static_cast <Inheritor *> (this)->get_link_to_rightmost (link_left);
-
-						node * left_rightmost = * left_rightmost_link;
-						left_rightmost->right = * link_right;
-
-						if (left_rightmost_link != link_left) {
-							* left_rightmost_link = left_rightmost->left;
-							left_rightmost->left = * link_left;
-						}
-
-						* link = left_rightmost;
-					}
-					else {
-						node_link right_leftmost_link = static_cast <Inheritor *> (this)->get_link_to_leftmost (link_right);
-
-						node * right_leftmost = * right_leftmost_link;
-						right_leftmost->left = * link_left;
-
-						if (right_leftmost_link != link_right) {
-							* right_leftmost_link = right_leftmost->right;
-							right_leftmost->right = * link_right;
-						}
-
-						* link = right_leftmost;
-					}
-				}
-			}
-
-			to_remove->left = nullptr;
-			to_remove->right = nullptr;
-			delete to_remove;
-			m_size--;
+			remove_at (link);
 		}
 	}
 
@@ -297,6 +239,75 @@ public:
 		}
 
 		return s;
+	}
+
+protected:
+	template <typename U>
+	requires std::convertible_to <U, T>
+	void insert_at (node_link link, U && value) {
+		* link = new node (std::forward <U> (value));
+		m_size++;
+	}
+
+	void remove_at (node_link link) {
+		node_link link_left = & (* link)->left;
+		node_link link_right = & (* link)->right;
+
+		node * to_remove = * link;
+
+		if (nullptr == * link_right) {
+			* link = * link_left;
+		}
+		else if (nullptr == * link_left) {
+			* link = * link_right;
+		}
+		else {
+			if constexpr (true == detail::KeepInvariant) {
+				if constexpr (true == detail::RemovePreserveLeft) {
+					node * left_rightmost = * static_cast <Inheritor *> (this)->get_link_to_rightmost (link_left);
+					left_rightmost->right = * link_right;
+					* link = * link_left;
+				}
+				else {
+					node * right_leftmost = * static_cast <Inheritor *> (this)->get_link_to_leftmost (link_right);
+					right_leftmost->left = * link_left;
+					* link = * link_right;
+				}
+			}
+			else {
+				if constexpr (true == detail::RemovePreserveLeft) {
+					node_link left_rightmost_link = static_cast <Inheritor *> (this)->get_link_to_rightmost (link_left);
+
+					node * left_rightmost = * left_rightmost_link;
+					left_rightmost->right = * link_right;
+
+					if (left_rightmost_link != link_left) {
+						* left_rightmost_link = left_rightmost->left;
+						left_rightmost->left = * link_left;
+					}
+
+					* link = left_rightmost;
+				}
+				else {
+					node_link right_leftmost_link = static_cast <Inheritor *> (this)->get_link_to_leftmost (link_right);
+
+					node * right_leftmost = * right_leftmost_link;
+					right_leftmost->left = * link_left;
+
+					if (right_leftmost_link != link_right) {
+						* right_leftmost_link = right_leftmost->right;
+						right_leftmost->right = * link_right;
+					}
+
+					* link = right_leftmost;
+				}
+			}
+		}
+
+		to_remove->left = nullptr;
+		to_remove->right = nullptr;
+		delete to_remove;
+		m_size--;
 	}
 
 protected:
