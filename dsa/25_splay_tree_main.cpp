@@ -6,13 +6,13 @@ int main () {
 	std::cout << "HELLO" << std::endl;
 
 	splay_tree <int> spt;
-	spt.insert (-50);
-	spt.insert (50);
-	spt.insert (15);
-	spt.insert (20);
-	spt.insert (10);
-
-	std::cout << spt.contains (16) << std::endl;
+	spt.insert (2);
+	spt.insert (3);
+	spt.insert (4);
+	spt.insert (5);
+	spt.insert (6);
+	spt.insert (7);
+	spt.insert (1);
 
 	std::cout << spt << std::endl;
 }

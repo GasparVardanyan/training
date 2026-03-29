@@ -23,6 +23,7 @@ public:
 	using node_link = tree::node_link;
 	using const_node_link = tree::const_node_link;
 	using value_type = T;
+	using tree::less_than;
 
 public: // binary_search_tree interface
 	using tree::dump_invariant;
@@ -151,15 +152,15 @@ protected:
 			else {
 				parentIsGrandParentLeft = * parent == (* grandparent)->left;
 
-				bool zigzag = false;
-
 				node * g = * grandparent; (void) g;
 
 				if (true == currentIsParentLeft) {
 					if (true == parentIsGrandParentLeft) {
+						g->left = p->right;
 						p->left = c->right;
+						p->right = g;
 						c->right = p;
-						* parent = c;
+						* grandparent = c;
 					}
 					else {
 						g->right = c->left;
@@ -167,14 +168,15 @@ protected:
 						c->left = g;
 						c->right = p;
 						* grandparent = c;
-						zigzag = true;
 					}
 				}
 				else {
 					if (false == parentIsGrandParentLeft) {
+						g->right = p->left;
 						p->right = c->left;
+						p->left = g;
 						c->left = p;
-						* parent = c;
+						* grandparent = c;
 					}
 					else {
 						g->left = c->right;
@@ -182,34 +184,14 @@ protected:
 						c->left = p;
 						c->right = g;
 						* grandparent = c;
-						zigzag = true;
 					}
 				}
 
-				if (true == zigzag) {
-					if (false == path.empty ()) {
-						current = grandparent;
+				if (false == path.empty ()) {
+					current = grandparent;
 
-						parent = path.top ();
-						path.pop ();
-
-						if (false == path.empty ()) {
-							grandparent = path.top ();
-							path.pop ();
-						}
-						else {
-							grandparent = nullptr;
-						}
-
-						currentIsParentLeft = * current == (* parent)->left;
-					}
-					else {
-						break;
-					}
-				}
-				else {
-					current = parent;
-					parent = grandparent;
+					parent = path.top ();
+					path.pop ();
 
 					if (false == path.empty ()) {
 						grandparent = path.top ();
@@ -219,7 +201,10 @@ protected:
 						grandparent = nullptr;
 					}
 
-					// currentIsParentLeft remains the same
+					currentIsParentLeft = * current == (* parent)->left;
+				}
+				else {
+					break;
 				}
 			}
 		}
