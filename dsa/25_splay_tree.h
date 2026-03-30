@@ -4,18 +4,19 @@
 # include "23_binary_search_tree.h"
 
 namespace detail {
-template <typename T, typename C>
+template <typename T, typename C, bool RemovePreserveLeft__>
 struct splay_tree__ {
-	using tree = binary_search_tree <T, C>;
+	static constexpr bool RemovePreserveLeft = RemovePreserveLeft__;
+	using tree = binary_search_tree <T, C, RemovePreserveLeft__>;
 };
 }
 
-template <typename T, typename Comparator = std::less <T>>
+template <typename T, typename Comparator = std::less <T>, bool RemovePreserveLeft = false>
 requires std::strict_weak_order <Comparator, T, T>
-class splay_tree : protected detail::splay_tree__ <T, Comparator>::tree
+class splay_tree : protected detail::splay_tree__ <T, Comparator, RemovePreserveLeft>::tree
 {
 protected:
-	using detail = detail::splay_tree__ <T, Comparator>;
+	using detail = detail::splay_tree__ <T, Comparator, RemovePreserveLeft>;
 
 public:
 	using tree = detail::tree;
@@ -92,6 +93,9 @@ public: // binary_search_tree interface
 	}
 
 	void remove (const T & value) {
+		__remove (value);
+		return;
+
 		stack <node_link> path = get_link_stack (value);
 
 		if (nullptr != * path.top ()) {
@@ -102,6 +106,53 @@ public: // binary_search_tree interface
 
 		if (false == path.empty ()) {
 			splay (std::move (path));
+		}
+	}
+
+private:
+	void __remove (const T & value) {
+		stack <node_link> path = get_link_stack (value);
+
+		if (nullptr != * path.top ()) {
+			splay (std::move (path));
+
+			node_link link = & this->m_root;
+			node_link link_left = & (* link)->left;
+			node_link link_right = & (* link)->right;
+
+			node * to_remove = * link;
+
+			if (nullptr == * link_right) {
+				* link = * link_left;
+			}
+			else if (nullptr == * link_left) {
+				* link = * link_right;
+			}
+			else {
+				if constexpr (true == detail::RemovePreserveLeft) {
+					path = get_link_stack_to_rightmost (link_left);
+					splay (std::move (path));
+					(* link_left)->right = * link_right;
+					* link = * link_left;
+				}
+				else {
+					path = get_link_stack_to_leftmost (link_right);
+					splay (std::move (path));
+					(* link_right)->left = * link_left;
+					* link = * link_right;
+				}
+			}
+
+			to_remove->left = nullptr;
+			to_remove->right = nullptr;
+			delete to_remove;
+			this->m_size--;
+		}
+		else {
+			// path.pop ();
+			// if (false == path.empty ()) {
+			// 	splay (std::move (path));
+			// }
 		}
 	}
 
@@ -130,8 +181,6 @@ protected:
 		bool currentIsParentLeft = * current == (* parent)->left;
 
 		while (true) {
-			bool parentIsGrandParentLeft;
-
 			node * c = * current;
 			node * p = * parent;
 
@@ -150,7 +199,7 @@ protected:
 				break;
 			}
 			else {
-				parentIsGrandParentLeft = * parent == (* grandparent)->left;
+				bool parentIsGrandParentLeft = * parent == (* grandparent)->left;
 
 				node * g = * grandparent; (void) g;
 

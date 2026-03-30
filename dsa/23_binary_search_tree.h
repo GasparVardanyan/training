@@ -33,14 +33,14 @@ template <typename T, typename U>
 requires std::convertible_to <T, U>
 struct equal_to <T, std::greater <U>> : std::equal_to <U> {};
 
-template <typename T, typename Comparator, bool KeepInvariant__, bool _RemovePreserveLeft>
+template <typename T, typename Comparator, bool KeepInvariant__, bool RemovePreserveLeft__>
 requires std::strict_weak_order <Comparator, T, T>
 struct binary_search_tree__ {
 	using equal_to = equal_to <T, Comparator>;
 	using node = binary_tree_node <T, equal_to>;
 
 	static constexpr bool KeepInvariant = KeepInvariant__;
-	static constexpr bool RemovePreserveLeft = _RemovePreserveLeft;
+	static constexpr bool RemovePreserveLeft = RemovePreserveLeft__;
 
 	template <typename U>
 	static constexpr bool is_node_link_v =
