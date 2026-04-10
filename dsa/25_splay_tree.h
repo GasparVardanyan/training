@@ -1,5 +1,5 @@
-# ifndef SPLAY_TREE_23
-# define SPLAY_TREE_23
+# ifndef SPLAY_TREE_25
+# define SPLAY_TREE_25
 
 # include "23_binary_search_tree.h"
 
@@ -93,24 +93,18 @@ public: // binary_search_tree interface
 	}
 
 	void remove (const T & value) {
-		__remove (value);
-		return;
+		// stack <node_link> path = get_link_stack (value);
+		//
+		// if (nullptr != * path.top ()) {
+		// 	remove_at (path.top ());
+		// }
+		//
+		// path.pop ();
+		//
+		// if (false == path.empty ()) {
+		// 	splay (std::move (path));
+		// }
 
-		stack <node_link> path = get_link_stack (value);
-
-		if (nullptr != * path.top ()) {
-			remove_at (path.top ());
-		}
-
-		path.pop ();
-
-		if (false == path.empty ()) {
-			splay (std::move (path));
-		}
-	}
-
-private:
-	void __remove (const T & value) {
 		stack <node_link> path = get_link_stack (value);
 
 		if (nullptr != * path.top ()) {
@@ -272,4 +266,4 @@ protected:
 	using tree::get_link_to_rightmost;
 };
 
-# endif // SPLAY_TREE_23
+# endif // SPLAY_TREE_25
