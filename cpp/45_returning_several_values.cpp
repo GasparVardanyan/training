@@ -4,8 +4,9 @@
 # include <string>
 # include <tuple>
 # include <type_traits>
+# include <utility>
 
-namespace with_tuple {
+
 
 template <typename T>
 requires std::integral <T> || std::floating_point <T>
@@ -28,118 +29,11 @@ struct SignedCommonNumber : SignedNumber <std::common_type_t <Ts ...>> {};
 template <typename ... Ts>
 using SignedCommonNumberT = SignedCommonNumber <Ts ...>::type;
 
-template <typename T1, typename T2>
-std::tuple <
-	SignedCommonNumberT <T1, T2>,
-	SignedCommonNumberT <T1, T2>,
-	SignedCommonNumberT <T1, T2>,
-	SignedCommonNumberT <T1, T2>
-> foo (const T1 & v1, const T2 & v2) {
-	return { v1 + v2, v1 - v2, v1 * v2, v1 / v2 };
-}
-
-}
-
-template <typename ...>
-struct TupleElemList;
-
-template <typename T>
-struct TupleElemList <T> {
-	using type = T;
-	using next_type = void;
-	template <typename T_>
-	requires std::constructible_from <T, T_>
-	TupleElemList (T_ && v)
-		: data (std::forward <T_> (v))
-	{
-	}
-
-	TupleElemList(const TupleElemList &) = delete;
-	TupleElemList(TupleElemList &&) = delete;
-	TupleElemList &operator=(const TupleElemList &) = delete;
-	TupleElemList &operator=(TupleElemList &&) = delete;
-
-	T data;
-};
-
-template <typename T1, typename T2, typename ... Ts>
-struct TupleElemList <T1, T2, Ts ...> {
-	using type = T1;
-
-	template <typename T1_, typename T2_, typename ... Ts_>
-	requires std::constructible_from <T1, T1_> && std::constructible_from <T2, T2_> && (std::constructible_from <Ts, Ts_> && ...)
-	TupleElemList (T1_ && v1, T2_ && v2, Ts_ && ... vs)
-		: data (std::forward <T1_> (v1))
-		, next (TupleElemList <T2, Ts ...> (std::forward <T2_> (v2), std::forward <Ts_> (vs) ...))
-	{}
-
-	TupleElemList(const TupleElemList &) = delete;
-	TupleElemList(TupleElemList &&) = delete;
-	TupleElemList &operator=(const TupleElemList &) = delete;
-	TupleElemList &operator=(TupleElemList &&) = delete;
-
-	T1 data;
-	TupleElemList <T2, Ts...> next;
-};
-
-template <typename ... Ts>
-struct Tuple {
-	template <typename ... Ts_>
-	requires (std::constructible_from<Ts, Ts_> && ...)
-	Tuple (Ts_ && ... vs)
-		: elems (TupleElemList <Ts ...> (std::forward <Ts_> (vs) ...))
-	{
-	}
-
-	Tuple(const Tuple &) = delete;
-	Tuple(Tuple &&) = delete;
-	Tuple &operator=(const Tuple &) = delete;
-	Tuple &operator=(Tuple &&) = delete;
-
-	TupleElemList <Ts ...> elems;
-};
-
-template <std::size_t N, typename ... Ts>
-decltype (auto) Get (Tuple <Ts ...> & tuple) {
-	return Get <N> (tuple.elems);
-}
-
-template <std::size_t N, typename ... Ts>
-decltype (auto) Get (TupleElemList <Ts ...> & tel)
-{
-	if constexpr (0 == N) {
-		return (tel.data);
-	}
-	else {
-		return Get <N - 1> (tel.next);
-	}
-}
 
 
-int main () {
+namespace structured_bindings {
 
-	Tuple <int, std::string, double> t (10, "xyz", 2.2);
-	std::cout << Get <0> (t) << std::endl;
-	Get <1> (t) = "hhh";
-	std::cout << Get <1> (t) << std::endl;
-	std::cout << Get <2> (t) << std::endl;
-
-	{
-		using namespace with_tuple;
-
-		auto [v1, v2, v3, v4] = foo (10.f, 20.l);
-		std::cout << v1 << ", " << v2 << ", " << v3 << ", " << v4 << std::endl;
-
-		std::tie (v1, v2, std::ignore, v4) = foo (20, 30.l);
-		std::cout << v1 << ", " << v2 << ", " << v3 << ", " << v4 << std::endl;
-
-		auto vs = foo (30, 40);
-		std::cout << std::get <0> (vs) << std::endl;
-		std::cout << std::get <1> (vs) << std::endl;
-		std::cout << std::get <2> (vs) << std::endl;
-		std::cout << std::get <3> (vs) << std::endl;
-	}
-
+void run () {
 	int x = 10;
 	std::get <0> (std::tie (x)) = 20;
 	std::cout << x << std::endl;
@@ -176,13 +70,214 @@ int main () {
 		auto [x, y] = s;
 		std::cout << x << ", " << y << std::endl;
 	}
+}
+
+}
 
 
 
-	std::tuple <int, float, std::string> tpl (10, 20.30, "abc");
-	std::cout << std::get <0> (tpl) << std::endl;
-	std::cout << std::get <1> (tpl) << std::endl;
-	std::cout << std::get <2> (tpl) << std::endl;
+namespace using_tuple {
+
+template <typename T1, typename T2>
+std::tuple <
+	SignedCommonNumberT <T1, T2>,
+	SignedCommonNumberT <T1, T2>,
+	SignedCommonNumberT <T1, T2>,
+	SignedCommonNumberT <T1, T2>
+> foo (const T1 & v1, const T2 & v2) {
+	return { v1 + v2, v1 - v2, v1 * v2, v1 / v2 };
+}
 
 
+void run () {
+	auto [v1, v2, v3, v4] = foo (10.f, 20.l);
+	std::cout << v1 << ", " << v2 << ", " << v3 << ", " << v4 << std::endl;
+
+	std::tie (v1, v2, std::ignore, v4) = foo (20, 30.l);
+	std::cout << v1 << ", " << v2 << ", " << v3 << ", " << v4 << std::endl;
+
+	auto vs = foo (30, 40);
+	std::cout << std::get <0> (vs) << std::endl;
+	std::cout << std::get <1> (vs) << std::endl;
+	std::cout << std::get <2> (vs) << std::endl;
+	std::cout << std::get <3> (vs) << std::endl;
+}
+
+}
+
+
+
+namespace tuple_like {
+
+struct S {
+public:
+	int get_int () const { return _int; }
+	std::string get_string () const { return _string; }
+	double get_double () const { return _double; }
+
+private:
+	int _int = 10;
+	std::string _string = "ABC";
+	double _double = 1.1;
+};
+
+template <std::size_t N>
+decltype (auto) get (const tuple_like::S & s) {
+	if constexpr (0 == N) {
+		return (s.get_int ());
+	}
+	else if constexpr (1 == N) {
+		return (s.get_string ());
+	}
+	else if constexpr (2 == N) {
+		return (s.get_double ());
+	}
+}
+
+}
+
+namespace std {
+
+template <>
+struct tuple_size <tuple_like::S> : std::integral_constant <std::size_t, 3> {};
+
+
+template <>
+struct tuple_element <0, tuple_like::S> { using type = int; };
+template <>
+struct tuple_element <1, tuple_like::S> { using type = std::string; };
+template <>
+struct tuple_element <2, tuple_like::S> { using type = double; };
+
+}
+
+namespace tuple_like {
+
+void run () {
+	S s;
+
+	auto [v1, v2, v3] = s;
+	std::cout << v1 << std::endl;
+	std::cout << v2 << std::endl;
+	std::cout << v3 << std::endl;
+}
+
+}
+
+
+
+namespace using_struct {
+
+template <typename T1, typename T2>
+struct foo_return_type {
+	SignedCommonNumberT <T1, T2> add;
+	SignedCommonNumberT <T1, T2> sub;
+	SignedCommonNumberT <T1, T2> mul;
+	SignedCommonNumberT <T1, T2> div;
+};
+
+template <typename T1, typename T2>
+foo_return_type <T1, T2> foo (T1 a, T2 b) {
+	return {
+		.add = a + b,
+		.sub = a - b,
+		.mul = a * b,
+		.div = a / b
+	};
+}
+
+template <typename T1, typename T2>
+struct bar {
+	SignedCommonNumberT <T1, T2> add;
+	SignedCommonNumberT <T1, T2> sub;
+	SignedCommonNumberT <T1, T2> mul;
+	SignedCommonNumberT <T1, T2> div;
+
+	bar (T1 a, T2 b)
+		: add (a + b)
+		, sub (a - b)
+		, mul (a * b)
+		, div (a / b)
+	{}
+};
+
+void run () {
+	auto [a, s, m, d] = foo (20, 30.);
+	std::cout << a << " - " << s << " - " << m << " - " << d << std::endl;
+	auto [a1, s1, m1, d1] = bar (10, 25.);
+	std::cout << a1 << " - " << s1 << " - " << m1 << " - " << d1 << std::endl;
+}
+
+}
+
+
+
+namespace using_output_parameters {
+
+template <typename T1, typename T2, typename ... Ts>
+requires
+	   (4 == sizeof ... (Ts))
+	&& (std::constructible_from <std::decay_t <Ts>, SignedCommonNumberT <T1, T2>> && ...)
+void foo (T1 a, T2 b, std::decay_t <Ts> & ... vs) {
+	[&] <std::size_t ... Is> (std::index_sequence <Is ...>) constexpr -> void {
+		((
+			0 == Is ? vs = a + b :
+			1 == Is ? vs = a - b :
+			2 == Is ? vs = a * b :
+			vs = a / b
+		), ...);
+	} (std::make_index_sequence <4> {});
+
+	// std::size_t i = 0;
+	//
+	// ((
+	// 	0 == i ? vs = a + b :
+	// 	1 == i ? vs = a - b :
+	// 	2 == i ? vs = a * b :
+	// 	vs = a / b, ++i
+	// ), ...);
+}
+
+void run () {
+	float a, b, c, d;
+
+	foo <float, float, float, float, float, float> (10.f, 20, a, b, c, d);
+	std::cout << a << " - " << b << " - " << c << " - " << d << std::endl;
+}
+
+}
+
+
+
+namespace using_function_object_consumer {
+
+template <typename T1, typename T2, typename C>
+requires std::invocable <
+	C,
+	SignedCommonNumberT <T1, T2>,
+	SignedCommonNumberT <T1, T2>,
+	SignedCommonNumberT <T1, T2>,
+	SignedCommonNumberT <T1, T2>
+>
+void foo (T1 a, T2 b, const C & consumer) {
+	consumer (a + b, a - b, a * b, a / b);
+}
+
+void run () {
+	foo (100, 20.0, [] (auto a, auto s, auto m, auto d) -> void {
+		std::cout << a << " - " << s << " - " << m << " - " << d << std::endl;
+	});
+}
+
+}
+
+
+
+int main () {
+	structured_bindings::run ();
+	using_tuple::run ();
+	tuple_like::run ();
+	using_struct::run ();
+	using_output_parameters::run ();
+	using_function_object_consumer::run ();
 }
