@@ -186,7 +186,7 @@ void avl_test () {
 	}
 }
 
-TEST(SingleTreeFullInsertRemove, SmallTree)
+TEST(AVLSingleTreeFullInsertRemove, SmallTree)
 {
 	avl_test <{
 		.minCount = 8'000,
@@ -200,7 +200,7 @@ TEST(SingleTreeFullInsertRemove, SmallTree)
 	}> ();
 }
 
-TEST(SingleTreeFullInsertRemove, BigTreeSmallIntervals)
+TEST(AVLSingleTreeFullInsertRemove, BigTreeSmallIntervals)
 {
 	avl_test <{
 		.minCount = 80'000,
@@ -214,7 +214,7 @@ TEST(SingleTreeFullInsertRemove, BigTreeSmallIntervals)
 	}> ();
 }
 
-TEST(SingleTreeFullInsertRemove, Balance)
+TEST(AVLSingleTreeFullInsertRemove, Balance)
 {
 	avl_test <{
 		.minCount = 80'000,
@@ -228,7 +228,7 @@ TEST(SingleTreeFullInsertRemove, Balance)
 	}> ();
 }
 
-TEST(SingleTreeFullInsertRemove, Order)
+TEST(AVLSingleTreeFullInsertRemove, Order)
 {
 	avl_test <{
 		.minCount = 80'000,
@@ -242,7 +242,7 @@ TEST(SingleTreeFullInsertRemove, Order)
 	}> ();
 }
 
-TEST(BruteForceInsert, Balance)
+TEST(AVLBruteForceInsert, Balance)
 {
 	avl_test <{
 		.minCount = 8'000,
@@ -256,7 +256,7 @@ TEST(BruteForceInsert, Balance)
 	}> ();
 }
 
-TEST(BruteForceInsert, Order)
+TEST(AVLBruteForceInsert, Order)
 {
 	avl_test <{
 		.minCount = 8'000,
@@ -270,7 +270,7 @@ TEST(BruteForceInsert, Order)
 	}> ();
 }
 
-TEST(BruteForceRemove, Balance)
+TEST(AVLBruteForceRemove, Balance)
 {
 	avl_test <{
 		.minCount = 8'000,
@@ -284,7 +284,7 @@ TEST(BruteForceRemove, Balance)
 	}> ();
 }
 
-TEST(BruteForceRemove, Order)
+TEST(AVLBruteForceRemove, Order)
 {
 	avl_test <{
 		.minCount = 8'000,
@@ -298,7 +298,7 @@ TEST(BruteForceRemove, Order)
 	}> ();
 }
 
-TEST(BigTreeInsert, Balance)
+TEST(AVLBigTreeInsert, Balance)
 {
 	avl_test <{
 		.minCount = 80'000,
@@ -312,7 +312,7 @@ TEST(BigTreeInsert, Balance)
 	}> ();
 }
 
-TEST(BigTreeInsert, Order)
+TEST(AVLBigTreeInsert, Order)
 {
 	avl_test <{
 		.minCount = 80'000,
@@ -326,7 +326,7 @@ TEST(BigTreeInsert, Order)
 	}> ();
 }
 
-TEST(BigTreeRemove, Balance)
+TEST(AVLBigTreeRemove, Balance)
 {
 	avl_test <{
 		.minCount = 80'000,
@@ -340,7 +340,7 @@ TEST(BigTreeRemove, Balance)
 	}> ();
 }
 
-TEST(BigTreeRemove, Order)
+TEST(AVLBigTreeRemove, Order)
 {
 	avl_test <{
 		.minCount = 80'000,
@@ -363,7 +363,7 @@ TEST(BigTreeRemove, Order)
 //  \____|\___|_| |_| |_|_|_| |_|_|      \__, |\___|_| |_|\___|_|  \__,_|\__\___|\__,_(_)
 //                                       |___/
 
-TEST(ManualCornerCases, EmptyAndSingle) {
+TEST(AVLManualCornerCases, EmptyAndSingle) {
 	avl_tree<int> tree;
 	ASSERT_TRUE(tree.empty());
 
@@ -378,7 +378,7 @@ TEST(ManualCornerCases, EmptyAndSingle) {
 	ASSERT_EQ(tree.size(), 0);
 }
 
-TEST(ManualCornerCases, DuplicateHandling) {
+TEST(AVLManualCornerCases, DuplicateHandling) {
 	avl_tree<int> tree;
 	tree.insert(10);
 	tree.insert(10); // BST logic usually ignores or overwrites
@@ -386,7 +386,7 @@ TEST(ManualCornerCases, DuplicateHandling) {
 	ASSERT_TRUE(verify_avl_balance(tree));
 }
 
-TEST(ManualCornerCases, InsertionRotations) {
+TEST(AVLManualCornerCases, InsertionRotations) {
 	// LL Rotation (Left-Left)
 	{
 		avl_tree<int> tree;
@@ -417,7 +417,7 @@ TEST(ManualCornerCases, InsertionRotations) {
 	}
 }
 
-TEST(ManualCornerCases, RemovalScenarios) {
+TEST(AVLManualCornerCases, RemovalScenarios) {
 	// Remove leaf
 	{
 		avl_tree<int> tree;
@@ -444,7 +444,7 @@ TEST(ManualCornerCases, RemovalScenarios) {
 	}
 }
 
-TEST(ManualCornerCases, RemovalPropagation) {
+TEST(AVLManualCornerCases, RemovalPropagation) {
 	avl_tree<int> tree;
 	// Build a tree that requires multiple passes of rebalancing on remove
 	// Sequence designed to trigger rh - lh > 1 in rebalance_after_remove
@@ -465,7 +465,7 @@ TEST(ManualCornerCases, RemovalPropagation) {
 	ASSERT_TRUE(tree.empty());
 }
 
-TEST(ManualCornerCases, PathologicalSequences) {
+TEST(AVLManualCornerCases, PathologicalSequences) {
 	const int count = 1000;
 
 	// Strictly Ascending
@@ -514,7 +514,7 @@ void run_structural_test(std::size_t n) {
 			  << std::endl;
 }
 
-TEST(Benchmark, ScalingAndBalance) {
+TEST(AVLBenchmark, ScalingAndBalance) {
 	std::cout << "\n--- AVL Structural Efficiency Benchmark ---\n";
 	run_structural_test (1E3);
 	run_structural_test (1E4);

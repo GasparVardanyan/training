@@ -1,5 +1,7 @@
 # include <type_traits>
 
+// https://bajamircea.github.io/coding/cpp/2016/04/07/move-forward.html
+
 template <typename T> struct RemoveReference { using type = T; };
 template <typename T> struct RemoveReference <T &> { using type = T; };
 template <typename T> struct RemoveReference <T &&> { using type = T; };

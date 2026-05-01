@@ -116,11 +116,21 @@ add_executable (25_splay_tree 25_splay_tree.h 25_splay_tree_main.cpp)
 add_executable (25_splay_tree_test 25_splay_tree_test.cpp)
 target_link_libraries (25_splay_tree_test GTest::gtest_main)
 
-add_executable (ex_1_1_selection_problem ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
-target_link_libraries (ex_1_1_selection_problem GTest::gtest_main)
+add_executable (ex_1_1_selection_problem_test ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
+target_link_libraries (ex_1_1_selection_problem_test GTest::gtest_main)
 
-add_executable (ex_1_5_popcount_with_recursion ex_1_5_popcount_with_recursion_test.cpp ex_1_5_popcount_with_recursion.h)
-target_link_libraries (ex_1_5_popcount_with_recursion GTest::gtest_main)
+add_executable (ex_1_5_popcount_with_recursion_test ex_1_5_popcount_with_recursion_test.cpp ex_1_5_popcount_with_recursion.h)
+target_link_libraries (ex_1_5_popcount_with_recursion_test GTest::gtest_main)
 
 include (GoogleTest)
-gtest_discover_tests (ex_1_1_selection_problem ex_1_5_popcount_with_recursion 15_max_subseq_sum_test 20_vector_test 21_list_test 23_binary_tree_node_test 24_avl_tree_test)
+
+gtest_discover_tests (ex_1_1_selection_problem_test)
+gtest_discover_tests (ex_1_5_popcount_with_recursion_test)
+
+gtest_discover_tests (15_max_subseq_sum_test)
+gtest_discover_tests (20_vector_test)
+gtest_discover_tests (21_list_test)
+gtest_discover_tests (23_binary_search_tree_test)
+gtest_discover_tests (23_binary_tree_node_test)
+gtest_discover_tests (24_avl_tree_test)
+gtest_discover_tests (25_splay_tree_test)

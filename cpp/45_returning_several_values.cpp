@@ -251,16 +251,18 @@ void run () {
 
 namespace using_function_object_consumer {
 
-template <typename T1, typename T2, typename C>
-requires std::invocable <
-	C,
-	SignedCommonNumberT <T1, T2>,
-	SignedCommonNumberT <T1, T2>,
-	SignedCommonNumberT <T1, T2>,
-	SignedCommonNumberT <T1, T2>
+template <
+	typename T1,
+	typename T2,
+	std::invocable <
+		SignedCommonNumberT <T1, T2>,
+		SignedCommonNumberT <T1, T2>,
+		SignedCommonNumberT <T1, T2>,
+		SignedCommonNumberT <T1, T2>
+	> C
 >
-void foo (T1 a, T2 b, const C & consumer) {
-	consumer (a + b, a - b, a * b, a / b);
+void foo (T1 a, T2 b, C && consumer) {
+	std::forward <C> (consumer) (a + b, a - b, a * b, a / b);
 }
 
 void run () {

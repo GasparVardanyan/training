@@ -69,9 +69,6 @@ decltype (auto) MyInvoke (I && func, TS && ... args)
 	return std::forward <I> (func) (std::forward <TS> (args) ...);
 }
 
-template <typename X, typename Y, std::invocable <X, Y> F>
-void apply (X, Y, F);
-
 int make_x () { return 1; }
 int make_y () { return 1; }
 

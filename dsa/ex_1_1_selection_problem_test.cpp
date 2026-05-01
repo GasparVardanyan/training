@@ -4,7 +4,6 @@
 # include <cstdlib>
 # include <ctime>
 # include <functional>
-# include <iostream>
 # include <vector>
 
 # include "ex_1_1_selection_problem.h"

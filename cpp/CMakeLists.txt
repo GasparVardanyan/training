@@ -69,3 +69,13 @@ add_executable (43_variable_declaration_keywords 43_variable_declaration_keyword
 add_executable (44_keywords 44_keywords.cpp)
 add_executable (45_returning_several_values 45_returning_several_values.cpp)
 add_executable (46_metaprogramming_tuple 46_metaprogramming_tuple.cpp)
+add_executable (47_returning_several_values 47_returning_several_values.cpp)
+add_executable (48_polymorphism 48_polymorphism.cpp)
+
+
+
+add_executable (tuple1 tuple1.cpp)
+add_executable (tuple2 tuple2.cpp)
+add_executable (tuple3 tuple3.cpp)
+add_executable (tuple4 tuple4.cpp)
+target_compile_options (tuple4 PRIVATE -fno-elide-constructors)
