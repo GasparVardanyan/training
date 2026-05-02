@@ -64,6 +64,8 @@ public:
 	using node_data = detail::node_data;
 	using value_type = T;
 	using tree::less_than;
+	using iterator = tree::iterator;
+	using const_iterator = tree::const_iterator;
 
 public: // binary_search_tree interface
 	using tree::contains;
@@ -74,6 +76,10 @@ public: // binary_search_tree interface
 	using tree::size;
 	using tree::empty;
 	using tree::internal_path_length;
+	using tree::begin;
+	using tree::cbegin;
+	using tree::end;
+	using tree::cend;
 
 	bool operator== (const avl_tree & other) const {
 		return

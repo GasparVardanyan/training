@@ -5,6 +5,7 @@
 # include <cstddef>
 # include <functional>
 # include <iostream>
+# include <iterator>
 # include <ostream>
 # include <type_traits>
 # include <utility>
@@ -17,10 +18,232 @@ struct binary_tree_node {
 public:
 	using link = binary_tree_node **;
 	using const_link = const binary_tree_node * const *;
+	using nptr = binary_tree_node *;
+	using const_nptr = const binary_tree_node *;
+
+	using node = binary_tree_node;
+
+	template <typename U>
+	static constexpr bool is_node_link_v =
+		std::is_pointer_v <U> &&
+		std::is_pointer_v <std::remove_pointer_t <U>> &&
+		std::is_same_v <
+			std::remove_cv_t <std::remove_pointer_t <
+				std::remove_cv_t <std::remove_pointer_t <
+					std::remove_cv_t <U>
+				>>
+			>>,
+			binary_tree_node
+		>
+	;
+
+	template <typename U>
+	static constexpr bool is_node_ptr_v =
+		std::is_pointer_v <U> &&
+		std::is_same_v <
+			std::remove_cv_t <std::remove_pointer_t <std::remove_cv_t <U>>>
+			, binary_tree_node
+		>
+	;
+
+	enum class iterator_algorithm {
+		preorder, inorder, postorder, levelorder
+	};
+
+	template <typename NPT, iterator_algorithm Alg = iterator_algorithm::inorder>
+	requires is_node_ptr_v <NPT>
+	class iterator_base {
+	public:
+		using difference_type = std::ptrdiff_t;
+		using value_type = T;
+		using iterator_category = std::bidirectional_iterator_tag;
+		static constexpr iterator_algorithm algorithm = Alg;
+
+	private:
+		using _reference_t = std::conditional_t <std::is_const_v <std::remove_pointer_t <NPT>>, const T &, T &>;
+		using _node_ptr_t = std::conditional_t <std::is_const_v <std::remove_pointer_t <NPT>>, const node *, node *>;
+
+	public:
+		friend class iterator_base <const std::decay_t <std::remove_pointer_t <NPT>> *>;
+
+		explicit iterator_base (NPT root, const stack <NPT> & link_stack)
+			: m_root (root)
+			, m_path (link_stack)
+		{
+			initialize_from_path ();
+		}
+
+		explicit iterator_base (NPT root, stack <NPT> && link_stack)
+			: m_root (root)
+			, m_path (std::move (link_stack))
+		{
+			initialize_from_path ();
+		}
+
+
+		template <
+			typename NPT2,
+			typename = std::enable_if_t <
+				std::is_same_v <NPT2, NPT> || std::is_same_v <std::remove_const_t <std::remove_pointer_t <NPT>> *, NPT2>
+			>
+		>
+		// template <typename NPT2>
+		// requires (std::same_as <NPT2, NPT> || std::same_as <std::remove_const_t <std::remove_pointer_t <NPT>> *, NPT2>)
+		iterator_base (const iterator_base <NPT2> & other)
+			: m_node (other.m_node)
+		{}
+
+		_reference_t & operator* () {
+			return static_cast <_node_ptr_t> (m_node)->data;
+		}
+
+		const _reference_t & operator* () const {
+			return static_cast <_node_ptr_t> (m_node)->data;
+		}
+
+		template <
+			typename NPT2,
+			typename = std::enable_if_t <
+				true == std::is_same_v <
+					std::remove_const_t <std::remove_pointer_t <NPT>>,
+					std::remove_const_t <std::remove_pointer_t <NPT2>>
+				>
+			>
+		>
+		bool operator== (const iterator_base <NPT2> & other) const {
+			return m_node == other.m_node;
+		}
+
+		iterator_base & operator++ () {
+			if constexpr (iterator_algorithm::inorder == Alg) {
+				if (nullptr != m_node->right) {
+					m_path.push (m_node);
+					m_node = m_node->right;
+
+					while (nullptr != m_node->left) {
+						m_path.push (m_node);
+						m_node = m_node->left;
+					}
+				}
+				else {
+					bool found = false;
+					const std::size_t itC = m_path.size ();
+
+					for (std::size_t i = 0; i < itC; i++) {
+						const NPT l = m_node;
+						m_node = m_path.top ();
+						m_path.pop ();
+
+						if (l == m_node->left) {
+							found = true;
+							break;
+						}
+					}
+
+					if (false == found) {
+						m_node = nullptr;
+						m_path.clear ();
+					}
+				}
+
+				return * this;
+			}
+			else {
+				static_assert (false, "not implemented iterator algorithm");
+			}
+		}
+
+		iterator_base operator++ (int) {
+			iterator_base old = * this;
+			++(* this);
+			return old;
+		}
+
+		iterator_base & operator-- () {
+			if constexpr (iterator_algorithm::inorder == Alg) {
+				if (nullptr != m_node) {
+					if (nullptr != m_node->left) {
+						m_path.push (m_node);
+						m_node = m_node->left;
+
+						while (nullptr != m_node->right) {
+							m_path.push (m_node);
+							m_node = m_node->right;
+						}
+					}
+					else {
+						bool found = false;
+						std::size_t itC = m_path.size ();
+
+						for (std::size_t i = 0; i < itC; i++) {
+							const NPT l = m_node;
+							m_node = m_path.top ();
+							m_path.pop ();
+
+							if (l == m_node->right) {
+								found = true;
+								break;
+							}
+						}
+
+						if (false == found) {
+							m_path.clear ();
+							m_node = nullptr;
+						}
+					}
+				}
+				else {
+					m_path = get_link_stack_to_rightmost (m_root);
+					initialize_from_path ();
+				}
+
+				return * this;
+			}
+			else {
+				static_assert (false, "not implemented iterator algorithm");
+			}
+		}
+
+		iterator_base operator-- (int) {
+			iterator_base old = * this;
+			--(* this);
+			return old;
+		}
+
+		NPT base () {
+			return m_node;
+		}
+
+	private:
+		void initialize_from_path () {
+			if (false == m_path.empty ()) {
+				m_node = m_path.top ();
+				m_path.pop ();
+			}
+			else {
+				m_node = nullptr;
+			}
+		}
+
+	private:
+		const NPT m_root;
+		NPT m_node;
+		stack <NPT> m_path;
+	};
 
 public:
 	using equivalence_relation = EqualTo;
 	static constexpr equivalence_relation equal_to {};
+
+	using iterator = iterator_base <nptr>;
+	using const_iterator = iterator_base <const_nptr>;
+
+	iterator begin () { return iterator (this, get_node_stack_to_leftmost (this)); }
+	iterator end () { return iterator (this, get_node_stack_to_rightmost (this)); }
+	const_iterator cbegin () const { return const_iterator (this, get_node_stack_to_leftmost (this)); }
+	const_iterator cend () const { return const_iterator (this, get_node_stack_to_rightmost (this)); }
+	const_iterator begin () const { return const_iterator (this, get_node_stack_to_leftmost (this)); }
+	const_iterator end () const { return const_iterator (this, get_node_stack_to_rightmost (this)); }
 
 public:
 	T data;
@@ -278,6 +501,95 @@ public:
 	requires std::invocable <F &, const binary_tree_node *, const binary_tree_node *, std::size_t>
 	void level_order_traverse (F && func) const {
 		level_order_traverse (this, func);
+	}
+
+public:
+	template <typename U>
+	requires is_node_link_v <U>
+	static U get_link_to_leftmost (U link) {
+		if (nullptr != * link) {
+			while (nullptr != (* link)->left) {
+				link = & (* link)->left;
+			}
+		}
+
+		return link;
+	}
+
+	template <typename U>
+	requires is_node_link_v <U>
+	static U get_link_to_rightmost (U link) {
+		if (nullptr != * link) {
+			while (nullptr != (* link)->right) {
+				link = & (* link)->right;
+			}
+		}
+
+		return link;
+	}
+
+	template <typename U>
+	requires is_node_link_v <U>
+	static stack <U> get_link_stack_to_leftmost (U link) {
+		stack <U> link_stack;
+		link_stack.push (link);
+
+		if (nullptr != * link) {
+			while (nullptr != (* link)->left) {
+				link = & (* link)->left;
+				link_stack.push (link);
+			}
+		}
+
+		return link_stack;
+	}
+
+	template <typename U>
+	requires is_node_ptr_v <U>
+	static stack <U> get_node_stack_to_leftmost (U node) {
+		stack <U> node_stack;
+		node_stack.push (node);
+
+		if (nullptr != node) {
+			while (nullptr != node->left) {
+				node = node->left;
+				node_stack.push (node);
+			}
+		}
+
+		return node_stack;
+	}
+
+	template <typename U>
+	requires is_node_link_v <U>
+	static stack <U> get_link_stack_to_rightmost (U link) {
+		stack <U> link_stack;
+		link_stack.push (link);
+
+		if (nullptr != * link) {
+			while (nullptr != (* link)->right) {
+				link = & (* link)->right;
+				link_stack.push (link);
+			}
+		}
+
+		return link_stack;
+	}
+
+	template <typename U>
+	requires is_node_ptr_v <U>
+	static stack <U> get_node_stack_to_rightmost (U node) {
+		stack <U> node_stack;
+		node_stack.push (node);
+
+		if (nullptr != node) {
+			while (nullptr != node->right) {
+				node = node->right;
+				node_stack.push (node);
+			}
+		}
+
+		return node_stack;
 	}
 
 private:

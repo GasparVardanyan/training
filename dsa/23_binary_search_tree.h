@@ -43,26 +43,10 @@ struct binary_search_tree__ {
 	static constexpr bool RemovePreserveLeft = RemovePreserveLeft__;
 
 	template <typename U>
-	static constexpr bool is_node_link_v =
-		std::is_pointer_v <U> &&
-		std::is_pointer_v <std::remove_pointer_t <U>> &&
-		std::is_same_v <
-			std::remove_cv_t <std::remove_pointer_t <
-				std::remove_cv_t <std::remove_pointer_t <
-					std::remove_cv_t <U>
-				>>
-			>>,
-			node
-		>
-	;
+	static constexpr bool is_node_link_v = node::template is_node_link_v <U>;
 };
 }
 
-// TODO: learn commenting: https://www.doxygen.nl/manual/docblocks.html
-
-/// @tparam T
-/// @tparam Comparator STRICTLY-LESS-THAN comparator
-/// @warning Comparator must impose a strict weak ordering
 template <typename T, typename Comparator = std::less <T>, bool KeepInvariant = false, bool RemovePreserveLeft = false>
 requires std::strict_weak_order <Comparator, T, T>
 class binary_search_tree {
@@ -74,6 +58,16 @@ public:
 	using node_link = node::link;
 	using const_node_link = node::const_link;
 	static constexpr Comparator less_than {};
+
+	using iterator = node::iterator;
+	using const_iterator = node::const_iterator;
+
+	iterator begin () { return iterator (m_root, node::get_node_stack_to_leftmost (m_root)); }
+	iterator end () { return iterator (m_root, node::get_node_stack_to_rightmost (m_root)); }
+	const_iterator cbegin () const { return const_iterator (m_root, node::get_node_stack_to_leftmost (m_root)); }
+	const_iterator cend () const { return const_iterator (m_root, node::get_node_stack_to_rightmost (m_root)); }
+	const_iterator begin () const { return const_iterator (m_root, node::get_node_stack_to_leftmost (m_root)); }
+	const_iterator end () const { return const_iterator (m_root, node::get_node_stack_to_rightmost (m_root)); }
 
 public:
 	binary_search_tree ()
@@ -346,39 +340,6 @@ protected:
 		return link;
 	}
 
-	node_link get_link (const T & value) {
-		return const_cast <node_link> (const_cast <const binary_search_tree *> (this)->get_link (value));
-	}
-
-	stack <const_node_link> get_link_stack (const T & value) const {
-		return get_link_stack <const_node_link> (& m_root, value);
-	}
-
-	stack <node_link> get_link_stack (const T & value) {
-		return get_link_stack <node_link> (& m_root, value);
-	}
-
-	stack <const_node_link> get_link_stack_to_leftmost (const_node_link link) const {
-		return get_link_stack_to_leftmost <const_node_link> (link);
-	}
-
-	stack <node_link> get_link_stack_to_leftmost (node_link link) {
-		return get_link_stack_to_leftmost <node_link> (link);
-	}
-
-	stack <const_node_link> get_link_stack_to_rightmost (const_node_link link) const {
-		return get_link_stack_to_rightmost <const_node_link> (link);
-	}
-
-	stack <node_link> get_link_stack_to_rightmost (node_link link) {
-		return get_link_stack_to_rightmost <node_link> (link);
-	}
-
-protected:
-	node * m_root;
-	std::size_t m_size;
-
-protected:
 	template <typename U>
 	requires detail::template is_node_link_v <U>
 	static stack <U> get_link_stack (U link, const T & value) {
@@ -405,61 +366,53 @@ protected:
 		return link_stack;
 	}
 
-	template <typename U>
-	requires detail::template is_node_link_v <U>
-	static U get_link_to_leftmost (U link) {
-		if (nullptr != * link) {
-			while (nullptr != (* link)->left) {
-				link = & (* link)->left;
-			}
-		}
-
-		return link;
+	node_link get_link (const T & value) {
+		return const_cast <node_link> (const_cast <const binary_search_tree *> (this)->get_link (value));
 	}
 
-	template <typename U>
-	requires detail::template is_node_link_v <U>
-	static U get_link_to_rightmost (U link) {
-		if (nullptr != * link) {
-			while (nullptr != (* link)->right) {
-				link = & (* link)->right;
-			}
-		}
-
-		return link;
+	stack <const_node_link> get_link_stack (const T & value) const {
+		return get_link_stack <const_node_link> (& m_root, value);
 	}
 
-	template <typename U>
-	requires detail::template is_node_link_v <U>
-	static stack <U> get_link_stack_to_leftmost (U link) {
-		stack <U> link_stack;
-		link_stack.push (link);
-
-		if (nullptr != * link) {
-			while (nullptr != (* link)->left) {
-				link = & (* link)->left;
-				link_stack.push (link);
-			}
-		}
-
-		return link_stack;
+	stack <node_link> get_link_stack (const T & value) {
+		return get_link_stack <node_link> (& m_root, value);
 	}
 
-	template <typename U>
-	requires detail::template is_node_link_v <U>
-	static stack <U> get_link_stack_to_rightmost (U link) {
-		stack <U> link_stack;
-		link_stack.push (link);
-
-		if (nullptr != * link) {
-			while (nullptr != (* link)->right) {
-				link = & (* link)->right;
-				link_stack.push (link);
-			}
-		}
-
-		return link_stack;
+	stack <const_node_link> get_link_stack_to_leftmost (const_node_link link) const {
+		return node::template get_link_stack_to_leftmost <const_node_link> (link);
 	}
+
+	stack <node_link> get_link_stack_to_leftmost (node_link link) {
+		return node::template get_link_stack_to_leftmost <node_link> (link);
+	}
+
+	stack <const_node_link> get_link_stack_to_rightmost (const_node_link link) const {
+		return node::template get_link_stack_to_rightmost <const_node_link> (link);
+	}
+
+	stack <node_link> get_link_stack_to_rightmost (node_link link) {
+		return node::template get_link_stack_to_rightmost <node_link> (link);
+	}
+
+	const_node_link get_link_to_leftmost (const_node_link link) const {
+		return node::template get_link_to_leftmost <const_node_link> (link);
+	}
+
+	node_link get_link_to_leftmost (node_link link) {
+		return node::template get_link_to_leftmost <node_link> (link);
+	}
+
+	const_node_link get_link_to_rightmost (const_node_link link) const {
+		return node::template get_link_to_rightmost <const_node_link> (link);
+	}
+
+	node_link get_link_to_rightmost (node_link link) {
+		return node::template get_link_to_rightmost <node_link> (link);
+	}
+
+protected:
+	node * m_root;
+	std::size_t m_size;
 };
 
 # endif // BINARY_SEARCH_TREE_23
