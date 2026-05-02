@@ -15,6 +15,10 @@
 template <typename T, std::equivalence_relation <T, T> EqualTo = std::equal_to <T>>
 struct binary_tree_node {
 public:
+	using link = binary_tree_node **;
+	using const_link = const binary_tree_node * const *;
+
+public:
 	using equivalence_relation = EqualTo;
 	static constexpr equivalence_relation equal_to {};
 
