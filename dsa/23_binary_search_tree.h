@@ -44,8 +44,6 @@ struct binary_search_tree__ {
 
 	template <typename U>
 	static constexpr bool is_node_link_v = node::template is_node_link_v <U>;
-	template <typename U>
-	static constexpr bool is_ptr_link_v = node::template is_ptr_link_v <U>;
 };
 
 template <typename T, typename = void>
@@ -122,12 +120,10 @@ public:
 	using iterator = node::iterator;
 	using const_iterator = node::const_iterator;
 
-	iterator begin () { return iterator (m_root, node::get_node_stack_to_leftmost (m_root)); }
-	iterator end () { return iterator (m_root, node::get_node_stack_to_rightmost (m_root)); }
-	const_iterator cbegin () const { return const_iterator (m_root, node::get_node_stack_to_leftmost (m_root)); }
-	const_iterator cend () const { return const_iterator (m_root, node::get_node_stack_to_rightmost (m_root)); }
-	const_iterator begin () const { return const_iterator (m_root, node::get_node_stack_to_leftmost (m_root)); }
-	const_iterator end () const { return const_iterator (m_root, node::get_node_stack_to_rightmost (m_root)); }
+	const_iterator begin () const { return const_iterator (& m_root, node::template get_link_stack_to_leftmost <const_node_link> (& m_root)); }
+	const_iterator end () const { return const_iterator (& m_root, {}); }
+	const_iterator cbegin () const { return const_iterator (& m_root, node::template get_link_stack_to_leftmost <const_node_link> (& m_root)); }
+	const_iterator cend () const { return const_iterator (& m_root, {}); }
 
 public:
 	binary_search_tree ()
@@ -426,32 +422,6 @@ protected:
 		}
 
 		return link_stack;
-	}
-
-	template <typename U>
-	requires detail::template is_node_ptr_v <U>
-	static stack <U> get_node_stack (U node, const T & value) {
-		stack <U> node_stack;
-		node_stack.push (node);
-
-		while (nullptr != node) {
-			bool lt = less_than (value, node->data);
-			bool gt = less_than (node->data, value);
-
-			if (true == lt) {
-				node = node->left;
-				node_stack.push (node);
-			}
-			else if (true == gt) {
-				node = node->right;
-				node_stack.push (node);
-			}
-			else {
-				break;
-			}
-		}
-
-		return node_stack;
 	}
 
 	node_link get_link (const T & value) {

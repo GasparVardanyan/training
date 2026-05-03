@@ -13,45 +13,30 @@
 # include "22_queue.h"
 # include "22_stack.h"
 
+// FIXME: don't be lazy, implement iterators properly
+// FIXME: iterators get invalidated when the underlying tree changes
+// # define BINARY_TREE_NODE_H_23_ITERATORS
+
 template <typename T, std::equivalence_relation <T, T> EqualTo = std::equal_to <T>>
 struct binary_tree_node {
 public:
 	using link = binary_tree_node **;
 	using const_link = const binary_tree_node * const *;
-	using nptr = binary_tree_node *;
-	using const_nptr = const binary_tree_node *;
 
 	using node = binary_tree_node;
 
 	template <typename U>
 	static constexpr bool is_node_link_v =
-		std::is_pointer_v <U> &&
-		std::is_pointer_v <std::remove_pointer_t <U>> &&
-		std::is_same_v <
-			std::remove_cv_t <std::remove_pointer_t <
-				std::remove_cv_t <std::remove_pointer_t <
-					std::remove_cv_t <U>
-				>>
-			>>,
-			binary_tree_node
-		>
-	;
-
-	template <typename U>
-	static constexpr bool is_node_ptr_v =
-		std::is_pointer_v <U> &&
-		std::is_same_v <
-			std::remove_cv_t <std::remove_pointer_t <std::remove_cv_t <U>>>
-			, binary_tree_node
-		>
+		std::is_same_v <U, link> ||
+		std::is_same_v <U, const_link>
 	;
 
 	enum class iterator_algorithm {
 		preorder, inorder, postorder, levelorder
 	};
 
-	template <typename NPT, iterator_algorithm Alg = iterator_algorithm::inorder>
-	requires is_node_ptr_v <NPT>
+	template <typename Link, iterator_algorithm Alg = iterator_algorithm::inorder>
+	requires is_node_link_v <Link>
 	class iterator_base {
 	public:
 		using difference_type = std::ptrdiff_t;
@@ -59,70 +44,77 @@ public:
 		using iterator_category = std::bidirectional_iterator_tag;
 		static constexpr iterator_algorithm algorithm = Alg;
 
-	private:
-		using _reference_t = std::conditional_t <std::is_const_v <std::remove_pointer_t <NPT>>, const T &, T &>;
-		using _node_ptr_t = std::conditional_t <std::is_const_v <std::remove_pointer_t <NPT>>, const node *, node *>;
+	protected:
+		using _reference_t = std::conditional_t <std::is_same_v <Link, const_link>, const T &, T &>;
 
 	public:
-		friend class iterator_base <const std::decay_t <std::remove_pointer_t <NPT>> *>;
+		friend class iterator_base <link>;
+		friend class iterator_base <const_link>;
 
-		explicit iterator_base (NPT root, const stack <NPT> & link_stack)
+		explicit iterator_base (Link root, const stack <Link> & link_stack)
 			: m_root (root)
 			, m_path (link_stack)
 		{
 			initialize_from_path ();
 		}
 
-		explicit iterator_base (NPT root, stack <NPT> && link_stack)
+		explicit iterator_base (Link root, stack <Link> && link_stack)
 			: m_root (root)
 			, m_path (std::move (link_stack))
 		{
 			initialize_from_path ();
 		}
 
-
-		template <
-			typename NPT2,
-			typename = std::enable_if_t <
-				std::is_same_v <NPT2, NPT> || std::is_same_v <std::remove_const_t <std::remove_pointer_t <NPT>> *, NPT2>
-			>
-		>
-		// template <typename NPT2>
-		// requires (std::same_as <NPT2, NPT> || std::same_as <std::remove_const_t <std::remove_pointer_t <NPT>> *, NPT2>)
-		iterator_base (const iterator_base <NPT2> & other)
-			: m_node (other.m_node)
+		iterator_base (const iterator_base & other)
+			: m_root (other.m_root)
+			, m_link (other.m_link)
+			, m_path (other.m_path)
 		{}
 
+		template <
+			typename Link2,
+			typename = std::enable_if_t <
+				false == std::is_same_v <Link2, Link> && // disable copy constructor hijacking
+				true == std::is_same_v <Link2, const_link> &&
+				true == std::is_same_v <Link2, link>
+			>
+		>
+		explicit iterator_base (const iterator_base <Link2> & other)
+			: m_root (other.m_root)
+			, m_path (other.m_path)
+		{
+			m_path.push (other.m_link);
+			initialize_from_path ();
+		}
+
 		_reference_t & operator* () {
-			return static_cast <_node_ptr_t> (m_node)->data;
+			return (* m_link)->data;
 		}
 
 		const _reference_t & operator* () const {
-			return static_cast <_node_ptr_t> (m_node)->data;
+			return (* m_link)->data;
 		}
 
 		template <
-			typename NPT2,
+			typename It2,
 			typename = std::enable_if_t <
-				true == std::is_same_v <
-					std::remove_const_t <std::remove_pointer_t <NPT>>,
-					std::remove_const_t <std::remove_pointer_t <NPT2>>
-				>
+				true == std::is_same_v <It2, iterator_base <link>> ||
+				true == std::is_same_v <It2, iterator_base <const_link>>
 			>
 		>
-		bool operator== (const iterator_base <NPT2> & other) const {
-			return m_node == other.m_node;
+		bool operator== (const It2 & other) const {
+			return m_link == other.m_link;
 		}
 
 		iterator_base & operator++ () {
 			if constexpr (iterator_algorithm::inorder == Alg) {
-				if (nullptr != m_node->right) {
-					m_path.push (m_node);
-					m_node = m_node->right;
+				if (nullptr != (* m_link)->right) { // don't increment at end
+					m_path.push (m_link);
+					m_link = & (* m_link)->right;
 
-					while (nullptr != m_node->left) {
-						m_path.push (m_node);
-						m_node = m_node->left;
+					while (nullptr != (* m_link)->left) {
+						m_path.push (m_link);
+						m_link = & (* m_link)->left;
 					}
 				}
 				else {
@@ -130,18 +122,18 @@ public:
 					const std::size_t itC = m_path.size ();
 
 					for (std::size_t i = 0; i < itC; i++) {
-						const NPT l = m_node;
-						m_node = m_path.top ();
+						const Link l = m_link;
+						m_link = m_path.top ();
 						m_path.pop ();
 
-						if (l == m_node->left) {
+						if (l == & (* m_link)->left) {
 							found = true;
 							break;
 						}
 					}
 
-					if (false == found) {
-						m_node = nullptr;
+					if (false == found) { // incremented to end
+						m_link = nullptr;
 						m_path.clear ();
 					}
 				}
@@ -161,14 +153,14 @@ public:
 
 		iterator_base & operator-- () {
 			if constexpr (iterator_algorithm::inorder == Alg) {
-				if (nullptr != m_node) {
-					if (nullptr != m_node->left) {
-						m_path.push (m_node);
-						m_node = m_node->left;
+				if (nullptr != m_link) { // if not end
+					if (nullptr != (* m_link)->left) {
+						m_path.push (m_link);
+						m_link = & (* m_link)->left;
 
-						while (nullptr != m_node->right) {
-							m_path.push (m_node);
-							m_node = m_node->right;
+						while (nullptr != (* m_link)->right) {
+							m_path.push (m_link);
+							m_link = & (* m_link)->right;
 						}
 					}
 					else {
@@ -176,24 +168,24 @@ public:
 						std::size_t itC = m_path.size ();
 
 						for (std::size_t i = 0; i < itC; i++) {
-							const NPT l = m_node;
-							m_node = m_path.top ();
+							const Link l = m_link;
+							m_link = m_path.top ();
 							m_path.pop ();
 
-							if (l == m_node->right) {
+							if (l == & (* m_link)->right) {
 								found = true;
 								break;
 							}
 						}
 
-						if (false == found) {
+						if (false == found) { // decremented past begin. UB. resetting to end. why?
+							m_link = nullptr;
 							m_path.clear ();
-							m_node = nullptr;
 						}
 					}
 				}
-				else {
-					m_path = get_link_stack_to_rightmost (m_root);
+				else { // decrementing end
+					m_path = get_link_stack_to_rightmost <Link> (m_root);
 					initialize_from_path ();
 				}
 
@@ -210,53 +202,64 @@ public:
 			return old;
 		}
 
-		NPT base () {
-			return m_node;
+		Link base () {
+			return m_link;
 		}
 
 	private:
 		void initialize_from_path () {
 			if (false == m_path.empty ()) {
-				m_node = m_path.top ();
+				m_link = m_path.top ();
 				m_path.pop ();
 			}
 			else {
-				m_node = nullptr;
+				m_link = nullptr;
 			}
 		}
 
 	private:
-		const NPT m_root;
-		NPT m_node;
-		stack <NPT> m_path;
+		const Link m_root;
+		Link m_link;
+		stack <Link> m_path;
 	};
 
 public:
 	using equivalence_relation = EqualTo;
 	static constexpr equivalence_relation equal_to {};
 
-	using iterator = iterator_base <nptr>;
-	using const_iterator = iterator_base <const_nptr>;
+	using iterator = iterator_base <link>;
+	using const_iterator = iterator_base <const_link>;
 
-	iterator begin () { return iterator (this, get_node_stack_to_leftmost (this)); }
-	iterator end () { return iterator (this, get_node_stack_to_rightmost (this)); }
-	const_iterator cbegin () const { return const_iterator (this, get_node_stack_to_leftmost (this)); }
-	const_iterator cend () const { return const_iterator (this, get_node_stack_to_rightmost (this)); }
-	const_iterator begin () const { return const_iterator (this, get_node_stack_to_leftmost (this)); }
-	const_iterator end () const { return const_iterator (this, get_node_stack_to_rightmost (this)); }
+# ifdef BINARY_TREE_NODE_H_23_ITERATORS
+	iterator begin () { return iterator (& self_ptr, get_link_stack_to_leftmost <link> (& self_ptr)); }
+	iterator end () { return iterator (& self_ptr, {}); }
+	const_iterator cbegin () const { return const_iterator (& self_ptr, get_link_stack_to_leftmost <const_link> (& self_ptr)); }
+	const_iterator cend () const { return const_iterator (& self_ptr, {}); }
+	const_iterator begin () const { return const_iterator (& self_ptr, get_link_stack_to_leftmost <const_link> (& self_ptr)); }
+	const_iterator end () const { return const_iterator (& self_ptr, {}); }
+# endif // BINARY_TREE_NODE_H_23_ITERATORS
 
 public:
 	T data;
 	binary_tree_node * left;
 	binary_tree_node * right;
+# ifdef BINARY_TREE_NODE_H_23_ITERATORS
+	binary_tree_node * const self_ptr = this; // hack for iterators
+# endif // BINARY_TREE_NODE_H_23_ITERATORS
 
 public:
 	explicit binary_tree_node (const T & data, binary_tree_node * left = nullptr, binary_tree_node * right = nullptr)
 		: data (data), left (left), right (right)
+# ifdef BINARY_TREE_NODE_H_23_ITERATORS
+		, self_ptr (this)
+# endif // BINARY_TREE_NODE_H_23_ITERATORS
 	{}
 
 	explicit binary_tree_node (T && data, binary_tree_node * left = nullptr, binary_tree_node * right = nullptr)
 		: data (std::move (data)), left (left), right (right)
+# ifdef BINARY_TREE_NODE_H_23_ITERATORS
+		, self_ptr (this)
+# endif // BINARY_TREE_NODE_H_23_ITERATORS
 	{}
 
 public:
@@ -264,6 +267,9 @@ public:
 		: data (other.data)
 		, left (nullptr)
 		, right (nullptr)
+# ifdef BINARY_TREE_NODE_H_23_ITERATORS
+		, self_ptr (this)
+# endif // BINARY_TREE_NODE_H_23_ITERATORS
 	{
 		queue <binary_tree_node *> our;
 		our.push (this);
@@ -303,6 +309,9 @@ public:
 		: data (std::move (other.data))
 		, left (other.left)
 		, right (other.right)
+# ifdef BINARY_TREE_NODE_H_23_ITERATORS
+		, self_ptr (this)
+# endif // BINARY_TREE_NODE_H_23_ITERATORS
 	{
 		other.left = nullptr;
 		other.right = nullptr;
@@ -347,6 +356,15 @@ public:
 			delete n;
 		}
 	}
+
+public:
+# ifdef BINARY_TREE_NODE_H_23_ITERATORS
+	friend void swap (binary_tree_node & first, binary_tree_node & second) noexcept {
+		std::swap (first.data, second.data);
+		std::swap (first.left, second.left);
+		std::swap (first.right, second.right);
+	}
+# endif // BINARY_TREE_NODE_H_23_ITERATORS
 
 public:
 	bool operator== (const binary_tree_node & other) const {
@@ -545,22 +563,6 @@ public:
 	}
 
 	template <typename U>
-	requires is_node_ptr_v <U>
-	static stack <U> get_node_stack_to_leftmost (U node) {
-		stack <U> node_stack;
-		node_stack.push (node);
-
-		if (nullptr != node) {
-			while (nullptr != node->left) {
-				node = node->left;
-				node_stack.push (node);
-			}
-		}
-
-		return node_stack;
-	}
-
-	template <typename U>
 	requires is_node_link_v <U>
 	static stack <U> get_link_stack_to_rightmost (U link) {
 		stack <U> link_stack;
@@ -574,22 +576,6 @@ public:
 		}
 
 		return link_stack;
-	}
-
-	template <typename U>
-	requires is_node_ptr_v <U>
-	static stack <U> get_node_stack_to_rightmost (U node) {
-		stack <U> node_stack;
-		node_stack.push (node);
-
-		if (nullptr != node) {
-			while (nullptr != node->right) {
-				node = node->right;
-				node_stack.push (node);
-			}
-		}
-
-		return node_stack;
 	}
 
 private:
