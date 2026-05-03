@@ -44,8 +44,68 @@ struct binary_search_tree__ {
 
 	template <typename U>
 	static constexpr bool is_node_link_v = node::template is_node_link_v <U>;
+	template <typename U>
+	static constexpr bool is_ptr_link_v = node::template is_ptr_link_v <U>;
 };
+
+template <typename T, typename = void>
+struct is_tree : std::false_type {};
+
+template <template <typename> typename C, typename T>
+struct is_tree <C <T>, std::void_t <
+	typename C <T>::node,
+	typename C <T>::node_link,
+	typename C <T>::const_node_link,
+	std::enable_if_t <std::strict_weak_order <decltype (C <T>::less_than), T, T>>,
+
+	typename C <T>::iterator,
+	typename C <T>::const_iterator,
+
+	std::enable_if_t <
+		std::is_same_v <typename C <T>::iterator, decltype (std::declval <C <T>> ().begin ())> &&
+		std::is_same_v <typename C <T>::const_iterator, decltype (std::declval <const C <T>> ().begin ())> &&
+		std::is_same_v <typename C <T>::iterator, decltype (std::declval <C <T>> ().end ())> &&
+		std::is_same_v <typename C <T>::const_iterator, decltype (std::declval <const C <T>> ().end ())>
+	>,
+
+	std::enable_if_t <
+		std::is_same_v <typename C <T>::const_iterator, decltype (std::declval <C <T>> ().cbegin ())> &&
+		std::is_same_v <typename C <T>::const_iterator, decltype (std::declval <const C <T>> ().cbegin ())> &&
+		std::is_same_v <typename C <T>::const_iterator, decltype (std::declval <C <T>> ().cend ())> &&
+		std::is_same_v <typename C <T>::const_iterator, decltype (std::declval <const C <T>> ().cend ())>
+	>,
+
+	std::enable_if_t <
+		std::is_copy_constructible_v <C <T>> == std::is_copy_constructible_v <T> &&
+		std::is_copy_assignable_v <C <T>> == std::is_copy_assignable_v <T> &&
+		std::is_nothrow_move_constructible_v <C <T>> &&
+		std::is_nothrow_move_assignable_v <C <T>> &&
+		std::is_nothrow_destructible_v <C <T>> &&
+		std::is_default_constructible_v <C <T>>
+	>,
+
+	std::enable_if_t <
+		std::is_convertible_v <decltype (std::declval <const C <T>> ().operator== (std::declval <const C <T>> ())), bool> &&
+		std::is_convertible_v <const C <T>, vector <T>>
+		&& std::is_same_v <decltype (std::declval <std::ostream &> () << std::declval <const C <T>> ()), std::ostream &>
+	>,
+
+	decltype (std::declval <C <T>> ().insert (std::declval <T> ())),
+	std::enable_if_t <std::is_convertible_v <decltype (std::declval <const C <T>> ().contains (std::declval <T> ())), bool>>,
+	decltype (std::declval <C <T>> ().remove (std::declval <T> ())),
+	decltype (std::declval <const C <T>> ().dump_sorted (std::declval <std::back_insert_iterator <vector <T>>> ())),
+	decltype (std::declval <const C <T>> ().dump_invariant (std::declval <std::back_insert_iterator <vector <T>>> ())),
+	decltype (std::declval <C <T>> ().make_empty ()),
+	std::enable_if_t <std::is_same_v <decltype (std::declval <const C <T>> ().size ()), std::size_t>>,
+	std::enable_if_t <std::is_same_v <decltype (std::declval <const C <T>> ().internal_path_length ()), std::size_t>>
+
+	// do we need find_min (), find_max () and root () ?
+>>
+	: std::true_type {};
 }
+
+template <typename T>
+constexpr inline bool is_tree_v = detail::is_tree <T>::value;
 
 template <typename T, typename Comparator = std::less <T>, bool KeepInvariant = false, bool RemovePreserveLeft = false>
 requires std::strict_weak_order <Comparator, T, T>
@@ -75,7 +135,9 @@ public:
 		, m_size (0)
 	{}
 
-	binary_search_tree (const binary_search_tree & other) {
+	binary_search_tree (const binary_search_tree & other)
+		// requires (std::is_copy_constructible_v <T>)
+	{
 		if (nullptr != other.m_root) {
 			m_root = new node (* other.m_root);
 			m_size = other.m_size;
@@ -229,7 +291,7 @@ public:
 	std::size_t size () const { return m_size; }
 	bool empty () const { return 0 == m_size; }
 
-	std::size_t internal_path_length () {
+	std::size_t internal_path_length () const {
 		std::size_t s = 0;
 
 		if (nullptr != m_root) {
@@ -364,6 +426,32 @@ protected:
 		}
 
 		return link_stack;
+	}
+
+	template <typename U>
+	requires detail::template is_node_ptr_v <U>
+	static stack <U> get_node_stack (U node, const T & value) {
+		stack <U> node_stack;
+		node_stack.push (node);
+
+		while (nullptr != node) {
+			bool lt = less_than (value, node->data);
+			bool gt = less_than (node->data, value);
+
+			if (true == lt) {
+				node = node->left;
+				node_stack.push (node);
+			}
+			else if (true == gt) {
+				node = node->right;
+				node_stack.push (node);
+			}
+			else {
+				break;
+			}
+		}
+
+		return node_stack;
 	}
 
 	node_link get_link (const T & value) {
