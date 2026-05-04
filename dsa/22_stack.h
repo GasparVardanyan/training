@@ -39,6 +39,16 @@ public:
 		m_container.push_back (std::forward <U> (object));
 	}
 
+	stack () {}
+
+	template <typename U>
+	requires std::is_constructible_v <T, U> && (!std::is_same_v <T, U>)
+	stack (const stack <U> & other) {
+		for (const U & item : other.m_container) {
+			m_container.push_back (item);
+		}
+	}
+
 	void pop () {
 		m_container.pop_back ();
 	}

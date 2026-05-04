@@ -35,6 +35,16 @@ public:
 	using value_type = C::value_type;
 
 public:
+	queue () {}
+
+	template <typename U>
+	requires std::is_constructible_v <T, U> && (!std::is_same_v <T, U>)
+	queue (const queue <U> & other) {
+		for (const U & item : other.m_container) {
+			m_container.push_back (item);
+		}
+	}
+
 	template <typename U>
 	requires std::convertible_to <U, T>
 	void push (U && object) {

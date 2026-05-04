@@ -95,9 +95,12 @@ struct is_tree <C <T>, std::void_t <
 	decltype (std::declval <const C <T>> ().dump_invariant (std::declval <std::back_insert_iterator <vector <T>>> ())),
 	decltype (std::declval <C <T>> ().make_empty ()),
 	std::enable_if_t <std::is_same_v <decltype (std::declval <const C <T>> ().size ()), std::size_t>>,
-	std::enable_if_t <std::is_same_v <decltype (std::declval <const C <T>> ().internal_path_length ()), std::size_t>>
+	std::enable_if_t <std::is_same_v <decltype (std::declval <const C <T>> ().internal_path_length ()), std::size_t>>,
+	std::enable_if_t <std::is_same_v <decltype (std::declval <const C <T>> ().find (std::declval <T> ())), typename C <T>::const_iterator>>,
+	// std::enable_if_t <std::is_same_v <decltype (std::declval <C <T>> ().find (std::declval <T> ())), typename C <T>::iterator>>,
 
 	// do we need find_min (), find_max () and root () ?
+	void
 >>
 	: std::true_type {};
 }
@@ -124,6 +127,16 @@ public:
 	const_iterator end () const { return const_iterator (& m_root, {}); }
 	const_iterator cbegin () const { return const_iterator (& m_root, node::template get_link_stack_to_leftmost <const_node_link> (& m_root)); }
 	const_iterator cend () const { return const_iterator (& m_root, {}); }
+
+	const_iterator find (const T & value) const {
+		stack <const_node_link> path = get_link_stack <const_node_link> (value);
+		if (nullptr != path.top ()) {
+			return const_iterator (& m_root, path);
+		}
+		else {
+			return cend ();
+		}
+	}
 
 public:
 	binary_search_tree ()
