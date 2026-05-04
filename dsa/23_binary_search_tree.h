@@ -123,10 +123,10 @@ public:
 	using iterator = node::iterator;
 	using const_iterator = node::const_iterator;
 
-	const_iterator begin () const { return const_iterator (& m_root, node::template get_link_stack_to_leftmost <const_node_link> (& m_root)); }
-	const_iterator end () const { return const_iterator (& m_root, {}); }
-	const_iterator cbegin () const { return const_iterator (& m_root, node::template get_link_stack_to_leftmost <const_node_link> (& m_root)); }
-	const_iterator cend () const { return const_iterator (& m_root, {}); }
+	const_iterator begin () const { return const_iterator::begin (m_root); }
+	const_iterator end () const { return const_iterator::end (m_root); }
+	const_iterator cbegin () const { return const_iterator::begin (m_root); }
+	const_iterator cend () const { return const_iterator::end (m_root); }
 
 	const_iterator find (const T & value) const {
 		stack <const_node_link> path = get_link_stack <const_node_link> (value);
