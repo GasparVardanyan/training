@@ -39,6 +39,12 @@ struct binary_search_tree__ {
 	using equal_to = equal_to <T, Comparator>;
 	using node = binary_tree_node <T, equal_to>;
 
+	template <typename T2>
+	static constexpr bool ValueComparable = requires (T t, T2 t2, const Comparator c) {
+		{ c (t, t2) } -> std::convertible_to<bool>;
+		{ c (t2, t) } -> std::convertible_to<bool>;
+	};
+
 	static constexpr bool KeepInvariant = KeepInvariant__;
 	static constexpr bool RemovePreserveLeft = RemovePreserveLeft__;
 
@@ -49,7 +55,7 @@ struct binary_search_tree__ {
 template <typename T, typename = void>
 struct is_tree : std::false_type {};
 
-template <template <typename> typename C, typename T>
+template <template <typename ...> typename C, typename T>
 struct is_tree <C <T>, std::void_t <
 	typename C <T>::node,
 	typename C <T>::node_link,
@@ -120,11 +126,11 @@ public:
 	using const_node_link = node::const_link;
 	static constexpr Comparator less_than {};
 
-	using iterator = node::iterator;
+	using iterator = node::const_iterator;
 	using const_iterator = node::const_iterator;
 
-	const_iterator begin () const { return const_iterator::begin (m_root); }
-	const_iterator end () const { return const_iterator::end (m_root); }
+	iterator begin () const { return const_iterator::begin (m_root); }
+	iterator end () const { return const_iterator::end (m_root); }
 	const_iterator cbegin () const { return const_iterator::begin (m_root); }
 	const_iterator cend () const { return const_iterator::end (m_root); }
 
@@ -241,7 +247,9 @@ public:
 		}
 	}
 
-	bool contains (const T & value) const {
+	template <typename ValueComparable>
+	requires detail::template ValueComparable <ValueComparable>
+	bool contains (const ValueComparable & value) const {
 		const node * n = at (value);
 
 		if (nullptr != n) {
@@ -252,7 +260,9 @@ public:
 		}
 	}
 
-	void remove (const T & value) {
+	template <typename ValueComparable>
+	requires detail::template ValueComparable <ValueComparable>
+	void remove (const ValueComparable & value) {
 		node_link link = get_link (value);
 
 		if (nullptr != * link) {
@@ -382,15 +392,21 @@ protected:
 	}
 
 protected:
-	const node * at (const T & value) const {
+	template <typename ValueComparable>
+	requires detail::template ValueComparable <ValueComparable>
+	const node * at (const ValueComparable & value) const {
 		return * get_link (value);
 	}
 
-	node * at (const T & value) {
+	template <typename ValueComparable>
+	requires detail::template ValueComparable <ValueComparable>
+	node * at (const ValueComparable & value) {
 		return * get_link (value);
 	}
 
-	const_node_link get_link (const T & value) const {
+	template <typename ValueComparable>
+	requires detail::template ValueComparable <ValueComparable>
+	const_node_link get_link (const ValueComparable & value) const {
 		const_node_link link = & m_root;
 
 		while (nullptr != * link) {
@@ -411,9 +427,9 @@ protected:
 		return link;
 	}
 
-	template <typename U>
-	requires detail::template is_node_link_v <U>
-	static stack <U> get_link_stack (U link, const T & value) {
+	template <typename U, typename ValueComparable>
+	requires detail::template is_node_link_v <U> && detail::template ValueComparable <ValueComparable>
+	static stack <U> get_link_stack (U link, const ValueComparable & value) {
 		stack <U> link_stack;
 		link_stack.push (link);
 
@@ -437,15 +453,21 @@ protected:
 		return link_stack;
 	}
 
-	node_link get_link (const T & value) {
+	template <typename ValueComparable>
+	requires detail::template ValueComparable <ValueComparable>
+	node_link get_link (const ValueComparable & value) {
 		return const_cast <node_link> (const_cast <const binary_search_tree *> (this)->get_link (value));
 	}
 
-	stack <const_node_link> get_link_stack (const T & value) const {
+	template <typename ValueComparable>
+	requires detail::template ValueComparable <ValueComparable>
+	stack <const_node_link> get_link_stack (const ValueComparable & value) const {
 		return get_link_stack <const_node_link> (& m_root, value);
 	}
 
-	stack <node_link> get_link_stack (const T & value) {
+	template <typename ValueComparable>
+	requires detail::template ValueComparable <ValueComparable>
+	stack <node_link> get_link_stack (const ValueComparable & value) {
 		return get_link_stack <node_link> (& m_root, value);
 	}
 

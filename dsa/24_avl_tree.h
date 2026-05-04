@@ -17,10 +17,10 @@ namespace detail {
 template <typename T, typename C, typename Data = std::monostate>
 struct avl_tree__ {
 	struct node_data : Data {
-		static_assert (false == requires (Data d) { d.value; }, "the value member of Data is reserved");
+		static_assert (false == requires (Data d) { d.value; }, "the 'value' member of Data is reserved");
 		static_assert (
 			false == requires (Data d) { d.height_plus_one; },
-			"the height_plus_one member of Data is reserved"
+			"the 'height_plus_one' member of Data is reserved"
 		);
 
 		T value;
