@@ -6,7 +6,7 @@
 # include "24_avl_tree.h"
 # include <type_traits>
 
-template <typename T, template <typename> typename Container = binary_search_tree>
+template <typename T, template <typename> typename Container = avl_tree>
 // requires is_tree_v <Container <T>>
 struct set : protected Container <T> {
 public:

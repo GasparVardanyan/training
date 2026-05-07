@@ -1,27 +1,10 @@
 # ifndef MAP_H_26
 # define MAP_H_26
 
-# include "23_binary_search_tree.h"
 # include "23_binary_tree_node.h"
-# include "24_avl_tree.h"
+# include "25_splay_tree.h"
 # include <type_traits>
-
-// namespace detail {
-// template <typename T, typename C, typename Data = std::monostate, typename = void>
-// struct map__ {
-// 	static constexpr bool container_verified = false;
-// };
-//
-// template <typename T, template <typename> typename C, typename Data>
-// struct map__ <T, C <T>, Data, std::enable_if_t <is_tree_v <C <T>>>> {
-// 	static constexpr bool container_verified = true;
-//
-// 	struct node_data : Data {
-// 		static_assert (false == requires (Data d) { d.key; }, "the 'key' member of Data is reserved");
-// 		static_assert (false == requires (Data d) { d.value; }, "the 'value' member of Data is reserved");
-// 	};
-// };
-// }
+# include <variant>
 
 namespace detail {
 template <
@@ -142,7 +125,7 @@ template <
 	typename Kt,
 	typename Vt,
 	typename Comparator = std::less <Kt>,
-	template <typename, typename> typename Container = binary_search_tree,
+	template <typename, typename> typename Container = splay_tree,
 	typename Data = std::monostate
 >
 requires std::strict_weak_order <Comparator, Kt, Kt>
@@ -170,7 +153,7 @@ public:
 	using tree::empty;
 	using tree::internal_path_length;
 	// using tree::insert;
-	// using tree::remove;
+	using tree::remove;
 	using tree::contains;
 
 	using tree::begin;

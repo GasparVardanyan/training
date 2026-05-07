@@ -255,7 +255,7 @@ public:
 	}
 
 private:
-	void fix_links () {
+	inline void fix_links () {
 		if (0 == m_size) {
 			m_head.next = & m_tail;
 			m_tail.prev = & m_head;

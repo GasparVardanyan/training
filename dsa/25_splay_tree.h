@@ -76,12 +76,16 @@ public: // binary_search_tree interface
 		splay (std::move (path));
 	}
 
-	bool contains (const T & value) const {
+	template <typename VC>
+	requires tree::template ValueComparable <VC>
+	bool contains (const VC & value) const {
 		// return const_cast <splay_tree *> (this)->contains (value);
 		return tree::contains (value);
 	}
 
-	bool contains (const T & value) {
+	template <typename VC>
+	requires tree::template ValueComparable <VC>
+	bool contains (const VC & value) {
 		stack <node_link> path = get_link_stack (value);
 		bool c = * path.top () != nullptr;
 
@@ -99,7 +103,9 @@ public: // binary_search_tree interface
 		return c;
 	}
 
-	void remove (const T & value) {
+	template <typename VC>
+	requires tree::template ValueComparable <VC>
+	void remove (const VC & value) {
 		// stack <node_link> path = get_link_stack (value);
 		//
 		// if (nullptr != * path.top ()) {
