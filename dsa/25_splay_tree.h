@@ -4,6 +4,8 @@
 # include <concepts>
 # include <functional>
 # include <ostream>
+# include <iterator>
+# include <utility>
 
 # include "20_vector.h"
 # include "22_stack.h"

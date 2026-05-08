@@ -1,6 +1,7 @@
 # include <bitset>
 # include <iostream>
 # include <stdexcept>
+# include <locale>
 
 void doXORSwap (int & a, int & b) noexcept (false)
 {

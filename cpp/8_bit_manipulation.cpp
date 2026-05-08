@@ -3,6 +3,7 @@
 # include <iostream>
 # include <stdexcept>
 # include <type_traits>
+# include <locale>
 
 template <typename T>
 void assert_unsigned ()

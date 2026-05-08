@@ -3,8 +3,8 @@
 # include <iterator>
 # include <memory>
 # include <numeric>
-# include <type_traits>
 # include <utility>
+# include <cstddef>
 
 struct S {
 	int value;

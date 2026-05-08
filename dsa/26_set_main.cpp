@@ -1,8 +1,6 @@
 # include <functional>
 # include <iostream>
-# include <ostream>
 
-# include "23_binary_tree_node.h"
 # include "24_avl_tree.h"
 # include "25_splay_tree.h"
 # include "26_set.h"

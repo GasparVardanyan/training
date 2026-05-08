@@ -6,6 +6,7 @@
 # include "22_notation_converter.h"
 # include "23_expression_tree.h"
 # include "23_binary_search_tree.h"
+# include "23_binary_tree_node.h"
 
 int main () {
 	std::string res = "(6 * (5 + 3 + 2)) * 10 / 2 - 42";

@@ -6,14 +6,11 @@
 //                                       |___/
 
 # include <gtest/gtest.h>
-# include "20_vector.h"
 # include <string>
 # include <vector> // for comparison
 # include <numeric>
-# include <cassert>
-# include <vector>
-# include <iostream>
-# include <type_traits>
+
+# include "20_vector.h"
 
 
 

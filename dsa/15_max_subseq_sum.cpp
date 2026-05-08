@@ -6,6 +6,7 @@
 # include <numeric>
 # include <stdexcept>
 # include <vector>
+# include <compare>
 
 # ifdef MAX
 # error conflicting macro names

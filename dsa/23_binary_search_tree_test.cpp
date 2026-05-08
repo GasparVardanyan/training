@@ -8,6 +8,8 @@
 # include <gtest/gtest.h>
 # include <algorithm>
 # include <vector>
+# include <string>
+
 # include "23_binary_search_tree.h"
 
 class BinarySearchTreeTest : public ::testing::Test {

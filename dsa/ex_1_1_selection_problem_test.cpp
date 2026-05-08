@@ -1,10 +1,10 @@
 # include <gtest/gtest.h>
-
 # include <algorithm>
 # include <cstdlib>
 # include <ctime>
 # include <functional>
 # include <vector>
+# include <string>
 
 # include "ex_1_1_selection_problem.h"
 

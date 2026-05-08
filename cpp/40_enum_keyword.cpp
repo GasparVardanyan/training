@@ -69,12 +69,6 @@ enum Bar b = Bar (Bar::Bar);
 
 
 
-enum class E7;
-enum E8 : int;
-enum struct E9 : short;
-
-
-
 int main () {
 
 }

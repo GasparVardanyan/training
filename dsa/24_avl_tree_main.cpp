@@ -3,6 +3,7 @@
 # include <iterator>
 # include <sstream>
 # include <vector>
+# include <string>
 
 # include "20_vector.h"
 # include "24_avl_tree.h"

@@ -1,9 +1,10 @@
 # include "15_max_subseq_sum.h"
 
+# include <gtest/gtest.h>
 # include <cstdlib>
 # include <ctime>
 # include <vector>
-# include <gtest/gtest.h>
+# include <string>
 
 TEST (MaxSubSeqSum, RandomizedComparisonWithO3) {
 	std::srand (std::time (NULL));

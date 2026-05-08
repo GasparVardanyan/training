@@ -1,4 +1,5 @@
 union foo;
+
 class bar {
 public:
 	bar (foo & f) {
@@ -7,7 +8,6 @@ public:
 };
 
 void baz ();
-union baz;
 
 union foo {
 	long l;

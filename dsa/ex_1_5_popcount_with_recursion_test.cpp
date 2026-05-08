@@ -1,8 +1,10 @@
+# include <gtest/gtest.h>
 # include <bit>
 # include <cstddef>
 # include <cstdlib>
 # include <ctime>
-# include <gtest/gtest.h>
+# include <string>
+
 # include "ex_1_5_popcount_with_recursion.h"
 
 TEST (Popcount, RandomizationWithStdPopcount)

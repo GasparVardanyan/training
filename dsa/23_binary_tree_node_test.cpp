@@ -6,11 +6,11 @@
 //                                       |___/
 
 # include <gtest/gtest.h>
-# include "23_binary_tree_node.h"
 # include <vector>
 # include <string>
 # include <sstream>
-# include <memory>
+
+# include "23_binary_tree_node.h"
 
 class BinaryTreeNodeTest : public ::testing::Test {
 protected:

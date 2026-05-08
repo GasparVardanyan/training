@@ -1,6 +1,5 @@
 # include <cstdint>
 # include <iostream>
-# include <cstdint>
 # include <type_traits>
 
 void f (char c) { std::cout << "char: " << c << std::endl; }

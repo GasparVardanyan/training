@@ -6,15 +6,16 @@
 //                                       |___/
 
 # include <gtest/gtest.h>
-
+# include <stddef.h>
 # include <vector>
 # include <algorithm>
 # include <random>
 # include <set>
-# include <stack>
 # include <string>
 # include <functional>
 # include <limits>
+# include <iostream>
+# include <numeric>
 
 # include "25_splay_tree.h"
 

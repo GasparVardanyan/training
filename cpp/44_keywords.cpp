@@ -6,6 +6,11 @@
 # include <stdexcept>
 # include <type_traits>
 # include <vector>
+# include <utility>
+
+namespace keyword_friend {
+class C;
+}  // namespace keyword_friend
 
 
 

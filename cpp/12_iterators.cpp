@@ -5,6 +5,8 @@
 # include <sstream>
 # include <string>
 # include <vector>
+# include <compare>
+# include <utility>
 
 std::string iterType (std::contiguous_iterator_tag) {
 	return "contiguous_iterator_tag";

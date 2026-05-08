@@ -4,7 +4,6 @@
 # include <iostream>
 # include <iterator>
 # include <locale>
-# include <ostream>
 # include <string>
 # include <vector>
 

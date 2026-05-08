@@ -1,9 +1,10 @@
-# include <functional>
 # include <iostream>
 # include <map>
 # include <type_traits>
 # include <unordered_map>
 # include <vector>
+# include <string_view>
+# include <utility>
 
 namespace detail {
 	template <typename T, typename = void>

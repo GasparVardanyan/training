@@ -1,6 +1,5 @@
 # include <cstddef>
 # include <iostream>
-# include <ostream>
 # include <vector>
 
 class Square

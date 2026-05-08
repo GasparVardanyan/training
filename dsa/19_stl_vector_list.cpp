@@ -3,6 +3,7 @@
 # include <iterator>
 # include <list>
 # include <vector>
+# include <string>
 
 # include "19_iterType.h"
 

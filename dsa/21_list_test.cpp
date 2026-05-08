@@ -6,12 +6,12 @@
 //                                       |___/
 
 # include <gtest/gtest.h>
-# include "21_list.h"
 # include <string>
 # include <vector>
-# include <numeric>
 # include <memory>
 # include <iterator>
+
+# include "21_list.h"
 
 
 // --- Helper for verifying list content ---

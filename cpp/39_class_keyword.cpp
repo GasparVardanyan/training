@@ -17,6 +17,7 @@ public:
 
 namespace n2 {
 class foo;
+
 class bar {
 public:
 	bar (foo & f) {
@@ -26,7 +27,6 @@ public:
 };
 
 void baz ();
-class baz;
 
 class foo {
 	bar b;
@@ -68,7 +68,6 @@ public:
 	T * t;
 };
 
-class bar;
 void bar ();
 
 foo <class bar> x;
