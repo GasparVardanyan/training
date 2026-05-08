@@ -1,4 +1,6 @@
 # include <iostream>
+# include <string>
+# include <utility>
 
 namespace this_pointer {
 	struct ThisPointer {
@@ -94,8 +96,38 @@ namespace this_cv_qualifiers {
 }
 
 namespace this_ref_qualifiers {
-	void run () {
+	struct RefQualifiers {
+		std::string s;
+		RefQualifiers (const std::string & s = "The nameless one.") : s (s) {}
 
+		void func () & {
+			std::cout << "Accessed on normal instance: " << s << std::endl;
+		}
+
+		void func () && {
+			std::cout << "Accessed on temporary instance: " << s << std::endl;
+		}
+
+		const std::string & still_a_pointer () & { return this->s; }
+		std::string && still_a_pointer () && { this->s = "Bob"; return std::move (s);}
+	};
+
+	struct CVRef {
+		void func () & {}
+		void func () const & {}
+		void func () volatile & {}
+		void func () const volatile & {}
+		void func () && {}
+		void func () const && {}
+		void func () volatile && {}
+		void func () const volatile && {}
+	};
+
+	void run () {
+		RefQualifiers rf ("Fred");
+		rf.func ();
+
+		RefQualifiers ().func ();
 	}
 }
 
