@@ -4,6 +4,7 @@
 # include <iterator>
 # include <limits>
 # include <numeric>
+# include <stdexcept>
 # include <vector>
 
 # ifdef MAX

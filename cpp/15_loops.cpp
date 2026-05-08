@@ -1,6 +1,8 @@
 # include <algorithm>
+# include <cstddef>
 # include <iostream>
 # include <iterator>
+# include <type_traits>
 # include <vector>
 
 template <class Iterator, class Sentinel=Iterator>

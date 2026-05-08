@@ -1,6 +1,8 @@
 # ifndef BALANCE_CHECKER_H_22
 # define BALANCE_CHECKER_H_22
 
+# include <sys/types.h>
+
 # include <algorithm>
 # include <cstddef>
 # include <ostream>

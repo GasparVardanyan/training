@@ -1,5 +1,4 @@
 # include <iostream>
-# include <stdexcept>
 # include <type_traits>
 
 template <typename T>

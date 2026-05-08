@@ -1,5 +1,3 @@
-# include <iostream>
-
 union foo;
 class bar {
 public:

@@ -1,5 +1,6 @@
 # include <iostream>
 # include <numeric>
+# include <vector>
 
 # include "15_max_subseq_sum.h"
 

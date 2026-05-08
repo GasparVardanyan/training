@@ -1,10 +1,11 @@
 # ifndef SET_H_26
 # define SET_H_26
 
-# include "23_binary_search_tree.h"
-# include "23_binary_tree_node.h"
+# include <concepts>
+# include <ostream>
+
+# include "20_vector.h"
 # include "24_avl_tree.h"
-# include <type_traits>
 
 template <typename T, template <typename> typename Container = avl_tree>
 // requires is_tree_v <Container <T>>

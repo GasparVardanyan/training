@@ -1,5 +1,3 @@
-# include <iostream>
-
 enum Direction {
 	UP, LEFT, DOWN, RIGHT
 };

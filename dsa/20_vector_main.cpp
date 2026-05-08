@@ -1,8 +1,11 @@
 # include "20_vector.h"
 # include "verbose_class.h"
 
+# include <algorithm>
 # include <iostream>
 # include <iterator>
+# include <type_traits>
+# include <vector>
 
 int main () {
 	{

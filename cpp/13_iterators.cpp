@@ -3,6 +3,7 @@
 # include <iostream>
 # include <iterator>
 # include <optional>
+# include <type_traits>
 
 template <class T>
 struct generator_iterator {

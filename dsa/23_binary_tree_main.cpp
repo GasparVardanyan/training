@@ -1,6 +1,9 @@
 # include <iostream>
 # include <sstream>
+# include <string>
 
+# include "20_vector.h"
+# include "22_notation_converter.h"
 # include "23_expression_tree.h"
 # include "23_binary_search_tree.h"
 

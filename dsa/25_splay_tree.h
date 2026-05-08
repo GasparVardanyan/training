@@ -1,6 +1,12 @@
 # ifndef SPLAY_TREE_25
 # define SPLAY_TREE_25
 
+# include <concepts>
+# include <functional>
+# include <ostream>
+
+# include "20_vector.h"
+# include "22_stack.h"
 # include "23_binary_search_tree.h"
 
 namespace detail {

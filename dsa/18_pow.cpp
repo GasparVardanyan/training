@@ -1,3 +1,4 @@
+# include <cmath>
 # include <iostream>
 
 int pow (int base, unsigned p) {

@@ -1,6 +1,5 @@
 # include <bitset>
 # include <cstddef>
-# include <exception>
 # include <iostream>
 # include <stdexcept>
 # include <type_traits>

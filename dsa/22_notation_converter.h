@@ -6,6 +6,7 @@
 # include <string>
 
 # include "22_balance_checker.h"
+# include "22_config.h"
 
 // NOTE: no negative numbers, no parenthesis, integer division only.
 // Expression structural change can happen when it doesn't change the result !!!

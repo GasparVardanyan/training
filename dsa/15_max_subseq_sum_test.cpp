@@ -2,6 +2,7 @@
 
 # include <cstdlib>
 # include <ctime>
+# include <vector>
 # include <gtest/gtest.h>
 
 TEST (MaxSubSeqSum, RandomizedComparisonWithO3) {

@@ -2,6 +2,7 @@
 # include <cstddef>
 # include <functional>
 # include <iostream>
+# include <string>
 # include <vector>
 
 class CaseInsensitiveCompare {

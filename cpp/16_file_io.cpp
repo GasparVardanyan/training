@@ -68,7 +68,6 @@ int main ()
 
 	double val = 1234.678;
 
-	std::ofstream ofs1;
 	ofs.imbue (std::locale (""));
 	ofs.open (file, std::ios::out | std::ios::trunc);
 	ofs << val << std::endl;
