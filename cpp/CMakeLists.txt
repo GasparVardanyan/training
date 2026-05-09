@@ -65,7 +65,10 @@ add_executable (40_enum_keyword 40_enum_keyword.cpp)
 add_executable (41_union_keyword 41_union_keyword.cpp)
 add_executable (42_type_keywords 42_type_keywords.cpp)
 add_executable (42_type_keywords_c 42_type_keywords_c.c)
-add_executable (43_variable_declaration_keywords 43_variable_declaration_keywords.cpp)
+add_executable (
+	43_variable_declaration_keywords
+	43_variable_declaration_keywords.cpp
+)
 add_executable (44_keywords 44_keywords.cpp)
 add_executable (45_returning_several_values 45_returning_several_values.cpp)
 add_executable (46_metaprogramming_tuple 46_metaprogramming_tuple.cpp)
@@ -77,3 +80,9 @@ add_executable (51_unique_ptr 51_unique_ptr.cpp)
 add_executable (52_make_unique 52_make_unique.cpp)
 add_executable (53_shared_ptr 53_shared_ptr.cpp)
 add_executable (54_weak_ptr 54_weak_ptr.cpp)
+add_executable (
+	55_smart_pointer_custom_deleters
+	55_smart_pointer_custom_deleters.cpp
+)
+add_executable (56_auto_ptr 56_auto_ptr.cpp)
+target_compile_options (56_auto_ptr PRIVATE --std=c++03)

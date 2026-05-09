@@ -81,4 +81,23 @@ int main () {
 		// memory leak
 		n1->children.push_back (n2); n2->children.push_back (n1);
 	}
+
+	{
+		std::weak_ptr <S> wk;
+		{
+			std::shared_ptr <S> sh = std::make_shared <S> (555);
+			wk = sh;
+		}
+		std::cout << "===" << std::endl;
+	}
+
+	{
+		std::shared_ptr <S> sp;
+		{
+			std::shared_ptr <S> sh = std::make_shared <S> (333);
+			std::weak_ptr <S> wk = sh;
+			sp = wk.lock ();
+		}
+		std::cout << "===" << std::endl;
+	}
 }
