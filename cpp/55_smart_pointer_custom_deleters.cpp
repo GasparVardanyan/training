@@ -29,7 +29,9 @@ int main () {
 
 		std::unique_ptr <FILE, decltype ([] (FILE * f) -> void {
 			std::cout << "=== CLOSING ===" << std::endl;
-			fclose (f);
+			if (NULL != f) {
+				fclose (f);
+			}
 		})> fh (fopen (file, "r"));
 
 		if (NULL != fh.get ()) {

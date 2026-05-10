@@ -9,6 +9,8 @@
 # include <type_traits>
 # include <utility>
 
+const std::size_t arr_size = 10;
+
 namespace pre_cpp17 {
 	template <typename T>
 	struct MakeSharedArrayImpl;
@@ -42,7 +44,17 @@ namespace pre_cpp17 {
 
 
 
-const std::size_t arr_size = 10;
+void shared_arrays ();
+void aliasing ();
+void shared_from_this ();
+
+
+
+int main () {
+	shared_arrays ();
+	aliasing ();
+	shared_from_this ();
+}
 
 
 
@@ -77,8 +89,6 @@ void shared_arrays () {
 	}, std::tie (arr1, arr2));
 }
 
-
-
 void aliasing () {
 	struct S {
 		int v;
@@ -97,8 +107,6 @@ void aliasing () {
 
 	std::cout << * sha2 << std::endl;
 }
-
-
 
 void ownership_transfer () {
 	std::shared_ptr <int> i = std::make_shared <int> (10);
@@ -125,10 +133,4 @@ void shared_from_this () {
 	std::shared_ptr <S> sh3 = s->shared_from_this ();
 	std::cout << "sh1 use count: " << sh1.use_count () << std::endl;
 	std::cout << "sh3 use count: " << sh3.use_count () << std::endl;
-}
-
-int main () {
-	shared_arrays ();
-	aliasing ();
-	shared_from_this ();
 }
