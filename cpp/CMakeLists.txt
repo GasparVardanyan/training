@@ -87,3 +87,6 @@ add_executable (
 add_executable (56_auto_ptr 56_auto_ptr.cpp)
 target_compile_options (56_auto_ptr PRIVATE --std=c++03)
 add_executable (57_casting_shared_pointers 57_casting_shared_pointers.cpp)
+
+add_executable (58_classes 58_classes.cpp)
+add_executable (59_virtual_inheritance 59_virtual_inheritance.cpp)
