@@ -90,3 +90,7 @@ add_executable (57_casting_shared_pointers 57_casting_shared_pointers.cpp)
 
 add_executable (58_classes 58_classes.cpp)
 add_executable (59_virtual_inheritance 59_virtual_inheritance.cpp)
+add_executable (60_private_inheritance 60_private_inheritance.cpp)
+add_executable (61_member_access 61_member_access.cpp)
+add_executable (62_member_types_and_aliases 62_member_types_and_aliases.cpp)
+add_executable (63_shared_ptr_examples 63_shared_ptr_examples.cpp)
