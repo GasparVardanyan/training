@@ -1,11 +1,9 @@
 # ifndef MAP_H_26
 # define MAP_H_26
 
-# include "20_vector.h"
-# include "23_binary_search_tree.h"
-# include "25_splay_tree.h"
-# include <concepts>
 # include <cstddef>
+
+# include <concepts>
 # include <functional>
 # include <iterator>
 # include <ostream>
@@ -14,11 +12,15 @@
 # include <utility>
 # include <variant>
 
+# include "20_vector.h"
+# include "23_binary_search_tree.h"
+# include "25_splay_tree.h"
+
 namespace detail {
 template <
 	typename Kt,
 	typename Vt,
-	typename Data = std::monostate
+	typename Data
 >
 struct map_node_data__ : Data {
 	static_assert (false == requires (Data d) { d.key; }, "the 'key' member of Data is reserved");
@@ -96,9 +98,9 @@ struct map_node_data__ : Data {
 template <
 	typename Kt,
 	typename Vt,
-	typename Comparator = std::less <Kt>,
-	template <typename, typename> typename Container = binary_search_tree,
-	typename Data = std::monostate
+	typename Comparator,
+	template <typename, typename> typename Container,
+	typename Data
 >
 struct map__ {
 	using node_data = map_node_data__ <Kt, Vt, Data>;
@@ -128,6 +130,12 @@ struct map__ {
 	// static_assert (is_tree_v <tree>, "Container of map isn't a tree");
 };
 }
+
+// NOTE: binary_tree_node and trees are implemented such a way that iterators
+// are second class cityzens here and get invalidated after the container gets
+// mutated. Instead of iterators all underlying implementation uses node** and
+// stack<node**>. To make iterators first class cityzens first nodes must
+// carry parrent node pointers. All code using nodes must be carefully rewriten.
 
 template <
 	typename Kt,
@@ -169,6 +177,15 @@ public:
 	using tree::end;
 	using tree::cend;
 	using tree::find;
+
+	map () {}
+
+	template <std::convertible_to <Kt> Kt_, std::convertible_to <Vt> Vt_>
+	map (std::initializer_list <std::pair <Kt_, Vt_>> list) {
+		for (const auto & [k, v] : list) {
+			insert (k, v);
+		}
+	}
 
 	bool operator== (const map & other) const {
 		return
@@ -222,7 +239,6 @@ public:
 };
 
 namespace std {
-
 template <typename Kt, typename Vt, typename Data>
 struct tuple_size <typename detail::map_node_data__ <Kt, Vt, Data>>
 	: std::integral_constant <std::size_t, 2> {};

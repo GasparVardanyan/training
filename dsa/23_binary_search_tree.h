@@ -4,6 +4,7 @@
 # include <concepts>
 # include <cstddef>
 # include <functional>
+# include <initializer_list>
 # include <iterator>
 # include <ostream>
 # include <type_traits>
@@ -153,6 +154,13 @@ public:
 		: m_root (nullptr)
 		, m_size (0)
 	{}
+
+	template <std::convertible_to <T> U>
+	binary_search_tree (std::initializer_list <U> list) {
+		for (const U & e : list) {
+			insert (e);
+		}
+	}
 
 	binary_search_tree (const binary_search_tree & other)
 		// requires (std::is_copy_constructible_v <T>)

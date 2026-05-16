@@ -15,7 +15,7 @@
 # include "23_binary_search_tree.h"
 
 namespace detail {
-template <typename T, typename C, typename Data = std::monostate>
+template <typename T, typename C, typename Data>
 struct avl_tree__ {
 	struct node_data : Data {
 		static_assert (false == requires (Data d) { d.value; }, "the 'value' member of Data is reserved");

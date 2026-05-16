@@ -2,10 +2,17 @@
 # define SET_H_26
 
 # include <concepts>
+# include <initializer_list>
 # include <ostream>
 
 # include "20_vector.h"
 # include "24_avl_tree.h"
+
+// NOTE: binary_tree_node and trees are implemented such a way that iterators
+// are second class cityzens here and get invalidated after the container gets
+// mutated. Instead of iterators all underlying implementation uses node** and
+// stack<node**>. To make iterators first class cityzens first nodes must
+// carry parrent node pointers. All code using nodes must be carefully rewriten.
 
 template <typename T, template <typename> typename Container = avl_tree>
 // requires is_tree_v <Container <T>>
@@ -37,6 +44,15 @@ public:
 	using tree::end;
 	using tree::cend;
 	using tree::find;
+
+	set () {}
+
+	template <std::convertible_to <T> U>
+	set (std::initializer_list <U> list) : tree () {
+		for (const U & e : list) {
+			insert (e);
+		}
+	}
 
 	bool operator== (const set & other) const {
 		return
