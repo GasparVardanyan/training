@@ -5,16 +5,14 @@
 
 # include <concepts>
 # include <functional>
+# include <initializer_list>
 # include <iterator>
 # include <ostream>
 # include <tuple>
 # include <type_traits>
 # include <utility>
-# include <variant>
 
 # include "20_vector.h"
-# include "23_binary_search_tree.h"
-# include "24_avl_tree.h"
 # include "25_splay_tree.h"
 
 namespace detail {
@@ -29,19 +27,6 @@ struct map_node_data__ {
 	Kt key;
 	Vt value;
 
-	template <std::size_t I>
-	struct node_data_type;
-
-	template <>
-	struct node_data_type <0> {
-		using type = Kt;
-	};
-
-	template <>
-	struct node_data_type <1> {
-		using type = Vt;
-	};
-
 	template <typename Kt_, typename Vt_>
 	requires std::is_constructible_v <Kt, Kt_> && std::is_constructible_v <Vt, Vt_>
 	explicit map_node_data__ (Kt_ && key, Vt_ && value)
@@ -55,7 +40,9 @@ struct map_node_data__ {
 
 	template <std::size_t I>
 	requires (2 > I)
-	friend constexpr const node_data_type <I>::type & get (const map_node_data__ & nd) noexcept {
+	friend constexpr const std::tuple_element_t <I, map_node_data__> &
+	get (const map_node_data__ & nd) noexcept
+	{
 		if constexpr (0 == I) {
 			return nd.key;
 		}
@@ -66,7 +53,9 @@ struct map_node_data__ {
 
 	template <std::size_t I>
 	requires (2 > I)
-	friend constexpr node_data_type <I>::type & get (map_node_data__ & nd) noexcept {
+	friend constexpr std::tuple_element_t <I, map_node_data__> &
+	get (map_node_data__ & nd) noexcept
+	{
 		if constexpr (0 == I) {
 			return nd.key;
 		}
@@ -77,7 +66,9 @@ struct map_node_data__ {
 
 	template <std::size_t I>
 	requires (2 > I)
-	friend constexpr node_data_type <I>::type && get (map_node_data__ && nd) noexcept {
+	friend constexpr std::tuple_element_t <I, map_node_data__> &&
+	get (map_node_data__ && nd) noexcept
+	{
 		if constexpr (0 == I) {
 			return std::move (nd.key);
 		}
@@ -121,6 +112,24 @@ struct map__ {
 	// static_assert (is_tree_v <tree>, "Container of map isn't a tree");
 };
 }
+
+namespace std {
+template <typename Kt, typename Vt>
+struct tuple_size <detail::map_node_data__ <Kt, Vt>>
+	: std::integral_constant <std::size_t, 2> {};
+
+template <typename Kt, typename Vt>
+struct tuple_element <0, detail::map_node_data__ <Kt, Vt>> {
+	using type = Kt;
+};
+
+template <typename Kt, typename Vt>
+struct tuple_element <1, detail::map_node_data__ <Kt, Vt>> {
+	using type = Vt;
+};
+}
+
+
 
 // NOTE: binary_tree_node and trees are implemented such a way that iterators
 // are second class cityzens here and get invalidated after the container gets
@@ -227,21 +236,5 @@ public:
 		return inserting;
 	}
 };
-
-namespace std {
-template <typename Kt, typename Vt>
-struct tuple_size <detail::avl_tree_node_data__ <detail::map_node_data__ <Kt, Vt>>>
-	: std::integral_constant <std::size_t, 2> {};
-
-template <typename Kt, typename Vt>
-struct tuple_element <0, detail::avl_tree_node_data__ <detail::map_node_data__ <Kt, Vt>>> {
-	using type = Kt;
-};
-
-template <typename Kt, typename Vt>
-struct tuple_element <1, detail::avl_tree_node_data__ <detail::map_node_data__ <Kt, Vt>>> {
-	using type = Vt;
-};
-}
 
 # endif // MAP_H_26

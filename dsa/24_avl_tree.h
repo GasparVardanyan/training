@@ -7,7 +7,6 @@
 # include <iterator>
 # include <ostream>
 # include <type_traits>
-# include <variant>
 # include <utility>
 
 # include "20_vector.h"
@@ -15,6 +14,14 @@
 # include "23_binary_search_tree.h"
 
 namespace detail {
+template <typename T, typename = void>
+struct is_tuple_like__ : std::false_type {};
+
+template <typename T>
+struct is_tuple_like__ <T, std::void_t <
+	decltype (std::tuple_size <T>::value)>
+> : std::true_type {};
+
 template <typename T>
 struct avl_tree_node_data__  {
 	// static_assert (false == requires (Data d) { d.value; }, "the 'value' member of Data is reserved");
@@ -51,6 +58,18 @@ struct avl_tree__ {
 	using node_data = avl_tree_node_data__ <T>;
 	using tree = binary_search_tree <node_data, C, false>;
 };
+}
+
+namespace std {
+template <typename T>
+requires detail::is_tuple_like__ <T>::value
+struct tuple_size <detail::avl_tree_node_data__ <T>>
+	: tuple_size <T> {};
+
+template <std::size_t I, typename T>
+requires detail::is_tuple_like__ <T>::value
+struct tuple_element <I, detail::avl_tree_node_data__ <T>>
+	: tuple_element <I, T> {};
 }
 
 
