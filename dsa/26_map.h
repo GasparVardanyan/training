@@ -14,17 +14,17 @@
 
 # include "20_vector.h"
 # include "23_binary_search_tree.h"
+# include "24_avl_tree.h"
 # include "25_splay_tree.h"
 
 namespace detail {
 template <
 	typename Kt,
-	typename Vt,
-	typename Data
+	typename Vt
 >
-struct map_node_data__ : Data {
-	static_assert (false == requires (Data d) { d.key; }, "the 'key' member of Data is reserved");
-	static_assert (false == requires (Data d) { d.value; }, "the 'value' member of Data is reserved");
+struct map_node_data__ {
+	// static_assert (false == requires (Data d) { d.key; }, "the 'key' member of Data is reserved");
+	// static_assert (false == requires (Data d) { d.value; }, "the 'value' member of Data is reserved");
 
 	Kt key;
 	Vt value;
@@ -51,14 +51,6 @@ struct map_node_data__ : Data {
 	friend std::ostream & operator<< (std::ostream & os, const map_node_data__ & data) {
 		os << '{' << data.key << ", " << data.value << '}';
 		return os;
-	}
-
-	bool operator< (const map_node_data__ & other) const {
-		return key < other.key;
-	}
-
-	bool operator== (const map_node_data__ & other) const {
-		return key == other.key;
 	}
 
 	template <std::size_t I>
@@ -99,11 +91,10 @@ template <
 	typename Kt,
 	typename Vt,
 	typename Comparator,
-	template <typename, typename> typename Container,
-	typename Data
+	template <typename, typename> typename Container
 >
 struct map__ {
-	using node_data = map_node_data__ <Kt, Vt, Data>;
+	using node_data = map_node_data__ <Kt, Vt>;
 
 	struct less_than {
 		static constexpr Comparator comparator {};
@@ -141,13 +132,12 @@ template <
 	typename Kt,
 	typename Vt,
 	typename Comparator = std::less <Kt>,
-	template <typename, typename> typename Container = splay_tree,
-	typename Data = std::monostate
+	template <typename, typename> typename Container = splay_tree
 >
 requires std::strict_weak_order <Comparator, Kt, Kt>
-struct map : protected detail::map__ <Kt, Vt, Comparator, Container, Data>::tree {
+struct map : protected detail::map__ <Kt, Vt, Comparator, Container>::tree {
 protected:
-	using detail = detail::map__ <Kt, Vt, Comparator, Container, Data>;
+	using detail = detail::map__ <Kt, Vt, Comparator, Container>;
 public:
 	using tree = detail::tree;
 	using node = tree::node;
@@ -239,17 +229,17 @@ public:
 };
 
 namespace std {
-template <typename Kt, typename Vt, typename Data>
-struct tuple_size <typename detail::map_node_data__ <Kt, Vt, Data>>
+template <typename Kt, typename Vt>
+struct tuple_size <detail::avl_tree_node_data__ <detail::map_node_data__ <Kt, Vt>>>
 	: std::integral_constant <std::size_t, 2> {};
 
-template <typename Kt, typename Vt, typename Data>
-struct tuple_element <0, detail::map_node_data__ <Kt, Vt, Data>> {
+template <typename Kt, typename Vt>
+struct tuple_element <0, detail::avl_tree_node_data__ <detail::map_node_data__ <Kt, Vt>>> {
 	using type = Kt;
 };
 
-template <typename Kt, typename Vt, typename Data>
-struct tuple_element <1, detail::map_node_data__ <Kt, Vt, Data>> {
+template <typename Kt, typename Vt>
+struct tuple_element <1, detail::avl_tree_node_data__ <detail::map_node_data__ <Kt, Vt>>> {
 	using type = Vt;
 };
 }

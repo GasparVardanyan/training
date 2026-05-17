@@ -15,47 +15,51 @@
 # include "23_binary_search_tree.h"
 
 namespace detail {
-template <typename T, typename C, typename Data>
+template <typename T>
+struct avl_tree_node_data__  {
+	// static_assert (false == requires (Data d) { d.value; }, "the 'value' member of Data is reserved");
+	// static_assert (
+	// 	false == requires (Data d) { d.height_plus_one; },
+	// 	"the 'height_plus_one' member of Data is reserved"
+	// );
+
+	T value;
+	std::size_t height_plus_one; // TODO: replace height with diff of subtree heights, which is always -1, 0 or 1
+
+	explicit (false) avl_tree_node_data__ (const T & value, std::size_t height_plus_one = 0)
+		: value (value), height_plus_one (height_plus_one) {}
+
+	explicit (false) avl_tree_node_data__ (T && value, std::size_t height_plus_one = 0)
+		: value (std::move (value)), height_plus_one (height_plus_one) {}
+
+	friend std::ostream & operator<< (std::ostream & os, const avl_tree_node_data__ & data) {
+		os << data.value;
+		return os;
+	}
+
+	operator const T & () const {
+		return value;
+	}
+
+	operator T & () {
+		return value;
+	}
+};
+
+template <typename T, typename C>
 struct avl_tree__ {
-	struct node_data : Data {
-		static_assert (false == requires (Data d) { d.value; }, "the 'value' member of Data is reserved");
-		static_assert (
-			false == requires (Data d) { d.height_plus_one; },
-			"the 'height_plus_one' member of Data is reserved"
-		);
-
-		T value;
-		std::size_t height_plus_one; // TODO: replace height with diff of subtree heights, which is always -1, 0 or 1
-
-		explicit (false) node_data (const T & value, std::size_t height_plus_one = 0)
-			: value (value), height_plus_one (height_plus_one) {}
-
-		explicit (false) node_data (T && value, std::size_t height_plus_one = 0)
-			: value (std::move (value)), height_plus_one (height_plus_one) {}
-
-		friend std::ostream & operator<< (std::ostream & os, const node_data & data) {
-			os << data.value;
-			return os;
-		}
-
-		operator const T & () const {
-			return value;
-		}
-
-		operator T & () {
-			return value;
-		}
-	};
-
+	using node_data = avl_tree_node_data__ <T>;
 	using tree = binary_search_tree <node_data, C, false>;
 };
 }
 
-template <typename T, typename Comparator = std::less <T>, typename Data = std::monostate>
+
+
+template <typename T, typename Comparator = std::less <T>>
 requires std::strict_weak_order <Comparator, T, T>
-class avl_tree : protected detail::avl_tree__ <T, Comparator, Data>::tree {
+class avl_tree : protected detail::avl_tree__ <T, Comparator>::tree {
 protected:
-	using detail = detail::avl_tree__ <T, Comparator, Data>;
+	using detail = detail::avl_tree__ <T, Comparator>;
 
 public:
 	using tree = detail::tree;
@@ -161,7 +165,9 @@ public:
 		}
 	}
 
-	void remove (const T & value) {
+	template <typename VC>
+	requires tree::template ValueComparable <VC>
+	void remove (const VC & value) {
 		stack <node_link> path = get_link_stack (value);
 		node_link link = path.top ();
 
