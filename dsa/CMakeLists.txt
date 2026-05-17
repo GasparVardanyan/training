@@ -117,6 +117,7 @@ add_executable (25_splay_tree_test 25_splay_tree_test.cpp)
 target_link_libraries (25_splay_tree_test GTest::gtest_main)
 
 add_executable (26_set 26_set.h 26_set_main.cpp)
+add_executable (26_map 26_map.h 26_map_main.cpp)
 
 add_executable (ex_1_1_selection_problem_test ex_1_1_selection_problem_test.cpp ex_1_1_selection_problem.h)
 target_link_libraries (ex_1_1_selection_problem_test GTest::gtest_main)
