@@ -36,9 +36,9 @@ template <typename T, typename U>
 requires std::convertible_to <T, U>
 struct equal_to <T, std::greater <U>> : std::equal_to <U> {};
 
-template <typename T, typename Comparator, bool KeepInvariant__, bool RemovePreserveLeft__>
+template <typename T, typename Comparator, bool KeepInvariant_, bool RemovePreserveLeft_>
 requires std::strict_weak_order <Comparator, T, T>
-struct binary_search_tree__ {
+struct binary_search_tree_ {
 	using equal_to = equal_to <T, Comparator>;
 	using node = binary_tree_node <T, equal_to>;
 
@@ -48,8 +48,8 @@ struct binary_search_tree__ {
 		{ c (t2, t) } -> std::convertible_to <bool>;
 	};
 
-	static constexpr bool KeepInvariant = KeepInvariant__;
-	static constexpr bool RemovePreserveLeft = RemovePreserveLeft__;
+	static constexpr bool KeepInvariant = KeepInvariant_;
+	static constexpr bool RemovePreserveLeft = RemovePreserveLeft_;
 
 	template <typename U>
 	static constexpr bool is_node_link_v = node::template is_node_link_v <U>;
@@ -112,7 +112,7 @@ struct is_tree <C <T>, std::void_t <
 	void
 >>
 	: std::true_type {};
-}
+} // end namespace detail
 
 template <typename T>
 constexpr inline bool is_tree_v = detail::is_tree <T>::value;
@@ -121,7 +121,7 @@ template <typename T, typename Comparator = std::less <T>, bool KeepInvariant = 
 requires std::strict_weak_order <Comparator, T, T>
 class binary_search_tree {
 protected:
-	using detail = detail::binary_search_tree__ <T, Comparator, KeepInvariant, RemovePreserveLeft>;
+	using detail = detail::binary_search_tree_ <T, Comparator, KeepInvariant, RemovePreserveLeft>;
 
 public:
 	using node = detail::node;
@@ -156,7 +156,10 @@ public:
 	{}
 
 	template <std::convertible_to <T> U>
-	binary_search_tree (std::initializer_list <U> list) {
+	binary_search_tree (std::initializer_list <U> list)
+		: m_root (nullptr)
+		, m_size (0)
+	{
 		for (const U & e : list) {
 			insert (e);
 		}

@@ -3,8 +3,8 @@
 
 # include <concepts>
 # include <functional>
-# include <ostream>
 # include <iterator>
+# include <ostream>
 # include <utility>
 
 # include "20_vector.h"
@@ -12,19 +12,19 @@
 # include "23_binary_search_tree.h"
 
 namespace detail {
-template <typename T, typename C, bool RemovePreserveLeft__>
-struct splay_tree__ {
-	static constexpr bool RemovePreserveLeft = RemovePreserveLeft__;
-	using tree = binary_search_tree <T, C, RemovePreserveLeft__>;
+template <typename T, typename C, bool RemovePreserveLeft_>
+struct splay_tree_ {
+	static constexpr bool RemovePreserveLeft = RemovePreserveLeft_;
+	using tree = binary_search_tree <T, C, RemovePreserveLeft_>;
 };
-}
+} // end namespace detail
 
 template <typename T, typename Comparator = std::less <T>, bool RemovePreserveLeft = false>
 requires std::strict_weak_order <Comparator, T, T>
-class splay_tree : protected detail::splay_tree__ <T, Comparator, RemovePreserveLeft>::tree
+class splay_tree : protected detail::splay_tree_ <T, Comparator, RemovePreserveLeft>::tree
 {
 protected:
-	using detail = detail::splay_tree__ <T, Comparator, RemovePreserveLeft>;
+	using detail = detail::splay_tree_ <T, Comparator, RemovePreserveLeft>;
 
 public:
 	using tree = detail::tree;
@@ -79,7 +79,7 @@ public: // binary_search_tree interface
 	void insert (U && value) {
 		stack <node_link> path = get_link_stack (value);
 		if (nullptr == * path.top ()) {
-			tree::insert_at (path.top (), value);
+			tree::insert_at (path.top (), std::forward <U> (value));
 		}
 		splay (std::move (path));
 	}
@@ -272,8 +272,6 @@ protected:
 				}
 			}
 		}
-
-		return;
 	}
 
 protected:

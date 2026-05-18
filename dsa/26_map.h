@@ -20,7 +20,7 @@ template <
 	typename Kt,
 	typename Vt
 >
-struct map_node_data__ {
+struct map_node_data_ {
 	// static_assert (false == requires (Data d) { d.key; }, "the 'key' member of Data is reserved");
 	// static_assert (false == requires (Data d) { d.value; }, "the 'value' member of Data is reserved");
 
@@ -29,19 +29,19 @@ struct map_node_data__ {
 
 	template <typename Kt_, typename Vt_>
 	requires std::is_constructible_v <Kt, Kt_> && std::is_constructible_v <Vt, Vt_>
-	explicit map_node_data__ (Kt_ && key, Vt_ && value)
+	explicit map_node_data_ (Kt_ && key, Vt_ && value)
 		: key (std::forward <Kt_> (key)), value (std::forward <Vt_> (value))
 	{}
 
-	friend std::ostream & operator<< (std::ostream & os, const map_node_data__ & data) {
+	friend std::ostream & operator<< (std::ostream & os, const map_node_data_ & data) {
 		os << '{' << data.key << ", " << data.value << '}';
 		return os;
 	}
 
 	template <std::size_t I>
 	requires (2 > I)
-	friend constexpr const std::tuple_element_t <I, map_node_data__> &
-	get (const map_node_data__ & nd) noexcept
+	friend constexpr const std::tuple_element_t <I, map_node_data_> &
+	get (const map_node_data_ & nd) noexcept
 	{
 		if constexpr (0 == I) {
 			return nd.key;
@@ -53,8 +53,8 @@ struct map_node_data__ {
 
 	template <std::size_t I>
 	requires (2 > I)
-	friend constexpr std::tuple_element_t <I, map_node_data__> &
-	get (map_node_data__ & nd) noexcept
+	friend constexpr std::tuple_element_t <I, map_node_data_> &
+	get (map_node_data_ & nd) noexcept
 	{
 		if constexpr (0 == I) {
 			return nd.key;
@@ -66,8 +66,8 @@ struct map_node_data__ {
 
 	template <std::size_t I>
 	requires (2 > I)
-	friend constexpr std::tuple_element_t <I, map_node_data__> &&
-	get (map_node_data__ && nd) noexcept
+	friend constexpr std::tuple_element_t <I, map_node_data_> &&
+	get (map_node_data_ && nd) noexcept
 	{
 		if constexpr (0 == I) {
 			return std::move (nd.key);
@@ -84,8 +84,8 @@ template <
 	typename Comparator,
 	template <typename, typename> typename Container
 >
-struct map__ {
-	using node_data = map_node_data__ <Kt, Vt>;
+struct map_detail_ {
+	using node_data = map_node_data_ <Kt, Vt>;
 
 	struct less_than {
 		static constexpr Comparator comparator {};
@@ -111,23 +111,23 @@ struct map__ {
 
 	// static_assert (is_tree_v <tree>, "Container of map isn't a tree");
 };
-}
+} // end namespace detail
 
 namespace std {
 template <typename Kt, typename Vt>
-struct tuple_size <detail::map_node_data__ <Kt, Vt>>
+struct tuple_size <detail::map_node_data_ <Kt, Vt>>
 	: std::integral_constant <std::size_t, 2> {};
 
 template <typename Kt, typename Vt>
-struct tuple_element <0, detail::map_node_data__ <Kt, Vt>> {
+struct tuple_element <0, detail::map_node_data_ <Kt, Vt>> {
 	using type = Kt;
 };
 
 template <typename Kt, typename Vt>
-struct tuple_element <1, detail::map_node_data__ <Kt, Vt>> {
+struct tuple_element <1, detail::map_node_data_ <Kt, Vt>> {
 	using type = Vt;
 };
-}
+} // end namespace std
 
 
 
@@ -144,9 +144,9 @@ template <
 	template <typename, typename> typename Container = splay_tree
 >
 requires std::strict_weak_order <Comparator, Kt, Kt>
-struct map : protected detail::map__ <Kt, Vt, Comparator, Container>::tree {
+struct map : protected detail::map_detail_ <Kt, Vt, Comparator, Container>::tree {
 protected:
-	using detail = detail::map__ <Kt, Vt, Comparator, Container>;
+	using detail = detail::map_detail_ <Kt, Vt, Comparator, Container>;
 public:
 	using tree = detail::tree;
 	using node = tree::node;
@@ -177,7 +177,7 @@ public:
 	using tree::cend;
 	using tree::find;
 
-	map () {}
+	map () = default;
 
 	template <std::convertible_to <Kt> Kt_, std::convertible_to <Vt> Vt_>
 	map (std::initializer_list <std::pair <Kt_, Vt_>> list) {

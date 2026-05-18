@@ -3,6 +3,7 @@
 
 # include <concepts>
 # include <cstddef>
+# include <cstdint>
 # include <functional>
 # include <iostream>
 # include <iterator>
@@ -33,12 +34,13 @@ public:
 		std::is_same_v <U, nptr> || std::is_same_v <U, const_nptr>
 	;
 
-	enum class iterator_algorithm {
+	enum class iterator_algorithm : std::uint8_t {
 		preorder, inorder, postorder, levelorder
 	};
 
 	template <typename NPT, iterator_algorithm Alg = iterator_algorithm::inorder>
 	requires is_node_ptr_v <NPT>
+	// FIXME: CRITICAL: 1. clang-tidy: class 'iterator_base' defines a copy constructor but does not define a destructor, a copy assignment operator, a move constructor or a move assignment operator [cppcoreguidelines-special-member-functions,hicpp-special-member-functions]
 	class iterator_base {
 	public:
 		using difference_type = std::ptrdiff_t;
@@ -458,61 +460,61 @@ public:
 	template <typename F>
 	requires std::invocable <F &, binary_tree_node *, binary_tree_node *>
 	void preorder_traverse (F && func) {
-		preorder_traverse (this, func);
+		preorder_traverse (this, std::forward <F> (func));
 	}
 
 	template <typename F>
 	requires std::invocable <F &, binary_tree_node *, binary_tree_node *>
 	void inorder_traverse (F && func) {
-		inorder_traverse (this, func);
+		inorder_traverse (this, std::forward <F> (func));
 	}
 
 	template <typename F>
 	requires std::invocable <F &, binary_tree_node *, binary_tree_node *>
 	void postorder_traverse (F && func) {
-		postorder_traverse (this, func);
+		postorder_traverse (this, std::forward <F> (func));
 	}
 
 	template <typename F>
 	requires std::invocable <F &, binary_tree_node *, binary_tree_node *>
 	void level_order_traverse (F && func) {
-		level_order_traverse (this, func);
+		level_order_traverse (this, std::forward <F> (func));
 	}
 
 	template <typename F>
 	requires std::invocable <F &, binary_tree_node *, binary_tree_node *, std::size_t>
 	void level_order_traverse (F && func) {
-		level_order_traverse (this, func);
+		level_order_traverse (this, std::forward <F> (func));
 	}
 
 	template <typename F>
 	requires std::invocable <F &, const binary_tree_node *, const binary_tree_node *>
 	void preorder_traverse (F && func) const {
-		preorder_traverse (this, func);
+		preorder_traverse (this, std::forward <F> (func));
 	}
 
 	template <typename F>
 	requires std::invocable <F &, const binary_tree_node *, const binary_tree_node *>
 	void inorder_traverse (F && func) const {
-		inorder_traverse (this, func);
+		inorder_traverse (this, std::forward <F> (func));
 	}
 
 	template <typename F>
 	requires std::invocable <F &, const binary_tree_node *, const binary_tree_node *>
 	void postorder_traverse (F && func) const {
-		postorder_traverse (this, func);
+		postorder_traverse (this, std::forward <F> (func));
 	}
 
 	template <typename F>
 	requires std::invocable <F &, const binary_tree_node *, const binary_tree_node *>
 	void level_order_traverse (F && func) const {
-		level_order_traverse (this, func);
+		level_order_traverse (this, std::forward <F> (func));
 	}
 
 	template <typename F>
 	requires std::invocable <F &, const binary_tree_node *, const binary_tree_node *, std::size_t>
 	void level_order_traverse (F && func) const {
-		level_order_traverse (this, func);
+		level_order_traverse (this, std::forward <F> (func));
 	}
 
 public:

@@ -45,7 +45,7 @@ public:
 	using tree::cend;
 	using tree::find;
 
-	set () {}
+	set () = default;
 
 	template <std::convertible_to <T> U>
 	set (std::initializer_list <U> list) : tree () {

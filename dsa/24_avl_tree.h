@@ -15,15 +15,15 @@
 
 namespace detail {
 template <typename T, typename = void>
-struct is_tuple_like__ : std::false_type {};
+struct is_tuple_like_ : std::false_type {};
 
 template <typename T>
-struct is_tuple_like__ <T, std::void_t <
+struct is_tuple_like_ <T, std::void_t <
 	decltype (std::tuple_size <T>::value)>
 > : std::true_type {};
 
 template <typename T>
-struct avl_tree_node_data__  {
+struct avl_tree_node_data_  {
 	// static_assert (false == requires (Data d) { d.value; }, "the 'value' member of Data is reserved");
 	// static_assert (
 	// 	false == requires (Data d) { d.height_plus_one; },
@@ -33,13 +33,13 @@ struct avl_tree_node_data__  {
 	T value;
 	std::size_t height_plus_one; // TODO: replace height with diff of subtree heights, which is always -1, 0 or 1
 
-	explicit (false) avl_tree_node_data__ (const T & value, std::size_t height_plus_one = 0)
+	explicit (false) avl_tree_node_data_ (const T & value, std::size_t height_plus_one = 0)
 		: value (value), height_plus_one (height_plus_one) {}
 
-	explicit (false) avl_tree_node_data__ (T && value, std::size_t height_plus_one = 0)
+	explicit (false) avl_tree_node_data_ (T && value, std::size_t height_plus_one = 0)
 		: value (std::move (value)), height_plus_one (height_plus_one) {}
 
-	friend std::ostream & operator<< (std::ostream & os, const avl_tree_node_data__ & data) {
+	friend std::ostream & operator<< (std::ostream & os, const avl_tree_node_data_ & data) {
 		os << data.value;
 		return os;
 	}
@@ -54,31 +54,31 @@ struct avl_tree_node_data__  {
 };
 
 template <typename T, typename C>
-struct avl_tree__ {
-	using node_data = avl_tree_node_data__ <T>;
+struct avl_tree_ {
+	using node_data = avl_tree_node_data_ <T>;
 	using tree = binary_search_tree <node_data, C, false>;
 };
-}
+} // end namespace detail
 
 namespace std {
 template <typename T>
-requires detail::is_tuple_like__ <T>::value
-struct tuple_size <detail::avl_tree_node_data__ <T>>
+requires detail::is_tuple_like_ <T>::value
+struct tuple_size <detail::avl_tree_node_data_ <T>>
 	: tuple_size <T> {};
 
 template <std::size_t I, typename T>
-requires detail::is_tuple_like__ <T>::value
-struct tuple_element <I, detail::avl_tree_node_data__ <T>>
+requires detail::is_tuple_like_ <T>::value
+struct tuple_element <I, detail::avl_tree_node_data_ <T>>
 	: tuple_element <I, T> {};
-}
+} // end namespace std
 
 
 
 template <typename T, typename Comparator = std::less <T>>
 requires std::strict_weak_order <Comparator, T, T>
-class avl_tree : protected detail::avl_tree__ <T, Comparator>::tree {
+class avl_tree : protected detail::avl_tree_ <T, Comparator>::tree {
 protected:
-	using detail = detail::avl_tree__ <T, Comparator>;
+	using detail = detail::avl_tree_ <T, Comparator>;
 
 public:
 	using tree = detail::tree;
@@ -150,7 +150,7 @@ public: // binary_search_tree interface
 				}
 
 				os << node->data;
-				os << " (" << ((int) node->data.height_plus_one - 1) << ")";
+				os << " (" << (static_cast <int> (node->data.height_plus_one) - 1) << ")";
 
 				if (nullptr != parent) {
 					if (nullptr == parent->left || nullptr == parent->right) {
@@ -163,7 +163,7 @@ public: // binary_search_tree interface
 					}
 				}
 
-				os << std::endl;
+				os << '\n';
 			}
 		);
 
@@ -451,7 +451,7 @@ private:
 		}
 	}
 
-	inline std::size_t get_node_height_plus_one (node * node) {
+	static inline std::size_t get_node_height_plus_one (node * node) {
 		if (nullptr == node) {
 			return 0;
 		}
