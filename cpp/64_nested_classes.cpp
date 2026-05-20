@@ -1,107 +1,214 @@
+# include <iostream>
+# include <memory>
+# include <type_traits>
+
+namespace {
+
+namespace nested_classes {
+
 struct Outer {
 	struct Inner;
-	struct Inner2;
 
-	Inner2 * i2p = nullptr;
-
-	friend int f1 (Outer, Inner);
+	Inner * ip;
 
 	struct Inner {
-		// friend struct Outer;
-		friend int f2 (Outer, Inner);
+		void do_something1 () {}
+		void do_something2 ();
+	};
 
-		int func (Outer o) {
-			// int a = m_x; // error
-			int b = sizeof m_x;
-			int c = o.m_x;
-			return b * c * m_y;
+	struct Inner2;
+
+	// void Inner::do_something2 () {} // error
+
+	Inner in;
+	Inner2 * i2p;
+};
+
+static void run ();
+
+} // end namespace nested_classes
+
+struct nested_classes::Outer::Inner2 {};
+void nested_classes::Outer::Inner::do_something2 () {}
+
+void nested_classes::run () {
+	Outer o {};
+	Outer::Inner & i = o.in;
+	o.ip = & i;
+}
+
+
+
+namespace nested_class_member_access1 {
+
+struct Outer {
+	struct Inner;
+
+	friend void print1 (const Outer & o, const Inner & i);
+	struct Inner {
+		friend void print2 (const Outer & o, const Inner & i);
+
+		void set (Outer & outer, int value) {
+			outer.m_value = value;
+		}
+
+		int get (const Outer & outer) {
+			return outer.m_value;
+		}
+
+		void v () {
+			std::cout << sizeof (m_value_inner) << '\n';
 		}
 
 	private:
-		int m_y = 2;
+		int m_value_inner = 21;
 	};
 
-	Inner i;
+	// void set (Inner & inner, int value) { // error
+	// 	inner.m_int = value;
+	// }
 
-	int func () {
-		// int a = m_y; // error
-		// int b = sizeof (m_y); // error
-		// int c = i.m_y; // error
-		// int d = sizeof Inner::m_y; // error
-
-		(void) i;
-		return 0;
-	}
+	// int get (const Inner & inner) { // error
+	// 	return inner.m_int;
+	// }
 
 private:
-	struct Inner3 {};
-	struct Inner4 {};
+	int m_value;
+};
+
+void print1 (const Outer & o, const Outer::Inner & i) {
+	std::cout << "print1: " << o.m_value << '\n';
+	// std::cout << "print1: " << i.m_value_inner << '\n'; // error
+	(void) i;
+
+}
+
+void print2 (const Outer & o, const Outer::Inner & i) {
+	// std::cout << "print1: " << o.m_value << '\n';
+	std::cout << "print1: " << i.m_value_inner << '\n'; // error
+	(void) o;
+}
+
+static void run () {
+	Outer o {};
+	Outer::Inner i {};
+	i.set (o, 222);
+	std::cout << i.get (o) << '\n';
+	i.v ();
+	print1 (o, i);
+	print2 (o, i);
+}
+
+} // end namespace nested_class_member_access1
+
+
+
+namespace nested_class_member_access2 {
+
+struct Outer {
+private:
+	struct Inner;
 
 public:
-	Inner3 i3 () { return {}; }
-	using Inner4 = Inner4;
+	using Inner_ = Inner;
+	static Inner_ in () { return {}; }
 
 private:
-	int m_x = 0;
+	struct Inner {
+		void func () { std::cout << "Outer::Inner::func()\n"; }
+	};
 };
 
-Outer o;
-Outer::Inner i = o.i;
+static_assert (std::is_same_v <Outer::Inner_, decltype (Outer::in ())>);
 
-struct Outer::Inner2 {
-	int x;
+void run () {
+	Outer o {};
+	auto oi = o.in ();
+	oi.func ();
+	Outer::in ().func ();
+
+	decltype (Outer::in ()) oi2;
+	oi2 = Outer::in ();
+	Outer::Inner_ oi3 = oi2;
+	oi3.func ();
+}
+
+} // end namespace nested_class_member_access2
+
+
+
+namespace nested_class_derivation {
+struct Base {};
+
+struct Outer {
+	struct Inner {};
 };
 
-Outer::Inner2 i2 { .x = 20 };
+struct Derived : Outer::Inner {};
 
 
-
-int f1 (Outer o, Outer::Inner i) {
-	int a = o.m_x;
-	// int b = i.m_y; // error
-
-	(void) i;
-	return a;
-}
-
-int f2 (Outer o, Outer::Inner i) {
-	// int a = o.m_x; // error
-	int b = i.m_y;
-
-	(void) o;
-	return b;
-}
 
 struct BaseOuter {
-	BaseOuter(const BaseOuter &) = delete;
-	BaseOuter(BaseOuter &&) = default;
-	BaseOuter &operator=(const BaseOuter &) = delete;
-	BaseOuter &operator=(BaseOuter &&) = default;
+	BaseOuter (const BaseOuter &) = delete;
+	BaseOuter & operator= (BaseOuter &) = delete;
+	BaseOuter (const BaseOuter &&) = delete;
+	BaseOuter & operator= (BaseOuter &&) = delete;
 	virtual ~BaseOuter () = default;
 
-	struct BaseInner_ {
-		  BaseInner_(const BaseInner_ &) = delete;
-		  BaseInner_(BaseInner_ &&) = default;
-		  BaseInner_ &operator=(const BaseInner_ &) = delete;
-		  BaseInner_ &operator=(BaseInner_ &&) = default;
-		  virtual ~BaseInner_ () = default;
+	BaseOuter () = default;
 
-		  virtual void do_something();
-		  virtual void do_something_else();
+private:
+	struct BaseInner_ {
+		BaseInner_ (const BaseInner_ &) = delete;
+		BaseInner_ & operator= (BaseInner_ &) = delete;
+		BaseInner_ (const BaseInner_ &&) = delete;
+		BaseInner_ & operator= (BaseInner_ &&) = delete;
+		virtual ~BaseInner_ () = default;
+
+		BaseInner_ () = default;
+
+		virtual void do_something () { std::cout << "do_something 1\n"; };
+		virtual void do_something_else () { std::cout << "do_something_else 1\n"; }
 	} b_in;
 
 public:
-	typedef BaseInner_ Inner;
+	using Inner = BaseInner_;
+	virtual Inner & getInner () { return b_in; }
 };
 
+struct DerivedOuter : public BaseOuter {
+private:
+	struct DerivedInner_ : BaseOuter::Inner {
+		virtual void do_something () override { std::cout << "do_something 2\n"; }
+		virtual void do_something_else () override { std::cout << "do_something_else 2\n"; };
+	} d_in;
+
+public:
+	using Inner = DerivedInner_;
+	virtual Inner & getInner () override { return d_in; }
+};
+
+void run () {
+	auto b = std::make_unique <BaseOuter> ();
+	BaseOuter::Inner & bin = b->getInner ();
+	bin.do_something ();
+	b->getInner ().do_something_else ();
+
+	auto d = std::make_unique <DerivedOuter> ();
+	BaseOuter::Inner & din = d->getInner ();
+	din.do_something ();
+	din.do_something_else ();
+}
+
+} // end namespace nested_class_derivation
+
+} // end anonymous namespace
+
+
+
 int main () {
-	o.i3 ();
-	// Outer::Inner3 x = o.i3 (); // error
-
-	auto y = o.i3 ();				(void) y;
-	using T = decltype (o.i3 ());
-
-	T z = o.i3 ();							(void) z;
-
-	Outer::Inner4 i4;						(void) i4;
+	nested_classes::run ();
+	nested_class_member_access1::run ();
+	nested_class_member_access2::run ();
+	nested_class_derivation::run ();
 }

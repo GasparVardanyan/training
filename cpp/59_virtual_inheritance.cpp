@@ -39,6 +39,8 @@ int main () {
 		std::cout << c2.c << " " << c2.b << " " << c2.a << std::endl;
 	}
 
+	std::cout << "====================" << std::endl;
+
 	{
 		struct A { int a = 1; };
 		struct X : A {};
@@ -59,6 +61,8 @@ int main () {
 		std::cout << aa.X::a << aa.Y::a << std::endl;
 	}
 
+	std::cout << "====================" << std::endl;
+
 	{
 		struct A { int a = 1; };
 		struct X : virtual A {};
@@ -73,6 +77,8 @@ int main () {
 
 		std::cout << aa.X::a << aa.Y::a << std::endl;
 	}
+
+	std::cout << "====================" << std::endl;
 
 	{
 		struct A { int a = 10; };

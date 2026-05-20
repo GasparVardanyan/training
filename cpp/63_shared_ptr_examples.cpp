@@ -9,9 +9,9 @@
 
 
 
-namespace example_1 { void run (); }
-namespace example_2 { void run (); }
-namespace example_3 { void run (); }
+namespace example_1 { static void run (); }
+namespace example_2 { static void run (); }
+namespace example_3 { static void run (); }
 
 
 
@@ -74,14 +74,15 @@ void func (const std::vector <std::shared_ptr <T>> & dv) {
 };
 
 void run () {
-	std::size_t s = 10;
+	const std::size_t s = 10;
 
 	std::vector <std::shared_ptr <Derived>> v; {
 		auto r = std::make_shared <std::vector <Derived>> ();
 		r->reserve (s);
 
+# pragma unroll
 		for (std::size_t i = 0; i < s / 2; i++) {
-			r->push_back (Derived (i, 10 * i));
+			r->emplace_back (i, 10 * i);
 		}
 
 		for (std::size_t i = s / 2; i < s; i++) {
@@ -97,7 +98,7 @@ void run () {
 
 	func (v);
 }
-}
+} // end namespace example_1
 
 
 
@@ -188,16 +189,16 @@ void run () {
 
 	func (v);
 }
-}
+} // end namespace example_2
 
 namespace example_3 { // aliasing shared ptr + crtp + manual mem management
 void run () {
-	std::size_t s = 10;
+	const std::size_t s = 10;
 
 	std::vector <std::shared_ptr <Derived>> v; {
 		static_assert (std::is_nothrow_destructible_v <Derived>);
 
-		Derived * _r = static_cast <Derived *> (::operator new (s * sizeof (Derived)));
+		auto * _r = static_cast <Derived *> (::operator new (s * sizeof (Derived)));
 
 		std::size_t i = 0;
 		try {
@@ -234,4 +235,4 @@ void run () {
 
 	func (v);
 }
-}
+} // end namespace example_3
