@@ -40,7 +40,7 @@ public:
 		m_container.push_back (std::forward <U> (object));
 	}
 
-	stack () {}
+	stack () noexcept (std::is_nothrow_constructible_v <C>) = default;
 
 	template <typename U>
 	requires std::is_constructible_v <T, U> && (!std::is_same_v <T, U>)

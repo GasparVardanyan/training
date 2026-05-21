@@ -2,6 +2,7 @@
 # define SET_H_26
 
 # include <concepts>
+# include <functional>
 # include <initializer_list>
 # include <ostream>
 
@@ -14,11 +15,15 @@
 // stack<node**>. To make iterators first class cityzens first nodes must
 // carry parrent node pointers. All code using nodes must be carefully rewriten.
 
-template <typename T, template <typename> typename Container = avl_tree>
-// requires is_tree_v <Container <T>>
-struct set : protected Container <T> {
+template <
+	typename T,
+	typename Comparator = std::less <T>,
+	template <typename, typename> typename Container = avl_tree
+>
+requires std::strict_weak_order <Comparator, T, T>
+struct set : protected Container <T, Comparator> {
 public:
-	using tree = Container <T>;
+	using tree = Container <T, Comparator>;
 	using node = tree::node;
 	using node_link = tree::node_link;
 	using const_node_link = tree::const_node_link;

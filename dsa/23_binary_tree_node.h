@@ -38,8 +38,8 @@ public:
 		preorder, inorder, postorder, levelorder
 	};
 
-	template <typename NPT, iterator_algorithm Alg = iterator_algorithm::inorder>
-	requires is_node_ptr_v <NPT>
+	template <typename NodePointerT, iterator_algorithm Alg = iterator_algorithm::inorder>
+	requires is_node_ptr_v <NodePointerT>
 	// FIXME: CRITICAL: 1. clang-tidy: class 'iterator_base' defines a copy constructor but does not define a destructor, a copy assignment operator, a move constructor or a move assignment operator [cppcoreguidelines-special-member-functions,hicpp-special-member-functions]
 	class iterator_base {
 	public:
@@ -48,76 +48,141 @@ public:
 		using iterator_category = std::bidirectional_iterator_tag;
 		static constexpr iterator_algorithm algorithm = Alg;
 
-	protected:
-		using _reference_t = std::conditional_t <std::is_same_v <NPT, const_nptr>, const T &, T &>;
+		using reference_t = std::conditional_t <std::is_same_v <NodePointerT, const_nptr>, const T &, T &>;
 
 	public:
 		friend class iterator_base <nptr>;
 		friend class iterator_base <const_nptr>;
 
-		static iterator_base begin (NPT root) {
-			stack <NPT> path;
-			for (NPT n = root; nullptr != n; n = n->left) {
+		static iterator_base begin (NodePointerT root) {
+			stack <NodePointerT> path;
+			for (NodePointerT n = root; nullptr != n; n = n->left) {
 				path.push (n);
 			}
 
 			return iterator_base (root, std::move (path));
 		}
 
-		static iterator_base end (NPT root) {
+		static iterator_base end (NodePointerT root) {
 			return iterator_base (root, {});
 		}
 
-		explicit iterator_base (NPT root, const stack <NPT> & link_stack)
+	public:
+		explicit iterator_base (NodePointerT root, const stack <NodePointerT> & link_stack)
 			: m_root (root)
 			, m_path (link_stack)
 		{
 			initialize_from_path ();
 		}
 
-		explicit iterator_base (NPT root, stack <NPT> && link_stack)
+		explicit iterator_base (NodePointerT root, stack <NodePointerT> && link_stack)
 			: m_root (root)
 			, m_path (std::move (link_stack))
 		{
 			initialize_from_path ();
 		}
 
+	public:
 		iterator_base (const iterator_base & other)
 			: m_root (other.m_root)
 			, m_node (other.m_node)
 			, m_path (other.m_path)
 		{}
 
-		template <
-			typename NPT2,
-			typename = std::enable_if_t <
-				false == std::is_same_v <NPT2, NPT> && ( // disable copy constructor hijacking
-					true == std::is_same_v <NPT2, const_nptr> ||
-					true == std::is_same_v <NPT2, nptr>
-				)
-			>
-		>
-		explicit iterator_base (const iterator_base <NPT2> & other)
+		iterator_base (iterator_base && other) noexcept
 			: m_root (other.m_root)
-			, m_path (other.m_path)
+			, m_node (other.m_node)
+			, m_path (std::move (other.m_path))
 		{
-			m_path.push (other.m_node);
-			initialize_from_path ();
+			other.m_node = nullptr;
 		}
 
-		_reference_t & operator* () {
+		iterator_base & operator= (const iterator_base & other) {
+			m_root = other.m_root;
+			m_node = other.m_node;
+			m_path = other.m_path;
+
+			return * this;
+		}
+
+		iterator_base & operator= (iterator_base && other) noexcept {
+			if (this != & other) {
+				m_root = other.m_root;
+				m_node = other.m_node;
+				m_path = std::move (other.m_path);
+
+				other.m_node = nullptr;
+			}
+
+			return * this;
+		}
+
+		template <
+			typename = std::enable_if_t <
+				true == std::is_same_v <NodePointerT, const_nptr>
+			>
+		>
+		explicit iterator_base (const iterator_base <nptr, Alg> & other)
+			: m_root (other.m_root)
+			, m_node (other.m_node)
+			, m_path (other.m_path)
+		{
+		}
+
+		template <
+			typename = std::enable_if_t <
+				true == std::is_same_v <NodePointerT, const_nptr>
+			>
+		>
+		iterator_base & operator= (const iterator_base <nptr, Alg> & other) {
+			m_root = other.m_root;
+			m_node = other.m_node;
+			m_path = other.m_path;
+
+			return * this;
+		}
+
+		template <
+			typename = std::enable_if_t <
+				true == std::is_same_v <NodePointerT, const_nptr>
+			>
+		>
+		explicit iterator_base (iterator_base <nptr, Alg> && other) noexcept
+			: m_root (other.m_root)
+			, m_node (other.m_node)
+			, m_path (std::move (other.m_path))
+		{
+			other.m_node = nullptr;
+		}
+
+		template <
+			typename = std::enable_if_t <
+				true == std::is_same_v <NodePointerT, const_nptr>
+			>
+		>
+		iterator_base & operator= (iterator_base <nptr, Alg> && other) noexcept {
+			m_root = other.m_root;
+			m_node = other.m_node;
+			m_path = std::move (other.m_path);
+
+			other.m_node = nullptr;
+
+			return * this;
+		}
+
+		reference_t & operator* () {
 			return m_node->data;
 		}
 
-		const _reference_t & operator* () const {
+		const reference_t & operator* () const {
 			return m_node->data;
 		}
 
 		template <
 			typename It2,
 			typename = std::enable_if_t <
-				true == std::is_same_v <It2, iterator_base <nptr>> ||
-				true == std::is_same_v <It2, iterator_base <const_nptr>>
+				true == std::is_same_v <It2, iterator_base <nptr, Alg>> ||
+				true == std::is_same_v <It2, iterator_base <const_nptr, Alg>>
 			>
 		>
 		bool operator== (const It2 & other) const {
@@ -140,7 +205,7 @@ public:
 					const std::size_t itC = m_path.size ();
 
 					for (std::size_t i = 0; i < itC; i++) {
-						const NPT l = m_node;
+						const NodePointerT l = m_node;
 						m_node = m_path.top ();
 						m_path.pop ();
 
@@ -186,7 +251,7 @@ public:
 						std::size_t itC = m_path.size ();
 
 						for (std::size_t i = 0; i < itC; i++) {
-							const NPT l = m_node;
+							const NodePointerT l = m_node;
 							m_node = m_path.top ();
 							m_path.pop ();
 
@@ -204,7 +269,7 @@ public:
 				}
 				else { // decrementing end
 					m_path.clear ();
-					for (NPT n = m_root; nullptr != n; n = n->right) {
+					for (NodePointerT n = m_root; nullptr != n; n = n->right) {
 						m_path.push (n);
 					}
 
@@ -224,7 +289,7 @@ public:
 			return old;
 		}
 
-		NPT base () {
+		NodePointerT base () {
 			return m_node;
 		}
 
@@ -240,9 +305,9 @@ public:
 		}
 
 	private:
-		const NPT m_root;
-		NPT m_node;
-		stack <NPT> m_path;
+		NodePointerT m_root;
+		NodePointerT m_node;
+		stack <NodePointerT> m_path;
 	};
 
 public:
@@ -252,8 +317,8 @@ public:
 	using iterator = iterator_base <nptr>;
 	using const_iterator = iterator_base <const_nptr>;
 
-	iterator begin () { return iterator::begin (this); }
-	iterator end () { return iterator::end (this); }
+	const_iterator begin () { return const_iterator::begin (this); }
+	const_iterator end () { return const_iterator::end (this); }
 	const_iterator cbegin () const { return const_iterator::begin (this); }
 	const_iterator cend () const { return const_iterator::end (this); }
 	const_iterator begin () const { return const_iterator::begin (this); }

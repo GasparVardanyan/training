@@ -15,7 +15,7 @@ using map_tree = avl_tree <Ts ...>;
 // using map_tree = splay_tree <Ts ...>;
 
 int main () {
-	map <int, int, std::less <int>, map_tree> m; {
+	map <int, int, std::greater <>, map_tree> m; {
 		vector <int> v (12);
 		std::iota (v.begin (), v.end (), 1);
 		std::mt19937 rng (std::random_device {} ());
