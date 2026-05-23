@@ -14,6 +14,7 @@
 namespace detail {
 template <typename T, typename C, bool RemovePreserveLeft_>
 struct splay_tree_ {
+	// cppcheck-suppress unusedStructMember
 	static constexpr bool RemovePreserveLeft = RemovePreserveLeft_;
 	using tree = binary_search_tree <T, C, RemovePreserveLeft_>;
 };
@@ -160,7 +161,7 @@ public: // binary_search_tree interface
 
 			to_remove->left = nullptr;
 			to_remove->right = nullptr;
-			delete to_remove;
+			delete to_remove; // NOLINT(cppcoreguidelines-owning-memory)
 			this->m_size--;
 		}
 		else {
@@ -172,6 +173,7 @@ public: // binary_search_tree interface
 	}
 
 protected:
+	// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 	void splay (stack <node_link> && path) {
 		node_link current = path.top (); // path always contains & m_root
 		path.pop ();

@@ -48,7 +48,10 @@ struct binary_search_tree_ {
 		{ c (t2, t) } -> std::convertible_to <bool>;
 	};
 
+
+	// cppcheck-suppress unusedStructMember
 	static constexpr bool KeepInvariant = KeepInvariant_;
+	// cppcheck-suppress unusedStructMember
 	static constexpr bool RemovePreserveLeft = RemovePreserveLeft_;
 
 	template <typename U>
@@ -134,10 +137,12 @@ public:
 	using iterator = node::const_iterator;
 	using const_iterator = node::const_iterator;
 
+	// cppcheck-suppress-begin functionStatic
 	iterator begin () const { return const_iterator::begin (m_root); }
 	iterator end () const { return const_iterator::end (m_root); }
 	const_iterator cbegin () const { return const_iterator::begin (m_root); }
 	const_iterator cend () const { return const_iterator::end (m_root); }
+	// cppcheck-suppress-end functionStatic
 
 	const_iterator find (const T & value) const {
 		stack <const_node_link> path = get_link_stack <const_node_link> (value);
@@ -169,7 +174,7 @@ public:
 		// requires (std::is_copy_constructible_v <T>)
 	{
 		if (nullptr != other.m_root) {
-			m_root = new node (* other.m_root);
+			m_root = new node (* other.m_root); // NOLINT(cppcoreguidelines-owning-memory)
 			m_size = other.m_size;
 		}
 		else {
@@ -183,7 +188,7 @@ public:
 			delete m_root;
 
 			if (nullptr != other.m_root) {
-				m_root = new node (* other.m_root);
+				m_root = new node (* other.m_root); // NOLINT(cppcoreguidelines-owning-memory)
 				m_size = other.m_size;
 			}
 			else {
@@ -264,6 +269,7 @@ public:
 
 	template <typename VC>
 	requires ValueComparable <VC>
+	// cppcheck-suppress functionStatic
 	bool contains (const VC & value) const {
 		const node * n = at (value);
 
@@ -295,6 +301,7 @@ public:
 		}
 	}
 
+	// cppcheck-suppress functionStatic
 	void dump_invariant (std::output_iterator <T> auto it) const {
 		if (nullptr != m_root) {
 			m_root->level_order_traverse (
@@ -321,10 +328,12 @@ public:
 		}
 	}
 
+	// NOLINTBEGIN(modernize-use-nodiscard)
 	const node * root () const { return m_root; }
 	std::size_t size () const { return m_size; }
 	bool empty () const { return 0 == m_size; }
 
+	// cppcheck-suppress functionStatic
 	std::size_t internal_path_length () const {
 		std::size_t s = 0;
 
@@ -336,12 +345,13 @@ public:
 
 		return s;
 	}
+	// NOLINTEND(modernize-use-nodiscard)
 
 protected:
 	template <typename U>
 	requires std::convertible_to <U, T>
 	void insert_at (node_link link, U && value) {
-		* link = new node (std::forward <U> (value));
+		* link = new node (std::forward <U> (value)); // NOLINT(cppcoreguidelines-owning-memory)
 		m_size++;
 	}
 
@@ -402,7 +412,7 @@ protected:
 
 		to_remove->left = nullptr;
 		to_remove->right = nullptr;
-		delete to_remove;
+		delete to_remove; // NOLINT(cppcoreguidelines-owning-memory)
 		m_size--;
 	}
 
@@ -424,7 +434,7 @@ protected:
 	const_node_link get_link (const VC & value) const {
 		const_node_link link = & m_root;
 
-		while (nullptr != * link) {
+		while (nullptr != * link) { // NOLINT(altera-id-dependent-backward-branch)
 			bool lt = less_than (value, (* link)->data);
 			bool gt = less_than ((* link)->data, value);
 
@@ -448,7 +458,7 @@ protected:
 		stack <U> link_stack;
 		link_stack.push (link);
 
-		while (nullptr != * link) {
+		while (nullptr != * link) { // NOLINT(altera-id-dependent-backward-branch)
 			bool lt = less_than (value, (* link)->data);
 			bool gt = less_than ((* link)->data, value);
 
@@ -519,8 +529,8 @@ protected:
 	}
 
 protected:
-	node * m_root;
-	std::size_t m_size;
+	node * m_root; // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
+	std::size_t m_size; // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
 };
 
 # endif // BINARY_SEARCH_TREE_23

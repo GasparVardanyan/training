@@ -68,6 +68,7 @@ struct map_node_data_ {
 	template <std::size_t I>
 	requires (2 > I)
 	friend constexpr std::tuple_element_t <I, map_node_data_> &&
+	// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 	get (map_node_data_ && nd) noexcept
 	{
 		if constexpr (0 == I) {
@@ -116,15 +117,18 @@ struct map_detail_ {
 
 namespace std {
 template <typename Kt, typename Vt>
+// NOLINTNEXTLINE(bugprone-std-namespace-modification,cert-dcl58-cpp)
 struct tuple_size <detail::map_node_data_ <Kt, Vt>>
 	: std::integral_constant <std::size_t, 2> {};
 
 template <typename Kt, typename Vt>
+// NOLINTNEXTLINE(bugprone-std-namespace-modification,cert-dcl58-cpp)
 struct tuple_element <0, detail::map_node_data_ <Kt, Vt>> {
 	using type = Kt;
 };
 
 template <typename Kt, typename Vt>
+// NOLINTNEXTLINE(bugprone-std-namespace-modification,cert-dcl58-cpp)
 struct tuple_element <1, detail::map_node_data_ <Kt, Vt>> {
 	using type = Vt;
 };
@@ -245,6 +249,7 @@ public:
 
 	template <typename Kt_, typename Vt_>
 	requires std::convertible_to <Kt_, Kt> && std::convertible_to <Vt_, Vt>
+	// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 	bool insert (std::pair <Kt_, Vt_> && value) {
 		return insert (std::move (value.first), std::move (value.second));
 	}
