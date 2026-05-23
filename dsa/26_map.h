@@ -8,6 +8,7 @@
 # include <initializer_list>
 # include <iterator>
 # include <ostream>
+# include <stdexcept>
 # include <tuple>
 # include <type_traits>
 # include <utility>
@@ -234,6 +235,46 @@ public:
 			// so insert should return one.
 
 		return inserting;
+	}
+
+	template <typename Kt_, typename Vt_>
+	requires std::convertible_to <Kt_, Kt> && std::convertible_to <Vt_, Vt>
+	bool insert (const std::pair <Kt_, Vt_> & value) {
+		return insert (value.first, value.second);
+	}
+
+	template <typename Kt_, typename Vt_>
+	requires std::convertible_to <Kt_, Kt> && std::convertible_to <Vt_, Vt>
+	bool insert (std::pair <Kt_, Vt_> && value) {
+		return insert (std::move (value.first), std::move (value.second));
+	}
+
+	Vt & operator[] (const Kt & key) {
+		if (false == this->contains (key)) {
+			this->insert (key, Vt {});
+		}
+		return static_cast <node_data &> ((* tree::get_link (key))->data).value;
+	}
+
+	const Vt & operator[] (const Kt & key) const {
+		if (false == this->contains (key)) {
+			throw std::out_of_range ("map::at");
+		}
+		return static_cast <const node_data &> ((* tree::get_link (key))->data).value;
+	}
+
+	Vt & at (const Kt & key) {
+		if (false == this->contains (key)) {
+			throw std::out_of_range ("map::at");
+		}
+		return static_cast <node_data &> ((* tree::get_link (key))->data).value;
+	}
+
+	const Vt & at (const Kt & key) const {
+		if (false == this->contains (key)) {
+			throw std::out_of_range ("map::at");
+		}
+		return static_cast <const node_data &> ((* tree::get_link (key))->data).value;
 	}
 };
 

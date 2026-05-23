@@ -1,8 +1,11 @@
 # include <algorithm>
 # include <functional>
 # include <iostream>
+# include <map>
 # include <numeric>
 # include <random>
+# include <stdexcept>
+# include <utility>
 
 # include "20_vector.h"
 # include "23_binary_search_tree.h"
@@ -11,10 +14,10 @@
 
 template <typename ... Ts>
 // using map_tree = binary_search_tree <Ts ...>;
-using map_tree = avl_tree <Ts ...>;
-// using map_tree = splay_tree <Ts ...>;
+// using map_tree = avl_tree <Ts ...>;
+using map_tree = splay_tree <Ts ...>;
 
-int main () {
+static void foo () {
 	map <int, int, std::greater <>, map_tree> m; {
 		vector <int> v (12);
 		std::iota (v.begin (), v.end (), 1);
@@ -31,7 +34,46 @@ int main () {
 
 	std::cout << m << std::endl;
 
+	m.at (4) = 44;
+	m [8] = 88;
+
 	for (auto [k, v] : m) {
 		std::cout << "key: " << k << ", value: " << v << std::endl;
 	}
+}
+
+
+
+template <template <typename, typename> typename Map>
+static void bar_ () {
+	Map <int, int> m;
+	m.insert (std::pair <int, int> {1, 2});
+	m.insert (std::pair <int, int> {3, 4});
+	m [10] = 100;
+	m.at (10) = 200;
+
+	for (auto [k, v] : m) {
+		std::cout << "key: " << k << ", value: " << v << std::endl;
+	}
+
+	try {
+		std::cout << m.at (100) << std::endl;
+	}
+	catch (const std::out_of_range & e) {
+		std::cout << "THROWN: " << e.what () << std::endl;
+	}
+}
+
+static void bar () {
+	bar_ <std::map> ();
+	std::cout << "====================" << std::endl;
+	bar_ <map> ();
+}
+
+
+
+int main () {
+	foo ();
+	std::cout << "====================" << std::endl;
+	bar ();
 }
