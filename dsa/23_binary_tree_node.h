@@ -295,6 +295,10 @@ public:
 			return old;
 		}
 
+		NodePointerT operator-> () const {
+			return m_node;
+		}
+
 		NodePointerT base () {
 			return m_node;
 		}

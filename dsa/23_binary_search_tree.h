@@ -56,6 +56,8 @@ struct binary_search_tree_ {
 
 	template <typename U>
 	static constexpr bool is_node_link_v = node::template is_node_link_v <U>;
+	template <typename U>
+	static constexpr bool is_node_ptr_v = node::template is_node_ptr_v <U>;
 };
 
 template <typename T, typename = void>
@@ -130,6 +132,8 @@ public:
 	using node = detail::node;
 	using node_link = node::link;
 	using const_node_link = node::const_link;
+	using nptr = node::nptr;
+	using const_nptr = node::const_nptr;
 	static constexpr Comparator less_than {};
 	template <typename T2>
 	static constexpr bool ValueComparable = detail::template ValueComparable <T2>;
@@ -144,10 +148,12 @@ public:
 	const_iterator cend () const { return const_iterator::end (m_root); }
 	// cppcheck-suppress-end functionStatic
 
-	const_iterator find (const T & value) const {
-		stack <const_node_link> path = get_link_stack <const_node_link> (value);
+	template <typename VC>
+	requires ValueComparable <VC>
+	const_iterator find (const VC & value) const {
+		stack <const_nptr> path = get_node_stack (value);
 		if (nullptr != path.top ()) {
-			return const_iterator (& m_root, path);
+			return const_iterator (m_root, path);
 		}
 		else {
 			return cend ();
@@ -478,6 +484,32 @@ protected:
 		return link_stack;
 	}
 
+	template <typename U, typename VC>
+	requires detail::template is_node_ptr_v <U> && ValueComparable <VC>
+	static stack <U> get_node_stack (U nptr, const VC & value) {
+		stack <U> node_stack;
+		node_stack.push (nptr);
+
+		while (nullptr != nptr) { // NOLINT(altera-id-dependent-backward-branch)
+			bool lt = less_than (value, nptr->data);
+			bool gt = less_than (nptr->data, value);
+
+			if (true == lt) {
+				nptr = nptr->left;
+				node_stack.push (nptr);
+			}
+			else if (true == gt) {
+				nptr = nptr->right;
+				node_stack.push (nptr);
+			}
+			else {
+				break;
+			}
+		}
+
+		return node_stack;
+	}
+
 	template <typename VC>
 	requires ValueComparable <VC>
 	node_link get_link (const VC & value) {
@@ -494,6 +526,18 @@ protected:
 	requires ValueComparable <VC>
 	stack <node_link> get_link_stack (const VC & value) {
 		return get_link_stack <node_link> (& m_root, value);
+	}
+
+	template <typename VC>
+	requires ValueComparable <VC>
+	stack <const_nptr> get_node_stack (const VC & value) const {
+		return get_node_stack <const_nptr> (m_root, value);
+	}
+
+	template <typename VC>
+	requires ValueComparable <VC>
+	stack <nptr> get_node_stack (const VC & value) {
+		return get_node_stack <nptr> (m_root, value);
 	}
 
 	stack <const_node_link> get_link_stack_to_leftmost (const_node_link link) const {

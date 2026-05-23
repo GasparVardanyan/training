@@ -254,32 +254,31 @@ public:
 		return insert (std::move (value.first), std::move (value.second));
 	}
 
+	Vt & at (const Kt & key) {
+		node_link link = tree::get_link (key);
+
+		if (nullptr == * link) {
+			throw std::out_of_range ("map::at");
+		}
+
+		return static_cast <node_data &> ((* link)->data).value;
+	}
+
+	const Vt & at (const Kt & key) const {
+		const_node_link link = tree::get_link (key);
+
+		if (nullptr == * link) {
+			throw std::out_of_range ("map::at");
+		}
+
+		return static_cast <const node_data &> ((* link)->data).value;
+	}
+
 	Vt & operator[] (const Kt & key) {
 		if (false == this->contains (key)) {
 			this->insert (key, Vt {});
 		}
 		return static_cast <node_data &> ((* tree::get_link (key))->data).value;
-	}
-
-	const Vt & operator[] (const Kt & key) const {
-		if (false == this->contains (key)) {
-			throw std::out_of_range ("map::at");
-		}
-		return static_cast <const node_data &> ((* tree::get_link (key))->data).value;
-	}
-
-	Vt & at (const Kt & key) {
-		if (false == this->contains (key)) {
-			throw std::out_of_range ("map::at");
-		}
-		return static_cast <node_data &> ((* tree::get_link (key))->data).value;
-	}
-
-	const Vt & at (const Kt & key) const {
-		if (false == this->contains (key)) {
-			throw std::out_of_range ("map::at");
-		}
-		return static_cast <const node_data &> ((* tree::get_link (key))->data).value;
 	}
 };
 
