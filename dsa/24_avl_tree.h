@@ -109,6 +109,7 @@ public: // binary_search_tree interface
 	using tree::end;
 	using tree::cend;
 	using tree::find;
+	using tree::height;
 
 	bool operator== (const avl_tree & other) const {
 		return

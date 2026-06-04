@@ -351,6 +351,21 @@ public:
 
 		return s;
 	}
+
+	// cppcheck-suppress functionStatic
+	std::size_t height () const {
+		std::size_t h = 0;
+
+		if (nullptr != m_root) {
+			m_root->level_order_traverse ([& h] (const node *, const node *, std::size_t l) -> void {
+				if (l > h) {
+					h = l;
+				}
+			});
+		}
+
+		return 1 + h;
+	}
 	// NOLINTEND(modernize-use-nodiscard)
 
 protected:

@@ -175,6 +175,7 @@ public:
 	// using tree::insert;
 	using tree::remove;
 	using tree::contains;
+	using tree::height;
 
 	using tree::begin;
 	using tree::cbegin;

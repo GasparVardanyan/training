@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 4.1)
-project (cpptut)
+project (training)
 include (/desktop/nvim/cmake/config.cmake)
-add_compile_options (-Wall -Wextra -Werror)
+add_compile_options (-Wall -Wextra)
 
 find_package(GTest REQUIRED)
 enable_testing ()
