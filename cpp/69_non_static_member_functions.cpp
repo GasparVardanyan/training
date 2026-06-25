@@ -1,7 +1,7 @@
 # include <iostream>
 
 // cppcheck-suppress-begin functionStatic
-// NOLINTBEGIN (readability-convert-member-functions-to-static)
+// NOLINTBEGIN(readability-convert-member-functions-to-static)
 
 namespace {
 
@@ -42,7 +42,7 @@ struct Derived : Base {
 
 void Class::defined_outside () {}
 
-// NOLINTEND (readability-convert-member-functions-to-static)
+// NOLINTEND(readability-convert-member-functions-to-static)
 // cppcheck-suppress-end functionStatic
 
 int main () {

@@ -84,10 +84,11 @@ add_executable (
 	55_smart_pointer_custom_deleters
 	55_smart_pointer_custom_deleters.cpp
 )
+
 add_executable (56_auto_ptr 56_auto_ptr.cpp)
 target_compile_options (56_auto_ptr PRIVATE --std=c++03)
-add_executable (57_casting_shared_pointers 57_casting_shared_pointers.cpp)
 
+add_executable (57_casting_shared_pointers 57_casting_shared_pointers.cpp)
 add_executable (58_classes 58_classes.cpp)
 add_executable (59_virtual_inheritance 59_virtual_inheritance.cpp)
 add_executable (60_private_inheritance 60_private_inheritance.cpp)
@@ -98,6 +99,10 @@ add_executable (64_nested_classes 64_nested_classes.cpp)
 add_executable (65_slicing 65_slicing.cpp)
 add_executable (66_unnamed_classes 66_unnamed_classes.cpp)
 add_executable (67_static_class_members 67_static_class_members.cpp)
+
 add_executable (68_multiple_inheritance 68_multiple_inheritance.cpp)
-add_executable (69_non_static_member_functions 69_non_static_member_functions.cpp)
 target_compile_options (68_multiple_inheritance PRIVATE -Wno-c11-extensions)
+
+add_executable (69_non_static_member_functions 69_non_static_member_functions.cpp)
+add_executable (70_function_overloading 70_function_overloading.cpp)
+add_executable (71_operator_overloading 71_operator_overloading.cpp)

@@ -151,7 +151,7 @@ public:
 				true == std::is_same_v <NodePointerT, const_nptr>
 			>
 		>
-		// NOLINTNEXTLINE (cppcoreguidelines-rvalue-reference-param-not-moved)
+		// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 		explicit iterator_base (iterator_base <nptr, Alg> && other) noexcept
 			: m_root (other.m_root)
 			, m_node (other.m_node)
@@ -165,7 +165,7 @@ public:
 				true == std::is_same_v <NodePointerT, const_nptr>
 			>
 		>
-		// NOLINTNEXTLINE (cppcoreguidelines-rvalue-reference-param-not-moved)
+		// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
 		iterator_base & operator= (iterator_base <nptr, Alg> && other) noexcept {
 			m_root = other.m_root;
 			m_node = other.m_node;

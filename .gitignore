@@ -1,2 +1,5 @@
 **/test*.cpp
 **/a.out
+**/.vim.session
+**/out/**
+**/compile_commands.json
