@@ -1,6 +1,7 @@
+# include <concepts>
 # include <iostream>
 
-# define ENABLE_VIRTUAL 1
+# define ENABLE_VIRTUAL 0
 
 # if 1 == ENABLE_VIRTUAL
 #	define VIRTUAL_TOGGLE virtual
@@ -17,10 +18,10 @@ struct Base {
 		std::cout << "Base\n";
 	}
 
-# if 1 == ENABLE_VIRTUAL
-// 	Base ( const Base & ) = delete;
-// 	Base & operator= ( const Base & ) = delete;
-# endif
+	template <std::derived_from <Base> D>
+	Base ( const D & ) = delete;
+	template <std::derived_from <Base> D>
+	Base & operator= ( const D & ) = delete;
 };
 
 struct Derived : Base {
@@ -33,9 +34,18 @@ struct Derived : Base {
 	}
 };
 
+void func(Base) { }
+
 int main () {
 	Derived d;
-	Base b = d;
+	// Base b = d;
+	Base b = {};
+	Base b2 = {};
+	b2 = b;
+	Derived d2;
+	d2 = d;
+	// func (d); // 1. Call to deleted constructor of 'Base' [ovl_deleted_init]
+	func (b);
 
 
 	std::cout << "sizeof (d): " << sizeof (d) << '\n';

@@ -4,19 +4,23 @@
 # include <cstddef>
 # include <iostream>
 # include <mutex>
+# include <queue>
 # include <semaphore>
+# include <stack>
 # include <syncstream>
 # include <thread>
 # include <vector>
 
 namespace {
+// NOLINTBEGIN(llvm-prefer-static-over-anonymous-namespace)
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 
 void example1 () {
 	std::binary_semaphore sem1 (0), sem2 (1);
 
 	int count = 0;
 
-	std::jthread jt ([&sem1, &sem2, &count] () -> void {
+	const std::jthread jt ([&sem1, &sem2, &count] () -> void {
 		bool exit = false;
 
 		while (true) {
@@ -51,9 +55,9 @@ void example2 () {
 
 	int result = 0;
 
-	std::jthread producer ([&] () -> void {
+	const std::jthread producer ([&] () -> void {
 		{
-			std::scoped_lock <std::mutex> lock (mtx);
+			const std::scoped_lock <std::mutex> lock (mtx);
 
 			result = 42;
 
@@ -66,7 +70,7 @@ void example2 () {
 		cond.notify_one ();
 	});
 
-	std::jthread consumer ([&] () -> void {
+	const std::jthread consumer ([&] () -> void {
 		std::unique_lock <std::mutex> lock (mtx);
 
 		cond.wait (lock, [& notified] () -> bool { return notified; });
@@ -83,7 +87,7 @@ void example3 () {
 
 	bool finished = false;
 
-	std::jthread producer ([&] () -> void {
+	const std::jthread producer ([&] () -> void {
 		for (int i = 0; i < 5; i++) {
 			{
 				std::unique_lock <std::mutex> lock (mtx);
@@ -109,7 +113,7 @@ void example3 () {
 		cond.notify_one ();
 	});
 
-	std::jthread consumer ([&] () -> void {
+	const std::jthread consumer ([&] () -> void {
 		while (true) {
 			{
 				std::unique_lock <std::mutex> lock (mtx);
@@ -146,12 +150,12 @@ void example4 () {
 		batch_end_sem.release ();
 	});
 
-	std::jthread producer ([&] () -> void {
+	const std::jthread producer ([&] () -> void {
 		for (std::size_t i = 0; i < product_count; i++) {
 			{
-				std::scoped_lock <std::mutex> lock (mtx);
+				const std::scoped_lock <std::mutex> lock (mtx);
 
-				result += i;
+				result += static_cast <int> (i);
 				result_ready = true;
 				std::cout << "produced: " << result << '\n';
 			}
@@ -162,7 +166,7 @@ void example4 () {
 		}
 
 		{
-			std::scoped_lock <std::mutex> lock (mtx);
+			const std::scoped_lock <std::mutex> lock (mtx);
 			finished = true;
 			result_ready = true;
 			std::cout << "producer finished\n";
@@ -186,9 +190,12 @@ void example4 () {
 						std::cout << "consumer " << consumer_id << " finished\n";
 						break;
 					}
+
+					// reading result under the lock
 					_result = result;
 				}
 
+				// processing the result in parallel
 				std::osyncstream (std::cout) << "consumer " << consumer_id << " got result " << _result << '\n';
 
 				barrier.arrive_and_wait ();
@@ -197,6 +204,81 @@ void example4 () {
 	}
 }
 
+void example5 () {
+	const std::size_t numProducers = 5;
+	const std::size_t numProductsPerProducer = 5;
+
+	std::mutex mtx;
+	std::condition_variable cond;
+	std::queue <std::size_t> resultQueue;
+
+	bool finished = false;
+
+	std::barrier finishBarrier (numProducers, [&] () -> void {
+		{
+			std::scoped_lock <std::mutex> lock (mtx);
+			finished = true;
+		}
+		cond.notify_one ();
+	});
+
+	std::jthread consumer ([&] () -> void {
+		while (true) {
+			std::stack <std::size_t> procStack;
+			bool _finished = false;
+
+			{
+				std::unique_lock <std::mutex> lock (mtx);
+				cond.wait (lock, [&finished, &resultQueue] () -> bool {
+					return finished || false == resultQueue.empty ();
+				});
+
+				while (false == resultQueue.empty ()) {
+					procStack.push (resultQueue.front ());
+					resultQueue.pop ();
+				}
+
+				_finished = finished;
+
+				std::cout << "==========\n";
+			}
+
+			while (false == procStack.empty ()) {
+				std::size_t r = procStack.top ();
+				procStack.pop ();
+
+				std::osyncstream (std::cout) << "GOT: " << r << '\n';
+			}
+
+			if (true == _finished) {
+				break;
+			}
+		}
+	});
+
+	std::vector <std::jthread> producers;
+	producers.reserve (numProducers);
+
+	for (std::size_t i = 0; i < numProducers; i++) {
+		producers.emplace_back ([&, result = 0] () mutable -> void {
+			for (std::size_t j = 0; j < numProductsPerProducer; j++) {
+				result += static_cast <int> (j);
+
+				{
+					std::scoped_lock <std::mutex> lock (mtx);
+					resultQueue.push (result);
+				}
+
+				cond.notify_one ();
+			}
+
+			finishBarrier.arrive_and_drop ();
+		});
+	}
+}
+
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
+// NOLINTEND(llvm-prefer-static-over-anonymous-namespace)
 } // end anonymous namespace
 
 int main () {
@@ -207,4 +289,6 @@ int main () {
 	example3 ();
 	std::cout << "====================\n";
 	example4 ();
+	std::cout << "====================\n";
+	example5 ();
 }

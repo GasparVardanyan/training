@@ -20,7 +20,7 @@ class Integer {
 public:
 	explicit Integer (int i) : i (i) {}
 
-	inline void print () { // NOLINT (readability-make-member-function-const)
+	inline void print () { // NOLINT(readability-make-member-function-const)
 		std::cout << "int: " << i << '\n';
 	}
 
